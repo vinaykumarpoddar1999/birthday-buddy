@@ -9,6 +9,7 @@ import {
   Package,
   type LucideIcon,
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
 import { EVENT_TYPE_CONFIG } from '../constants/event-types';
@@ -42,11 +43,17 @@ function ActionButton({
 }) {
   const Icon = actionIconMap[icon];
 
+  const handlePress = () => {
+    if (label === 'Create Card') {
+      router.push('/card-studio');
+    }
+  };
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={() => {}}
+      onPress={handlePress}
       className="flex-row items-center justify-center border border-border rounded-lg px-2 py-1.5 min-h-[32px] bg-surface gap-1">
       <Icon size={12} color="#7C3AED" strokeWidth={2} />
       <Text className="text-[10px] text-foreground font-semibold">{label}</Text>

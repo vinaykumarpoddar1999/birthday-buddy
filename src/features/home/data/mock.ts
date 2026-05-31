@@ -82,8 +82,8 @@ export const homeMock = {
   ],
   actionGrid: [
     { id: 'add', label: 'Add Person', icon: 'user-plus' as const },
-    { id: 'import', label: 'Import Contacts', icon: 'book' as const },
+    { id: 'create-card', label: 'Create Card', icon: 'gift' as const },
     { id: 'group', label: 'Group Gift', icon: 'users' as const },
-    { id: 'surprise', label: 'Surprise Me', icon: 'gift' as const },
+    { id: 'import', label: 'Import Contacts', icon: 'book' as const },
   ],
 };

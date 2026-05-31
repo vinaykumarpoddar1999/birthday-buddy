@@ -33,6 +33,17 @@ export function HomeDashboardScreen() {
     if (upcomingPeople.length === 0) return null;
     const next = upcomingPeople[0];
     const days = getDaysUntilBirthday(next.birthDate);
+    const quickActions = homeMock.nextBirthday.quickActions.map((qa) => ({
+      ...qa,
+      onPress:
+        qa.title === 'Create Card'
+          ? () =>
+              router.push({
+                pathname: '/card-studio',
+                params: { personId: next.id },
+              })
+          : undefined,
+    }));
     return {
       name: next.fullName,
       age: getAgeAtNextBirthday(next.birthDate),
@@ -40,7 +51,7 @@ export function HomeDashboardScreen() {
       countdown: getCountdownLabel(days),
       friendCount: 0,
       extraFriends: 0,
-      quickActions: homeMock.nextBirthday.quickActions,
+      quickActions,
     };
   }, [upcomingPeople]);
 
@@ -55,7 +66,12 @@ export function HomeDashboardScreen() {
     () =>
       homeMock.actionGrid.map((item) => ({
         ...item,
-        onPress: item.id === 'add' ? () => router.push('/add-person') : undefined,
+        onPress:
+          item.id === 'add'
+            ? () => router.push('/add-person')
+            : item.id === 'create-card'
+              ? () => router.push('/card-studio')
+              : undefined,
       })),
     [],
   );

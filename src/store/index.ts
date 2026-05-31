@@ -9,3 +9,4 @@ export {
   type Gender,
   type PersonEventType,
 } from './people.store';
+export { useCardStudioStore } from '@features/card-studio/store/card-studio.store';

@@ -1,6 +1,7 @@
 import { Text, View, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Image as ImageIcon, Music, Sparkles } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 function CardMock({ rotate, offsetX, zIndex, colors }: {
   rotate: string;
@@ -40,7 +41,7 @@ export function PromoBanner() {
             <Pressable
               accessibilityRole="button"
               className="mt-3 self-start bg-primary rounded-full px-4 py-2.5 flex-row items-center"
-              onPress={() => {}}>
+              onPress={() => router.push('/card-studio')}>
               <Text className="text-caption text-white font-semibold">Explore Cards</Text>
               <ChevronRight size={14} color="#FFFFFF" />
             </Pressable>

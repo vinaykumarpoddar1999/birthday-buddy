@@ -19,16 +19,17 @@ export type QuickActionCardProps = {
   subtitle: string;
   icon: 'wand' | 'video' | 'link' | 'gift';
   tint: string;
+  onPress?: () => void;
 };
 
-export function QuickActionCard({ title, subtitle, icon, tint }: QuickActionCardProps) {
+export function QuickActionCard({ title, subtitle, icon, tint, onPress }: QuickActionCardProps) {
   const Icon = iconMap[icon] ?? Sparkles;
 
   return (
     <Pressable
       accessibilityRole="button"
       className="flex-1 items-center py-2.5 px-0.5"
-      onPress={() => {}}>
+      onPress={onPress ?? (() => {})}>
       <View
         className="h-10 w-10 rounded-xl items-center justify-center mb-1.5"
         style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
