@@ -25,7 +25,7 @@ export function UpcomingBirthdayList({ items }: UpcomingBirthdayListProps) {
         </View>
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/calendar')}
+          onPress={() => router.push('/(tabs)/calendar')}
           className="flex-row items-center gap-1">
           <Text className="text-[12px] text-primary font-semibold">Calendar</Text>
         </Pressable>

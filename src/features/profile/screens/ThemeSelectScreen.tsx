@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { LucideIcon } from 'lucide-react-native';
 
 import { useProfileStore } from '../store/profile.store';
-import { useThemeStore } from '@store/theme.store';
+import { useThemeStore } from '@/stores/theme.store';
 
 type ThemeItem = { key: 'light' | 'dark' | 'system'; icon: LucideIcon; title: string; desc: string; bg: string; iconColor: string };
 

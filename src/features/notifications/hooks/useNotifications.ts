@@ -1,35 +1,27 @@
-import { useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import {
-  requestNotificationPermissions,
-  syncPushToken,
-} from '@services/notifications';
-import { useAuthStore } from '@store/auth.store';
-import { useNotificationStore } from '@store/notification.store';
+import { appNotificationService } from '@/services/notifications/app-notification.service';
+
+export const notificationQueryKeys = {
+  all: ['notifications'] as const,
+};
 
 export function useNotifications() {
-  const userId = useAuthStore((s) => s.user?.id);
-  const setPushToken = useNotificationStore((s) => s.setPushToken);
-  const setPermissionGranted = useNotificationStore((s) => s.setPermissionGranted);
-  const pushToken = useNotificationStore((s) => s.pushToken);
-  const permissionGranted = useNotificationStore((s) => s.permissionGranted);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    async function setup() {
-      const granted = await requestNotificationPermissions();
-      setPermissionGranted(granted);
+  const query = useQuery({
+    queryKey: notificationQueryKeys.all,
+    queryFn: () => appNotificationService.list(),
+  });
 
-      if (granted && userId) {
-        const token = await syncPushToken(userId);
-        setPushToken(token);
-      }
-    }
-
-    setup();
-  }, [userId, setPermissionGranted, setPushToken]);
+  const markRead = useMutation({
+    mutationFn: (id: string) => appNotificationService.markRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all }),
+  });
 
   return {
-    pushToken,
-    permissionGranted,
+    notifications: query.data ?? [],
+    isLoading: query.isLoading,
+    markRead: markRead.mutate,
   };
 }

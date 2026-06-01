@@ -37,15 +37,28 @@ export type UpcomingEventCardProps = {
 function ActionButton({
   label,
   icon,
+  personId,
 }: {
   label: string;
   icon: UpcomingEventActionIcon;
+  personId?: string;
 }) {
   const Icon = actionIconMap[icon];
 
   const handlePress = () => {
-    if (label === 'Create Card') {
-      router.push('/card-studio');
+    if (label === 'Create Card' || label === 'Plan Surprise') {
+      router.push({
+        pathname: '/card-studio',
+        params: personId ? { personId } : undefined,
+      });
+      return;
+    }
+    if (label === 'Send Wish' && personId) {
+      router.push({ pathname: '/ai-wish', params: { personId } });
+      return;
+    }
+    if (label === 'Gift Ideas' && personId) {
+      router.push({ pathname: '/ai-wish', params: { personId } });
     }
   };
 
@@ -96,8 +109,16 @@ export function UpcomingEventCard({ event }: UpcomingEventCardProps) {
       </View>
 
       <View className="gap-1.5 shrink-0 w-[88px]">
-        <ActionButton label={event.primaryAction.label} icon={event.primaryAction.icon} />
-        <ActionButton label={event.secondaryAction.label} icon={event.secondaryAction.icon} />
+        <ActionButton
+          label={event.primaryAction.label}
+          icon={event.primaryAction.icon}
+          personId={event.personId}
+        />
+        <ActionButton
+          label={event.secondaryAction.label}
+          icon={event.secondaryAction.icon}
+          personId={event.personId}
+        />
       </View>
     </View>
   );

@@ -1,14 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
-
-import { shareContent, type ShareContentInput } from '../api/sharing.api';
-
+/** Offline v1: sharing uses native share sheets from screens */
 export function useSharing() {
-  const shareMutation = useMutation({
-    mutationFn: (input: ShareContentInput) => shareContent(input),
-  });
-
-  return {
-    share: shareMutation.mutateAsync,
-    isSharing: shareMutation.isPending,
-  };
+  return { share: async () => {} };
 }

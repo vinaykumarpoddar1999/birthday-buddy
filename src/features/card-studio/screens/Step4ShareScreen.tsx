@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { feedback } from '@/shared/feedback';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Check,
@@ -14,6 +15,8 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 
+import { cardService } from '@/services/card/card.service';
+
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardRenderer } from '../components/preview/CardRenderer';
 
@@ -24,6 +27,8 @@ export function Step4ShareScreen() {
   const template = useCardStudioStore((s) => s.selectedTemplate);
   const personalization = useCardStudioStore((s) => s.personalization);
   const elements = useCardStudioStore((s) => s.elements);
+  const customBackground = useCardStudioStore((s) => s.customBackground);
+  const preFilledPersonId = useCardStudioStore((s) => s.preFilledPersonId);
   const saveDraft = useCardStudioStore((s) => s.saveDraft);
   const reset = useCardStudioStore((s) => s.reset);
 
@@ -37,10 +42,24 @@ export function Step4ShareScreen() {
     try {
       return await captureRef(cardRef, { format: 'png', quality: 1, result: 'tmpfile' });
     } catch {
-      Alert.alert('Error', 'Could not capture card.');
+      feedback.error('Error', 'Could not capture card.');
       return null;
     }
   }, []);
+
+  const persistCard = useCallback(
+    async (exportUri?: string): Promise<string | undefined> => {
+      if (!template) return undefined;
+      return cardService.saveStudioCard({
+        personUuid: preFilledPersonId,
+        templateId: template.id,
+        personalization,
+        elements,
+        exportUri,
+      });
+    },
+    [template, preFilledPersonId, personalization, elements],
+  );
 
   const handleDownload = useCallback(async () => {
     setSaving(true);
@@ -48,43 +67,48 @@ export function Step4ShareScreen() {
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Allow access to save images.');
+        feedback.error('Permission needed', 'Allow access to save images.');
         setSaving(false);
         return;
       }
       const uri = await capture();
       if (uri) {
         await MediaLibrary.saveToLibraryAsync(uri);
+        await persistCard(uri);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       }
     } catch {
-      Alert.alert('Error', 'Failed to save.');
+      feedback.error('Error', 'Failed to save.');
     }
     setSaving(false);
-  }, [capture]);
+  }, [capture, persistCard]);
 
   const handleShare = useCallback(async () => {
     setSharing(true);
     try {
       const ok = await Sharing.isAvailableAsync();
       if (!ok) {
-        Alert.alert('Not available', 'Sharing is not supported on this device.');
+        feedback.error('Not available', 'Sharing is not supported on this device.');
         setSharing(false);
         return;
       }
       const uri = await capture();
       if (uri) {
+        const cardUuid = await persistCard(uri);
         await Sharing.shareAsync(uri, {
           mimeType: 'image/png',
           dialogTitle: `Birthday card for ${personalization.recipientName}`,
         });
+        if (cardUuid) {
+          await cardService.logShared(cardUuid, 'share_sheet');
+        }
       }
     } catch {
-      Alert.alert('Error', 'Failed to share.');
+      feedback.error('Error', 'Failed to share.');
     }
     setSharing(false);
-  }, [capture, personalization.recipientName]);
+  }, [capture, personalization.recipientName, persistCard]);
 
   const handleCopy = useCallback(() => {
     const msg = [
@@ -96,7 +120,7 @@ export function Step4ShareScreen() {
     if (Platform.OS === 'web') {
       navigator.clipboard?.writeText(msg);
     }
-    Alert.alert('Copied!', 'Birthday message copied to clipboard.');
+    feedback.success('Copied!', 'Birthday message copied to clipboard.');
   }, [personalization]);
 
   if (!template) return null;
@@ -159,6 +183,7 @@ export function Step4ShareScreen() {
               personalization={personalization}
               elements={elements}
               scale={CARD_SCALE}
+              customBackground={customBackground}
             />
           </View>
         </View>
@@ -240,7 +265,7 @@ export function Step4ShareScreen() {
             <Pressable
               onPress={() => {
                 saveDraft();
-                Alert.alert('Saved!', 'Draft has been saved.');
+                feedback.success('Saved!', 'Draft has been saved.');
               }}
               className="flex-1 flex-row items-center justify-center bg-white rounded-2xl py-3.5 gap-2 border border-gray-100"
               style={({ pressed }) => ({

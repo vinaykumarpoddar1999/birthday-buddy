@@ -1,90 +1,117 @@
 import { router } from 'expo-router';
-import { Cake } from 'lucide-react-native';
-import { useMemo } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Cake, UserPlus } from 'lucide-react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EmptyState } from '@shared/ui/EmptyState';
+import { EmptyState, PageSkeleton } from '@shared/ui';
 import { SectionHeader } from '@shared/ui/SectionHeader';
-import { usePeopleStore } from '@store/people.store';
-import {
-  getBirthdayStats,
-  getDaysUntilBirthday,
-  getCountdownLabel,
-  getAgeAtNextBirthday,
-  formatBirthdayShort,
-  getUpcomingPeople,
-  toHomeUpcomingCard,
-} from '@features/people/utils/birthday-utils';
+import { feedback } from '@/shared/feedback';
+import { toHomeUpcomingCard } from '@features/people/utils/birthday-utils';
+import { useUpcomingPeople, useBirthdayStats, usePersonMutations } from '@features/people/hooks/usePeople';
+import { importContactsFromDevice } from '@/services/contacts/contacts-import.service';
 import {
   ActionGrid,
   AppHeader,
-  BirthdayHeroCard,
+  HomeFab,
   PromoBanner,
   StatCard,
+  UpcomingBirthdayBanner,
   UpcomingBirthdayCard,
 } from '../components';
-import { homeMock } from '../data/mock';
+import { HOME_ACTION_GRID } from '@/constants/home';
+import { useProfileStore } from '@features/profile/store/profile.store';
 
 export function HomeDashboardScreen() {
-  const people = usePeopleStore((s) => s.people);
-
-  const upcomingPeople = useMemo(() => getUpcomingPeople(people, 8), [people]);
-
-  const heroData = useMemo(() => {
-    if (upcomingPeople.length === 0) return null;
-    const next = upcomingPeople[0];
-    const days = getDaysUntilBirthday(next.birthDate);
-    const quickActions = homeMock.nextBirthday.quickActions.map((qa) => {
-      let onPress: (() => void) | undefined;
-
-      if (qa.title === 'Create Card') {
-        onPress = () =>
-          router.push({
-            pathname: '/card-studio',
-            params: { personId: next.id },
-          });
-      } else if (qa.title === 'AI Wish') {
-        onPress = () =>
-          router.push({
-            pathname: '/ai-wish',
-            params: { personId: next.id },
-          });
-      }
-
-      return { ...qa, onPress };
-    });
-    return {
-      name: next.fullName,
-      age: getAgeAtNextBirthday(next.birthDate),
-      dateLabel: formatBirthdayShort(next.birthDate),
-      countdown: getCountdownLabel(days),
-      friendCount: 0,
-      extraFriends: 0,
-      quickActions,
-    };
-  }, [upcomingPeople]);
+  const {
+    data: upcomingPeople = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useUpcomingPeople(8);
+  const { data: stats, isLoading: statsLoading } = useBirthdayStats();
+  const { invalidate } = usePersonMutations();
+  const userName = useProfileStore((s) => s.profile.fullName) || 'there';
+  const [importingContacts, setImportingContacts] = useState(false);
 
   const upcomingCards = useMemo(
     () => upcomingPeople.map((p, i) => toHomeUpcomingCard(p, i)),
     [upcomingPeople],
   );
 
-  const stats = useMemo(() => getBirthdayStats(people), [people]);
+  const statsData = stats ?? { todayCount: 0, upcoming30Count: 0, totalCount: 0 };
+
+  const handleImportContacts = useCallback(async () => {
+    if (importingContacts) return;
+    setImportingContacts(true);
+    try {
+      const result = await importContactsFromDevice();
+      await invalidate();
+      await refetch();
+      if (result.imported === 0) {
+        feedback.warning(
+          'No New Contacts',
+          result.skipped > 0
+            ? 'Contacts without birthdays or already in your list were skipped.'
+            : 'No contacts with birthdays were found on this device.',
+        );
+      } else {
+        feedback.success(
+          'Contacts Imported',
+          `Added ${result.imported} people${result.skipped > 0 ? ` · ${result.skipped} skipped` : ''}.`,
+        );
+      }
+    } catch (error) {
+      feedback.error(
+        'Import Failed',
+        error instanceof Error ? error.message : 'Could not import contacts.',
+      );
+    } finally {
+      setImportingContacts(false);
+    }
+  }, [importingContacts, invalidate, refetch]);
 
   const actionGridItems = useMemo(
     () =>
-      homeMock.actionGrid.map((item) => ({
+      HOME_ACTION_GRID.map((item) => ({
         ...item,
         onPress:
-          item.id === 'add'
-            ? () => router.push('/add-person')
-            : item.id === 'create-card'
-              ? () => router.push('/card-studio')
-              : undefined,
+          item.id === 'create-card'
+            ? () => router.push('/card-studio')
+            : item.id === 'group'
+              ? () => router.push('/(tabs)/contacts')
+              : item.id === 'import-contacts'
+                ? () => void handleImportContacts()
+                : item.id === 'ai-wish'
+                  ? () => router.push('/ai-wish')
+                  : undefined,
       })),
-    [],
+    [handleImportContacts],
   );
+
+  if (isLoading || statsLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <PageSkeleton />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <View className="px-5 pt-2">
+          <AppHeader userName={userName} />
+        </View>
+        <EmptyState
+          icon={Cake}
+          title="Could not load birthdays"
+          subtitle="Your data is stored offline. Tap retry to reload from SQLite."
+          primaryAction={{ label: 'Retry', onPress: () => void refetch() }}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -92,21 +119,22 @@ export function HomeDashboardScreen() {
         className="flex-1"
         contentContainerClassName="px-5 pt-2 pb-32"
         showsVerticalScrollIndicator={false}>
-        <AppHeader userName={homeMock.user.name} notificationCount={stats.todayCount} />
+        <AppHeader userName={userName} />
 
-        {/* Hero Birthday Card */}
-        <View className="mb-6">
-          {heroData ? (
-            <BirthdayHeroCard {...heroData} />
-          ) : (
+        {upcomingPeople.length > 0 ? (
+          <UpcomingBirthdayBanner people={upcomingPeople} />
+        ) : (
+          <View className="mb-6">
             <EmptyState
               icon={Cake}
               title="No upcoming birthdays"
-              subtitle="Add people to see upcoming birthdays here"
-              className="bg-primary/10 border border-primary/20 rounded-2xl py-6"
+              subtitle="Add people to see upcoming celebrations and live countdowns here."
+              primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
+              secondaryAction={{ label: 'Import Contacts', onPress: () => void handleImportContacts() }}
+              className="bg-primary/10 border border-primary/20 rounded-2xl"
             />
-          )}
-        </View>
+          </View>
+        )}
 
         <SectionHeader
           title="Upcoming Birthdays"
@@ -125,42 +153,41 @@ export function HomeDashboardScreen() {
             ))}
           </ScrollView>
         ) : (
-          <View className="bg-surface border border-border rounded-xl p-4 mb-5 items-center">
-            <Text className="text-caption text-foreground-secondary">
-              Add people to see upcoming birthdays
-            </Text>
-          </View>
+          <EmptyState
+            icon={UserPlus}
+            title="No birthdays yet"
+            subtitle="Your upcoming birthday cards will appear here."
+            className="bg-surface border border-border rounded-xl mb-5 py-6"
+          />
         )}
 
-        {/* Stats */}
         <View className="flex-row gap-3 mb-5">
           <StatCard
             title="Upcoming (30 days)"
-            value={String(stats.upcoming30Count)}
+            value={String(statsData.upcoming30Count)}
             subtitle="Birthdays coming up"
             icon="bell"
-            cardBg="bg-pastel-peach"
-            iconBg="bg-amber-200"
-            iconColor="#D97706"
-            actionBg="bg-amber-300"
-            actionColor="#92400E"
+            gradientColors={['#F59E0B', '#EA580C']}
+            onPress={() => router.push('/(tabs)/calendar')}
           />
           <StatCard
             title="Total People"
-            value={String(stats.totalCount)}
-            subtitle={stats.todayCount > 0 ? `${stats.todayCount} birthday${stats.todayCount === 1 ? '' : 's'} today` : 'Keep adding more'}
+            value={String(statsData.totalCount)}
+            subtitle={
+              statsData.todayCount > 0
+                ? `${statsData.todayCount} birthday${statsData.todayCount === 1 ? '' : 's'} today`
+                : 'Keep adding more'
+            }
             icon="flame"
-            cardBg="bg-pastel-lavender"
-            iconBg="bg-violet-200"
-            iconColor="#7C3AED"
-            actionBg="bg-violet-300"
-            actionColor="#5B21B6"
+            gradientColors={['#8B5CF6', '#6D28D9']}
+            onPress={() => router.push('/(tabs)/contacts')}
           />
         </View>
 
         <PromoBanner />
         <ActionGrid items={actionGridItems} />
       </ScrollView>
+      <HomeFab />
     </SafeAreaView>
   );
 }

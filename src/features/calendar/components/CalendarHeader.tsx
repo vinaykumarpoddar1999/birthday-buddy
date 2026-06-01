@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import { CalendarDays, MoreVertical, Search, SlidersHorizontal } from 'lucide-react-native';
 
@@ -21,21 +22,21 @@ export function CalendarHeader() {
           iconColor="#374151"
           size="sm"
           accessibilityLabel="Search calendar"
-          onPress={() => {}}
+          onPress={() => router.push('/search')}
         />
         <IconButton
           icon={SlidersHorizontal}
           iconColor="#374151"
           size="sm"
-          accessibilityLabel="Filter events"
-          onPress={() => {}}
+          accessibilityLabel="Filter people"
+          onPress={() => router.push('/(tabs)/contacts')}
         />
         <IconButton
           icon={MoreVertical}
           iconColor="#374151"
           size="sm"
-          accessibilityLabel="More options"
-          onPress={() => {}}
+          accessibilityLabel="Open settings"
+          onPress={() => router.push('/(tabs)/profile')}
         />
       </View>
     </View>

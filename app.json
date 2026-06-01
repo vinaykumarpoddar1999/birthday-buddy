@@ -8,9 +8,18 @@
     "scheme": "birthdaybuddy",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.birthdaybuddy.app"
     },
     "android": {
+      "package": "com.birthdaybuddy.app",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -44,15 +53,17 @@
       ],
       "expo-secure-store",
       "expo-font",
-      "expo-image",
-      "expo-sharing",
-      "expo-status-bar",
-      "expo-web-browser",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-background-fetch",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow BirthdayBuddy to import birthdays from your contacts."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true,
       "tsconfigPaths": true
     }
   }

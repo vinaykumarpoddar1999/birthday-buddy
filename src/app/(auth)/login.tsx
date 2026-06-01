@@ -17,7 +17,7 @@ export default function LoginScreen() {
   async function onSubmit() {
     setError(undefined);
     try {
-      await signIn({ email: email.trim(), password });
+      await signIn();
     } catch (err) {
       const appError = handleApiError(err);
       setError(appError.message);

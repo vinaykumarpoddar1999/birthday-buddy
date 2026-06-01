@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 
@@ -17,7 +18,7 @@ export function UpcomingSection({ monthLabel, events }: UpcomingSectionProps) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="View all upcoming events"
-          onPress={() => {}}
+          onPress={() => router.push('/(tabs)/calendar')}
           className="flex-row items-center min-h-[44px]">
           <Text className="text-caption text-primary font-semibold">View All</Text>
           <ChevronRight size={14} color="#7C3AED" />

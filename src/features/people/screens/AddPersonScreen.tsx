@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { feedback } from '@/shared/feedback';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
   Bell,
@@ -24,10 +25,9 @@ import {
   X,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -40,8 +40,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
-import { usePeopleStore } from '@store/people.store';
-import type { Gender, PersonEventType, RelationshipType } from '@store/people.store';
+import { usePerson, usePersonMutations } from '@features/people/hooks/usePeople';
+import type { EventType, Gender, Person, RelationshipType } from '@/types/entities';
 import { getAge } from '../utils/birthday-utils';
 
 const schema = z.object({
@@ -63,12 +63,45 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+type PersonEventType = 'birthday' | 'anniversary' | 'wedding' | 'custom';
+
 const EVENT_TABS: { id: PersonEventType; label: string; Icon: LucideIcon }[] = [
   { id: 'birthday', label: 'Birthday', Icon: Cake },
   { id: 'anniversary', label: 'Anniversary', Icon: Heart },
   { id: 'wedding', label: 'Wedding', Icon: Gem },
   { id: 'custom', label: 'Custom', Icon: Star },
 ];
+
+function mapEventType(type: PersonEventType): EventType {
+  if (type === 'wedding') return 'wedding_anniversary';
+  return type;
+}
+
+function eventTypeFromPerson(type: EventType): PersonEventType {
+  if (type === 'wedding_anniversary') return 'wedding';
+  if (type === 'custom') return 'custom';
+  if (type === 'anniversary') return 'anniversary';
+  return 'birthday';
+}
+
+function personToFormValues(person: Person): FormValues {
+  return {
+    fullName: person.fullName,
+    nickname: person.nickname ?? '',
+    gender: person.gender,
+    birthDate: person.birthDate,
+    relationship: person.relationship,
+    phone: person.phone ?? '',
+    email: person.email ?? '',
+    favoriteColor: person.favoriteColor ?? '',
+    favoriteCake: person.favoriteCake ?? '',
+    hobbies: person.hobbies ?? [],
+    notes: person.notes ?? '',
+    reminderDaysBefore: person.reminderDaysBefore,
+    reminderTime: person.reminderTime,
+    repeatYearly: person.repeatYearly,
+  };
+}
 
 const RELATIONSHIPS: { value: RelationshipType; label: string }[] = [
   { value: 'friend', label: 'Best Friend' },
@@ -317,7 +350,10 @@ function OptionPickerModal({
 // ─── Main Screen ───────────────────────────────────────────────────────────
 
 export function AddPersonScreen() {
-  const addPerson = usePeopleStore((s) => s.addPerson);
+  const { personId } = useLocalSearchParams<{ personId?: string }>();
+  const isEditing = Boolean(personId);
+  const { data: existingPerson } = usePerson(personId);
+  const { addPerson, updatePerson } = usePersonMutations();
 
   const [eventType, setEventType] = useState<PersonEventType>('birthday');
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -330,7 +366,7 @@ export function AddPersonScreen() {
   const [showReminderPicker, setShowReminderPicker] = useState(false);
 
   const {
-    control, handleSubmit, watch, setValue, getValues,
+    control, handleSubmit, watch, setValue, getValues, reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -359,15 +395,22 @@ export function AddPersonScreen() {
   const reminderTime = watch('reminderTime');
   const computedAge = birthDate ? (() => { try { return getAge(birthDate); } catch { return null; } })() : null;
 
+  useEffect(() => {
+    if (!existingPerson) return;
+    reset(personToFormValues(existingPerson));
+    setEventType(eventTypeFromPerson(existingPerson.eventType));
+    if (existingPerson.avatarUri) setProfileImage(existingPerson.avatarUri);
+  }, [existingPerson, reset]);
+
   const pickImage = useCallback(async (source: 'camera' | 'gallery') => {
     let result: ImagePicker.ImagePickerResult;
     if (source === 'camera') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') { Alert.alert('Permission needed', 'Camera access is required.'); return; }
+      if (status !== 'granted') { feedback.error('Permission needed', 'Camera access is required.'); return; }
       result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     } else {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') { Alert.alert('Permission needed', 'Photo library access is required.'); return; }
+      if (status !== 'granted') { feedback.error('Permission needed', 'Photo library access is required.'); return; }
       result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     }
     if (!result.canceled && result.assets[0]) setProfileImage(result.assets[0].uri);
@@ -387,8 +430,8 @@ export function AddPersonScreen() {
   );
 
   const onSubmit = useCallback(
-    (data: FormValues) => {
-      addPerson({
+    async (data: FormValues) => {
+      const payload = {
         fullName: data.fullName,
         nickname: data.nickname,
         gender: data.gender as Gender,
@@ -400,17 +443,25 @@ export function AddPersonScreen() {
         favoriteCake: data.favoriteCake,
         hobbies: data.hobbies,
         notes: data.notes,
-        profileImage: profileImage ?? undefined,
+        avatarUri: profileImage ?? undefined,
         reminderDaysBefore: data.reminderDaysBefore,
         reminderTime: data.reminderTime,
         repeatYearly: data.repeatYearly,
-        eventType,
-      });
-      Alert.alert('Person Added', `${data.fullName} has been added.`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+        eventType: mapEventType(eventType),
+      };
+
+      if (isEditing && personId) {
+        await updatePerson({ id: personId, ...payload });
+        feedback.success('Person Updated', `${data.fullName} has been saved.`);
+        router.back();
+        return;
+      }
+
+      await addPerson(payload);
+      feedback.success('Person Added', `${data.fullName} has been added.`);
+      router.back();
     },
-    [addPerson, profileImage, eventType],
+    [addPerson, updatePerson, profileImage, eventType, isEditing, personId],
   );
 
   const relLabel = RELATIONSHIPS.find((r) => r.value === watch('relationship'))?.label ?? 'Select';
@@ -418,17 +469,63 @@ export function AddPersonScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center px-5 pt-2 pb-3">
-        <Pressable
-          onPress={() => router.back()}
-          className="h-10 w-10 rounded-full bg-white border border-gray-100 items-center justify-center mr-3"
-          accessibilityRole="button">
-          <ArrowLeft size={20} color="#111827" />
-        </Pressable>
-        <View className="flex-1">
-          <Text className="text-[18px] font-bold text-foreground">Add Person</Text>
-          <Text className="text-[11px] text-foreground-muted">Birthday, anniversary or special day</Text>
-        </View>
+      <View className="mx-5 mb-4 rounded-3xl overflow-hidden"
+        style={{
+          shadowColor: '#6D28D9',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.25,
+          shadowRadius: 14,
+          elevation: 8,
+        }}>
+        <LinearGradient
+          colors={['#A78BFA', '#7C3AED', '#5B21B6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ paddingHorizontal: 18, paddingVertical: 18 }}>
+          <View className="flex-row items-center">
+            <Pressable
+              onPress={() => router.back()}
+              style={{
+                height: 40,
+                width: 40,
+                borderRadius: 20,
+                backgroundColor: 'rgba(255,255,255,0.22)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12,
+              }}
+              accessibilityRole="button">
+              <ArrowLeft size={20} color="#FFFFFF" />
+            </Pressable>
+            <View className="flex-1">
+              <View className="flex-row items-center gap-2.5">
+                <View
+                  style={{
+                    height: 36,
+                    width: 36,
+                    borderRadius: 12,
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  {isEditing ? (
+                    <Sparkles size={18} color="#FCD34D" />
+                  ) : (
+                    <User size={18} color="#FCD34D" />
+                  )}
+                </View>
+                <View className="flex-1">
+                  <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 }}>
+                    {isEditing ? 'Edit Person' : 'Add Person'}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>
+                    {isEditing ? 'Update contact details & reminders' : 'Birthday, anniversary or special day'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
       </View>
 
       <ScrollView
@@ -775,7 +872,13 @@ export function AddPersonScreen() {
           <View className="rounded-2xl overflow-hidden mb-6">
             <LinearGradient colors={['#7C3AED', '#5B21B6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               <Pressable
-                onPress={() => Alert.alert('Coming Soon', 'AI gift suggestions will be available soon!')}
+                onPress={() => {
+                  if (personId) {
+                    router.push({ pathname: '/ai-wish', params: { personId } });
+                    return;
+                  }
+                  feedback.warning('Save first', 'Save this person to generate AI gift suggestions.');
+                }}
                 className="flex-row items-center px-5 py-4 gap-3"
                 accessibilityRole="button">
                 <Sparkles size={22} color="#FCD34D" />

@@ -1,13 +1,5 @@
-import { Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Redirect } from 'expo-router';
 
 export default function AddScreen() {
-  return (
-    <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
-      <Text className="text-heading text-foreground font-bold">Add Celebration</Text>
-      <Text className="text-body text-foreground-secondary mt-2 text-center">
-        Static placeholder — add person flow coming soon.
-      </Text>
-    </SafeAreaView>
-  );
+  return <Redirect href="/add-person" />;
 }

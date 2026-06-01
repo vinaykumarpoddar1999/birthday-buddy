@@ -1,16 +1,15 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { fetchGiftSuggestions } from '../api/gifts.api';
-import type { SuggestGiftsParams } from '../types';
+import { suggestGift } from '@services/ai/ai.service';
 
 export function useGifts() {
-  const suggestMutation = useMutation({
-    mutationFn: (params: SuggestGiftsParams) => fetchGiftSuggestions(params),
+  const mutation = useMutation({
+    mutationFn: () => suggestGift(),
   });
 
   return {
-    suggestions: suggestMutation.data,
-    suggestGifts: suggestMutation.mutateAsync,
-    isLoading: suggestMutation.isPending,
+    suggestGifts: mutation.mutateAsync,
+    suggestions: mutation.data?.suggestions ?? [],
+    isLoading: mutation.isPending,
   };
 }

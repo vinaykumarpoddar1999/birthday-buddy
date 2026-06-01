@@ -1,5 +1,13 @@
-export type AppLanguage = 'english' | 'hindi' | 'bengali' | 'spanish' | 'french' | 'german';
-export type AppCurrency = 'INR' | 'USD' | 'EUR' | 'GBP';
+export type AppLanguage =
+  | 'english'
+  | 'hindi'
+  | 'bengali'
+  | 'spanish'
+  | 'french'
+  | 'german'
+  | 'arabic'
+  | 'japanese';
+export type AppCurrency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD';
 export type ThemeOption = 'light' | 'dark' | 'system';
 export type AppIconOption = 'classic' | 'premium' | 'gift' | 'cake' | 'party';
 
@@ -13,6 +21,8 @@ export interface UserProfile {
   location: string;
   bio: string;
   profileImage: string | null;
+  relationshipStatus: string;
+  preferences: string;
   isPremium: boolean;
   streak: number;
   joinedAt: string;
@@ -22,8 +32,11 @@ export interface NotificationPreferences {
   pushNotifications: boolean;
   birthdayAlerts: boolean;
   wishSuggestions: boolean;
+  cardSuggestions: boolean;
   specialEventAlerts: boolean;
   systemNotifications: boolean;
+  marketingNotifications: boolean;
+  activityUpdates: boolean;
 }
 
 export interface ReminderSettings {
@@ -31,6 +44,11 @@ export interface ReminderSettings {
   quietHoursStart: string;
   quietHoursEnd: string;
   birthdayAlarm: boolean;
+  reminderDaysBefore: number[];
+  multipleReminderTimes: string[];
+  weekendRules: 'same' | 'skip' | 'earlier';
+  notificationSound: boolean;
+  vibration: boolean;
 }
 
 export interface PrivacySettings {
@@ -38,18 +56,41 @@ export interface PrivacySettings {
   biometricLock: boolean;
   appLock: boolean;
   hidePersonalData: boolean;
+  privateMode: boolean;
+  autoLockMinutes: number;
 }
 
 export interface BackupSettings {
   cloudBackup: boolean;
   localBackup: boolean;
+  autoBackup: boolean;
   lastBackupDate: string | null;
   backupStatus: 'idle' | 'backing_up' | 'restoring' | 'completed' | 'failed';
 }
 
+export interface AppearanceSettings {
+  theme: ThemeOption;
+  accentColor: string;
+  fontSize: 'small' | 'medium' | 'large';
+  cardStyle: 'classic' | 'modern' | 'minimal';
+  animationsEnabled: boolean;
+  layoutDensity: 'compact' | 'comfortable' | 'spacious';
+}
+
+export interface CalendarSyncProvider {
+  enabled: boolean;
+  lastSyncAt: string | null;
+}
+
+export interface CalendarSyncSettings {
+  google: CalendarSyncProvider;
+  apple: CalendarSyncProvider;
+  outlook: CalendarSyncProvider;
+}
+
 export interface AppNotification {
   id: string;
-  type: 'birthday' | 'wish' | 'reminder' | 'system' | 'premium' | 'activity';
+  type: 'birthday' | 'wish' | 'reminder' | 'system' | 'premium' | 'activity' | 'card';
   title: string;
   message: string;
   timestamp: string;
@@ -61,7 +102,19 @@ export interface AppNotification {
 
 export interface ActivityEntry {
   id: string;
-  type: 'wish_generated' | 'card_created' | 'person_added' | 'person_edited' | 'person_deleted' | 'reminder_set' | 'card_shared' | 'card_downloaded';
+  type:
+    | 'wish_generated'
+    | 'card_created'
+    | 'person_added'
+    | 'person_edited'
+    | 'person_deleted'
+    | 'reminder_set'
+    | 'card_shared'
+    | 'card_downloaded'
+    | 'settings_changed'
+    | 'backup_created'
+    | 'import_performed'
+    | 'export_performed';
   title: string;
   description: string;
   timestamp: string;
@@ -78,6 +131,17 @@ export interface FeedbackEntry {
   screenshotUri?: string;
   createdAt: string;
   rating?: number;
+}
+
+export interface CardHistoryEntry {
+  id: string;
+  cardUuid?: string;
+  templateId?: string;
+  personId?: string;
+  action: 'created' | 'downloaded' | 'shared' | 'favorite' | 'draft';
+  title: string;
+  timestamp: string;
+  metadata?: Record<string, string>;
 }
 
 export interface SearchResult {

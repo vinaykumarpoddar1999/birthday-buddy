@@ -31,6 +31,7 @@ export type UpcomingEventAction = {
 
 export type UpcomingEvent = {
   id: string;
+  personId?: string;
   day: number;
   weekday: string;
   month: string;

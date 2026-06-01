@@ -5,7 +5,10 @@ export type ErrorCode =
   | 'VALIDATION'
   | 'NETWORK'
   | 'NOT_FOUND'
-  | 'FORBIDDEN';
+  | 'FORBIDDEN'
+  | 'DATABASE'
+  | 'REPOSITORY'
+  | 'MIGRATION';
 
 export class AppError extends Error {
   readonly code: ErrorCode;
@@ -40,5 +43,19 @@ export class ValidationError extends AppError {
     super(message, 'VALIDATION', 400);
     this.name = 'ValidationError';
     this.field = field;
+  }
+}
+
+export class NavigationError extends AppError {
+  constructor(message: string) {
+    super(message, 'UNKNOWN');
+    this.name = 'NavigationError';
+  }
+}
+
+export class UIError extends AppError {
+  constructor(message: string) {
+    super(message, 'UNKNOWN');
+    this.name = 'UIError';
   }
 }

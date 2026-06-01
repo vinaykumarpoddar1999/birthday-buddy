@@ -1,1 +1,1 @@
-export { uploadFile, deleteFile, getPublicUrl } from './storage.service';
+export { uploadImage, deleteImage } from './storage.service';

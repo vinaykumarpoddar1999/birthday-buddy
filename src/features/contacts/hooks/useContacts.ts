@@ -1,44 +1,79 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@/lib/react-query';
-import { useAuthStore } from '@store/auth.store';
-import { analytics, ANALYTICS_EVENTS } from '@services/analytics';
-import { createContact, deleteContact, fetchContacts, updateContact } from '../api/contacts.api';
-import type { CreateContactInput, UpdateContactInput } from '../types';
+import { usePeople, usePersonMutations } from '@features/people/hooks/usePeople';
+import type { CreateContactInput, UpdateContactInput, Contact } from '../types';
+import type { CreatePersonInput } from '@/types/entities';
+
+function toContactFromPerson(p: {
+  id: string;
+  fullName: string;
+  phone?: string;
+  email?: string;
+  relationship: string;
+  birthDate: string;
+  notes?: string;
+  createdAt: string;
+}): Contact {
+  return {
+    id: p.id,
+    name: p.fullName,
+    phone: p.phone ?? null,
+    email: p.email ?? null,
+    relationship: p.relationship,
+    dob: p.birthDate,
+    notes: p.notes ?? null,
+    user_id: 'local',
+    created_at: p.createdAt,
+  };
+}
 
 export function useContacts() {
-  const userId = useAuthStore((s) => s.user?.id);
+  const { data: people = [], isLoading, error } = usePeople();
+  const { addPerson, updatePerson, deletePerson } = usePersonMutations();
   const queryClient = useQueryClient();
 
-  const query = useQuery({
-    queryKey: queryKeys.contacts,
-    queryFn: () => fetchContacts(userId!),
-    enabled: Boolean(userId),
-  });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.contacts });
 
   const createMutation = useMutation({
-    mutationFn: (input: Omit<CreateContactInput, 'user_id'>) =>
-      createContact({ ...input, user_id: userId! }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.contacts });
-      analytics.track(ANALYTICS_EVENTS.BIRTHDAY_ADDED);
+    mutationFn: async (input: Omit<CreateContactInput, 'user_id'>) => {
+      const payload: CreatePersonInput = {
+        fullName: input.name,
+        birthDate: input.dob ?? '2000-01-01',
+        gender: 'other',
+        relationship: 'friend',
+        phone: input.phone ?? undefined,
+        email: input.email ?? undefined,
+        notes: input.notes ?? undefined,
+      };
+      return addPerson(payload);
     },
+    onSuccess: invalidate,
   });
 
   const updateMutation = useMutation({
-    mutationFn: (input: UpdateContactInput) => updateContact(input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.contacts }),
+    mutationFn: async (input: UpdateContactInput) => {
+      await updatePerson({
+        id: input.id,
+        fullName: input.name,
+        phone: input.phone ?? undefined,
+        email: input.email ?? undefined,
+        notes: input.notes ?? undefined,
+        birthDate: input.dob ?? undefined,
+      });
+    },
+    onSuccess: invalidate,
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteContact,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.contacts }),
+    mutationFn: deletePerson,
+    onSuccess: invalidate,
   });
 
   return {
-    contacts: query.data ?? [],
-    isLoading: query.isLoading,
-    error: query.error,
+    contacts: people.map(toContactFromPerson),
+    isLoading,
+    error,
     createContact: createMutation.mutateAsync,
     updateContact: updateMutation.mutateAsync,
     deleteContact: deleteMutation.mutateAsync,

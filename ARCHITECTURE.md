@@ -1,65 +1,72 @@
 # BirthdayBuddy Architecture
 
-Feature-driven + Clean Architecture with domain modules under `src/features/`.
+Offline-first mobile app. **SQLite is the single source of truth.**
+
+## Data flow
+
+```text
+UI (Expo Router) → Hooks → Services → Repositories → SQLite
+                 ↘ Zustand (UI state only)
+```
+
+Screens must never import `expo-sqlite` or run SQL directly.
 
 ## Folder structure
 
-
 ```text
 src/
-├── app/                 # Expo Router screens only
-├── shared/              # UI design system, errors, providers
-├── features/            # Domain modules (auth, contacts, birthdays, …)
-├── services/            # Cross-cutting infra (AI, analytics, notifications, storage)
-├── store/               # Zustand UI state only
-├── hooks/               # App-level hooks
-├── types/               # Shared TypeScript types
-├── constants/
-├── lib/                 # Supabase, React Query, MMKV, secure storage
-└── config/              # Validated env (Zod)
+  app/              Expo Router screens
+  features/         UI, feature hooks (no Supabase api/)
+  shared/           Design system, providers, errors
+  database/         DatabaseManager, migrations, provider
+  repositories/     SQL + mapping + validation
+  services/         Business logic, transactions
+  stores/           Zustand UI state
+  hooks/            App-level hooks
+  types/            Domain entities
+  constants/
+  config/
+  utils/
 ```
 
-## State rules
+## State
 
 | Concern | Tool |
 |--------|------|
-| Server data (contacts, birthdays, wishes) | TanStack Query + `queryKeys` |
-| UI state (theme, modals, auth snapshot) | Zustand |
-| Auth tokens | `expo-secure-store` |
-| Settings / cache | `react-native-mmkv` |
+| Persistent data | SQLite via repositories |
+| Cache / refetch | TanStack Query (optional) |
+| Theme, filters, editor | Zustand |
+| Device id, keys | expo-secure-store |
 
-## Path aliases
+## Sync-ready columns
 
-- `@/*` → `src/*`
-- `@shared/*`, `@features/*`, `@services/*`, `@store/*`, `@config/*`
+All domain tables include: `uuid`, timestamps, `is_deleted`, `version`, `sync_status`, `device_id`, `last_synced_at`.
 
-## Environment
+## Card templates
 
-Copy `.env.example` to `.env` and set Supabase keys. Never use `process.env` in components — import from `@config/env`.
+Registry templates are mirrored into `card_templates` on startup. UI reads templates via `cardService` / TanStack Query; user cards persist in `cards`.
 
-## Supabase
+## Reminders
 
-- Migrations: `supabase/migrations/`
-- Edge Functions (AI): `supabase/functions/` — mobile calls functions, not OpenAI directly
-- RLS enabled on all tables
+`reminderService` schedules OS notifications and writes rows to `reminders` when people are created or updated.
 
-## Design system
+## Cloud
 
-Use components from `@shared/ui` only (`Button`, `Input`, `Avatar`, `Card`, `Modal`, `Sheet`, `Badge`, `Loader`).
+The `supabase/` folder is kept as a **future reference** only. Runtime does not call Supabase in v1.
 
-## Navigation
+## Database modules
 
-- `/(auth)/login`, `/(auth)/register` — unauthenticated
-- `/(tabs)/*` — main app (auth gate in `useAuthRedirect`)
-- Tabs: Home, Contacts, Celebrate, Premium, Settings
+| Module | Role |
+|--------|------|
+| `DatabaseManager` | Singleton connection, PRAGMAs, init |
+| `DatabaseProvider` | React gate until DB + hydration ready |
+| `MigrationRunner` / `MigrationRegistry` | Versioned forward migrations (v10) |
+| `QueryExecutor` | Parameterized query helpers |
+| `TransactionManager` | Transaction wrapper |
+| `BackupManager` | JSON + binary export |
+| `SchemaRegistry` | Table metadata for audits |
 
 ## Scripts
 
-See `SETUP.md` and `package.json` scripts (`supabase:db-push`, `supabase:functions-deploy`, `setup:env`, `typecheck`).
-
-## Next steps
-
-1. Fill `.env` with real Supabase keys (see `SETUP.md`)
-2. Run migrations (`001` → `004`)
-3. Deploy edge functions + `OPENAI_API_KEY` secret
-4. Wire Google Play / Apple IAP in `features/premium/api/premium.api.ts`
+- `npm run typecheck`
+- `npm start`

@@ -8,4 +8,5 @@ export { EventMarker, EventDot } from './EventMarker';
 export { EventLegend } from './EventLegend';
 export { UpcomingSection } from './UpcomingSection';
 export { UpcomingEventCard } from './UpcomingEventCard';
+export { CalendarEventList, CalendarTimelineView } from './CalendarEventList';
 export { FloatingActionButton } from './FloatingActionButton';

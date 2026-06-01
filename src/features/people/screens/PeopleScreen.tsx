@@ -1,9 +1,13 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { Users } from 'lucide-react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { usePeopleStore } from '@store/people.store';
+import { EmptyState, ErrorState, ListSkeleton } from '@shared/ui';
+import { usePeople } from '@features/people/hooks/usePeople';
+import { importContactsFromDevice } from '@/services/contacts/contacts-import.service';
+import { feedback } from '@/shared/feedback';
 import {
   getBirthdayStats,
   sortByUpcoming,
@@ -16,7 +20,7 @@ import { PeopleHeader } from '../components/PeopleHeader';
 import { SearchBar } from '../components/SearchBar';
 import { SortDropdown } from '../components/SortDropdown';
 import { UpcomingBirthdayList } from '../components/UpcomingBirthdayList';
-import { categories } from '../data/mock';
+import { PEOPLE_CATEGORIES } from '@/constants/people-categories';
 import type { CategoryId, Contact, SortDirection } from '../types';
 
 function matchCategory(contact: Contact, selectedCategory: CategoryId): boolean {
@@ -27,12 +31,42 @@ function matchCategory(contact: Contact, selectedCategory: CategoryId): boolean 
 }
 
 export function PeopleScreen() {
-  const people = usePeopleStore((s) => s.people);
+  const { data: people = [], isLoading, isError, refetch } = usePeople();
 
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('all');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterActive, setFilterActive] = useState(false);
+  const [importingContacts, setImportingContacts] = useState(false);
+
+  const handleImportContacts = useCallback(async () => {
+    if (importingContacts) return;
+    setImportingContacts(true);
+    try {
+      const result = await importContactsFromDevice();
+      await refetch();
+      if (result.imported === 0) {
+        feedback.warning(
+          'No New Contacts',
+          result.skipped > 0
+            ? 'Contacts without birthdays or already in your list were skipped.'
+            : 'No contacts with birthdays were found on this device.',
+        );
+      } else {
+        feedback.success(
+          'Contacts Imported',
+          `Added ${result.imported} people${result.skipped > 0 ? ` · ${result.skipped} skipped` : ''}.`,
+        );
+      }
+    } catch (error) {
+      feedback.error(
+        'Import Failed',
+        error instanceof Error ? error.message : 'Could not import contacts.',
+      );
+    } finally {
+      setImportingContacts(false);
+    }
+  }, [importingContacts, refetch]);
 
   const stats = useMemo(() => getBirthdayStats(people), [people]);
 
@@ -58,7 +92,7 @@ export function PeopleScreen() {
       else if (p.relationship === 'colleague') counts.colleague = (counts.colleague ?? 0) + 1;
       else counts.other = (counts.other ?? 0) + 1;
     }
-    return categories.map((c) => ({ ...c, count: counts[c.id] ?? 0 }));
+    return PEOPLE_CATEGORIES.map((c) => ({ ...c, count: counts[c.id] ?? 0 }));
   }, [people]);
 
   const filteredContacts = useMemo(() => {
@@ -81,18 +115,32 @@ export function PeopleScreen() {
       setFilterActive(false);
     } else {
       setFilterActive(true);
-      Alert.alert(
-        'Filter Options',
-        'Choose a filter',
-        [
-          { text: 'Friends Only', onPress: () => setSelectedCategory('friend') },
-          { text: 'Family Only', onPress: () => setSelectedCategory('family') },
-          { text: 'All People', onPress: () => setSelectedCategory('all') },
-          { text: 'Cancel', style: 'cancel', onPress: () => setFilterActive(false) },
+      feedback.actionSheet({
+        title: 'Filter Options',
+        options: [
+          { label: 'Friends Only', onPress: () => setSelectedCategory('friend') },
+          { label: 'Family Only', onPress: () => setSelectedCategory('family') },
+          { label: 'All People', onPress: () => setSelectedCategory('all') },
         ],
-      );
+      });
     }
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <ListSkeleton rows={8} />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <ErrorState kind="database" onRetry={() => void refetch()} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -119,17 +167,50 @@ export function PeopleScreen() {
             onSelectCategory={setSelectedCategory}
           />
 
-          {selectedCategory === 'all' && !searchText.trim() && (
-            <UpcomingBirthdayList items={upcomingBirthdayEvents} />
+          {people.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="No people yet"
+              subtitle="Add friends and family to track birthdays, send wishes, and create cards."
+              primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
+              secondaryAction={{
+                label: 'Import Contacts',
+                onPress: () => void handleImportContacts(),
+              }}
+              className="mt-4 bg-surface border border-border rounded-2xl"
+            />
+          ) : (
+            <>
+              {selectedCategory === 'all' && !searchText.trim() && (
+                <UpcomingBirthdayList items={upcomingBirthdayEvents} />
+              )}
+
+              <SortDropdown
+                sortDirection={sortDirection}
+                onToggleDirection={() => setSortDirection((v) => (v === 'asc' ? 'desc' : 'asc'))}
+                resultCount={filteredContacts.length}
+              />
+
+              {filteredContacts.length === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="No matches found"
+                  subtitle="Try a different search or filter to find people."
+                  primaryAction={{
+                    label: 'Clear Filters',
+                    onPress: () => {
+                      setSearchText('');
+                      setSelectedCategory('all');
+                      setFilterActive(false);
+                    },
+                  }}
+                  className="py-6"
+                />
+              ) : (
+                <ContactList contacts={filteredContacts} />
+              )}
+            </>
           )}
-
-          <SortDropdown
-            sortDirection={sortDirection}
-            onToggleDirection={() => setSortDirection((v) => (v === 'asc' ? 'desc' : 'asc'))}
-            resultCount={filteredContacts.length}
-          />
-
-          <ContactList contacts={filteredContacts} />
         </ScrollView>
       </View>
     </SafeAreaView>

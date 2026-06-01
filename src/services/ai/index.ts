@@ -1,8 +1,6 @@
 export {
   generateWish,
   suggestGift,
-  createCardContent,
+  createCard,
   type GenerateWishInput,
-  type SuggestGiftInput,
-  type CreateCardInput,
 } from './ai.service';

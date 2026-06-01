@@ -13,6 +13,8 @@ const LANGUAGES: { key: AppLanguage; code: string; name: string; native: string 
   { key: 'spanish', code: 'ES', name: 'Spanish', native: 'Español' },
   { key: 'french', code: 'FR', name: 'French', native: 'Français' },
   { key: 'german', code: 'DE', name: 'German', native: 'Deutsch' },
+  { key: 'arabic', code: 'AR', name: 'Arabic', native: 'العربية' },
+  { key: 'japanese', code: 'JA', name: 'Japanese', native: '日本語' },
 ];
 
 export const LanguageSelectScreen = () => {

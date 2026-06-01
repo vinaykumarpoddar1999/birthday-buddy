@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase';
-import { handleApiError } from '@shared/errors';
+import { generateWish as localGenerateWish } from '@features/ai-wishes/engine/wish-generator';
+import type { GenerateWishParams } from '@features/ai-wishes/engine/wish-generator';
 
 export type GenerateWishInput = {
   contactId: string;
@@ -8,42 +8,24 @@ export type GenerateWishInput = {
   language?: string;
 };
 
-export type SuggestGiftInput = {
-  contactId: string;
-  contactName: string;
-  age?: number;
-  interests?: string;
-};
-
-export type CreateCardInput = {
-  contactId: string;
-  templateId?: string;
-  message?: string;
-};
-
-async function invokeEdgeFunction<TResponse>(
-  functionName: string,
-  body: Record<string, unknown>,
-): Promise<TResponse> {
-  const { data, error } = await supabase.functions.invoke(functionName, { body });
-
-  if (error) {
-    throw handleApiError(error);
-  }
-
-  return data as TResponse;
-}
-
 export async function generateWish(input: GenerateWishInput): Promise<{ text: string }> {
-  return invokeEdgeFunction('generate-wish', input);
+  const wish = localGenerateWish({
+    tone: (input.tone as GenerateWishParams['tone']) ?? 'heartfelt',
+    length: 'medium',
+    language: (input.language as GenerateWishParams['language']) ?? 'english',
+    personId: input.contactId,
+    personName: input.contactName,
+    relationship: 'friend',
+    personalContext: '',
+    age: 25,
+  });
+  return { text: wish.text };
 }
 
-export async function suggestGift(input: SuggestGiftInput): Promise<{ suggestions: string[] }> {
-  return invokeEdgeFunction('suggest-gift', input);
+export async function suggestGift(): Promise<{ suggestions: string[] }> {
+  return { suggestions: ['Flowers', 'Chocolate', 'Gift card'] };
 }
 
-export async function createCardContent(
-  input: CreateCardInput,
-): Promise<{ content: string; imagePrompt?: string }> {
-  return invokeEdgeFunction('create-card', input);
+export async function createCard(): Promise<{ imageUrl: string }> {
+  return { imageUrl: '' };
 }

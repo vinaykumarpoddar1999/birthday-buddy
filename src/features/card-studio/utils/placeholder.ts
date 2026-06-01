@@ -7,7 +7,6 @@ const PLACEHOLDER_MAP: Record<string, keyof PersonalizationData> = {
   relationship: 'relationship',
   message: 'message',
   quote: 'quote',
-  emoji: 'emoji',
   eventType: 'eventType',
   date: 'date',
   location: 'location',

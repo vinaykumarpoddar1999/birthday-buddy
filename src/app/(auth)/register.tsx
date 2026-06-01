@@ -18,7 +18,7 @@ export default function RegisterScreen() {
   async function onSubmit() {
     setError(undefined);
     try {
-      await signUp({ email: email.trim(), password, name: name.trim() || undefined });
+      await signUp();
     } catch (err) {
       const appError = handleApiError(err);
       setError(appError.message);

@@ -23,7 +23,6 @@ const DEFAULT_DATA: PersonalizationData = {
   age: '25',
   message: '',
   quote: '',
-  emoji: 'icon:cake',
   eventType: 'birthday',
   date: '',
   location: '',

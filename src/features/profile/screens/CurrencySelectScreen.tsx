@@ -11,6 +11,8 @@ const CURRENCIES: { key: AppCurrency; symbol: string; name: string }[] = [
   { key: 'USD', symbol: '$', name: 'US Dollar' },
   { key: 'EUR', symbol: '€', name: 'Euro' },
   { key: 'GBP', symbol: '£', name: 'British Pound' },
+  { key: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+  { key: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
 ];
 
 export const CurrencySelectScreen = () => {

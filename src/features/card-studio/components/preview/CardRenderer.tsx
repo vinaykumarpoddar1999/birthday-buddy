@@ -9,7 +9,7 @@ import {
   isIconStickerContent,
   parseIconStickerContent,
 } from '@shared/utils/lucide-icons';
-import type { CardElement, CardTemplate, PersonalizationData } from '../../types';
+import type { CardBackground, CardElement, CardTemplate, PersonalizationData } from '../../types';
 import { resolveElements } from '../../utils/placeholder';
 import {
   CardStickerElement,
@@ -76,25 +76,71 @@ function RenderElement({ el }: { el: CardElement }) {
   return null;
 }
 
+function BackgroundLayer({ bg }: { bg: CardBackground }) {
+  if (bg.type === 'gradient') {
+    return (
+      <LinearGradient
+        colors={(bg.value as string[]) as [string, string, ...string[]]}
+        start={bg.gradientStart || { x: 0, y: 0 }}
+        end={bg.gradientEnd || { x: 1, y: 1 }}
+        style={{ position: 'absolute', inset: 0 }}
+      />
+    );
+  }
+
+  if (bg.type === 'image' && typeof bg.value === 'string') {
+    return (
+      <Image
+        source={{ uri: bg.value }}
+        style={{ position: 'absolute', inset: 0, width: CARD_W, height: CARD_H }}
+        contentFit="cover"
+      />
+    );
+  }
+
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundColor: typeof bg.value === 'string' ? bg.value : '#FFF',
+      }}
+    />
+  );
+}
+
 type Props = {
   template: CardTemplate;
   personalization: PersonalizationData;
   elements: CardElement[];
   scale?: number;
+  customBackground?: CardBackground | null;
+  hideElements?: boolean;
 };
 
 export const CardRenderer = forwardRef<View, Props>(
-  function CardRenderer({ template, personalization, elements, scale = 1 }, ref) {
+  function CardRenderer(
+    {
+      template,
+      personalization,
+      elements,
+      scale = 1,
+      customBackground = null,
+      hideElements = false,
+    },
+    ref,
+  ) {
     const resolved = resolveElements(elements, personalization);
-    const bg = template.background;
+    const bg = customBackground ?? template.background;
 
     const innerContent = (
       <View style={{ width: CARD_W, height: CARD_H, position: 'relative' }}>
-        {resolved
-          .sort((a, b) => a.zIndex - b.zIndex)
-          .map((el) => (
-            <RenderElement key={el.id} el={el} />
-          ))}
+        <BackgroundLayer bg={bg} />
+        {!hideElements
+          ? resolved
+              .sort((a, b) => a.zIndex - b.zIndex)
+              .map((el) => <RenderElement key={el.id} el={el} />)
+          : null}
       </View>
     );
 
@@ -114,25 +160,11 @@ export const CardRenderer = forwardRef<View, Props>(
             transform: [{ scale }],
             transformOrigin: 'top left',
           }}>
-          {bg.type === 'gradient' ? (
-            <LinearGradient
-              colors={(bg.value as string[]) as [string, string, ...string[]]}
-              start={bg.gradientStart || { x: 0, y: 0 }}
-              end={bg.gradientEnd || { x: 1, y: 1 }}
-              style={{ flex: 1 }}>
-              {innerContent}
-            </LinearGradient>
-          ) : (
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: typeof bg.value === 'string' ? bg.value : '#FFF',
-              }}>
-              {innerContent}
-            </View>
-          )}
+          {innerContent}
         </View>
       </View>
     );
   },
 );
+
+export { CARD_W, CARD_H };

@@ -1,0 +1,12 @@
+export { peopleRepository, PeopleRepository } from './people.repository';
+export { eventRepository, EventRepository } from './event.repository';
+export { reminderRepository, ReminderRepository } from './reminder.repository';
+export { wishRepository, WishRepository } from './wish.repository';
+export { cardRepository, CardRepository } from './card.repository';
+export { settingsRepository, SettingsRepository } from './settings.repository';
+export { notificationRepository, NotificationRepository } from './notification.repository';
+export { activityLogRepository, ActivityLogRepository } from './activity-log.repository';
+export { searchRepository, SearchRepository } from './search.repository';
+export { feedbackRepository, FeedbackRepository } from './feedback.repository';
+export { templateRepository, TemplateRepository } from './template.repository';
+export { RepositoryError } from './repository-error';

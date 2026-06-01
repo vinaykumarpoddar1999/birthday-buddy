@@ -1,86 +1,140 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Calendar, Clock, Search, SearchX, Settings, Trash2, User, X } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, CreditCard, Search, SearchX, Settings, Trash2, User, Wand2, X } from 'lucide-react-native';
 import { useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@shared/ui/EmptyState';
-
-import { usePeopleStore } from '@store/people.store';
+import { useSearch } from '@features/profile/hooks/useSearch';
 import { useActivityStore } from '../store/activity.store';
 import type { SearchResult } from '../types';
 
 const SETTINGS_ITEMS = [
-  { id: 's-1', title: 'Personal Information', subtitle: 'Update your details', route: '/personal-info' },
-  { id: 's-2', title: 'Privacy & Security', subtitle: 'Manage access and security', route: '/privacy-security' },
-  { id: 's-3', title: 'Notification Preferences', subtitle: 'Manage notifications', route: '/notification-prefs' },
-  { id: 's-4', title: 'Reminder Time', subtitle: 'Set default reminder time', route: '/reminder-time' },
-  { id: 's-5', title: 'Theme', subtitle: 'Change app appearance', route: '/theme-select' },
-  { id: 's-6', title: 'Language', subtitle: 'Change app language', route: '/language-select' },
-  { id: 's-7', title: 'Backup & Restore', subtitle: 'Manage backups', route: '/backup-restore' },
-  { id: 's-8', title: 'Help & FAQ', subtitle: 'Get help', route: '/help-faq' },
+  { id: 'personal-info', title: 'Personal Information', subtitle: 'Update your details', route: '/personal-info' },
+  { id: 'privacy-security', title: 'Privacy & Security', subtitle: 'Manage access and security', route: '/privacy-security' },
+  { id: 'notification-prefs', title: 'Notification Preferences', subtitle: 'Manage notifications', route: '/notification-prefs' },
+  { id: 'reminder-time', title: 'Reminder Time', subtitle: 'Set default reminder time', route: '/reminder-time' },
+  { id: 'theme-select', title: 'Theme', subtitle: 'Change app appearance', route: '/theme-select' },
+  { id: 'language-select', title: 'Language', subtitle: 'Change app language', route: '/language-select' },
+  { id: 'backup-restore', title: 'Backup & Restore', subtitle: 'Manage backups', route: '/backup-restore' },
+  { id: 'help-faq', title: 'Help & FAQ', subtitle: 'Get help', route: '/help-faq' },
+  { id: 'activity-history', title: 'Activity History', subtitle: 'View recent activity', route: '/activity-history' },
+  { id: 'wish-history', title: 'Wish History', subtitle: 'View generated wishes', route: '/wish-history' },
 ];
 
+const SETTINGS_ROUTE_MAP: Record<string, string> = Object.fromEntries(
+  SETTINGS_ITEMS.map((s) => [s.id, s.route]),
+);
+
+function mapDbResult(
+  r: { entityType: string; entityUuid: string; title: string; body: string },
+): SearchResult {
+  if (r.entityType === 'person') {
+    return { id: r.entityUuid, type: 'person', title: r.title, subtitle: r.body };
+  }
+  if (r.entityType === 'wish') {
+    return { id: r.entityUuid, type: 'wish', title: r.title, subtitle: r.body.slice(0, 80) };
+  }
+  if (r.entityType === 'card') {
+    return { id: r.entityUuid, type: 'card', title: r.title, subtitle: 'Saved card' };
+  }
+  if (r.entityType === 'notification') {
+    return { id: r.entityUuid, type: 'event', title: r.title, subtitle: r.body };
+  }
+  if (r.entityType === 'settings') {
+    const route = SETTINGS_ROUTE_MAP[r.entityUuid] ?? SETTINGS_ROUTE_MAP[r.body];
+    const item = SETTINGS_ITEMS.find((s) => s.route === route || s.id === r.entityUuid);
+    return {
+      id: item?.id ?? r.entityUuid,
+      type: 'setting',
+      title: r.title,
+      subtitle: item?.subtitle ?? r.body,
+    };
+  }
+  return { id: r.entityUuid, type: 'person', title: r.title, subtitle: r.body };
+}
+
 export const SearchScreen = () => {
-  const people = usePeopleStore((s) => s.people);
+  const [query, setQuery] = useState('');
+  const { data: dbResults = [] } = useSearch(query);
   const recentSearches = useActivityStore((s) => s.recentSearches);
   const addRecentSearch = useActivityStore((s) => s.addRecentSearch);
   const removeRecentSearch = useActivityStore((s) => s.removeRecentSearch);
   const clearRecentSearches = useActivityStore((s) => s.clearRecentSearches);
-  const [query, setQuery] = useState('');
   const inputRef = useRef<TextInput>(null);
 
   const results = useMemo((): SearchResult[] => {
     if (!query.trim()) return [];
-    const q = query.toLowerCase();
-    const r: SearchResult[] = [];
-
-    people.forEach((p) => {
-      if (p.fullName.toLowerCase().includes(q) || p.nickname?.toLowerCase().includes(q) || p.email?.toLowerCase().includes(q) || p.phone?.includes(q)) {
-        r.push({ id: p.id, type: 'person', title: p.fullName, subtitle: `${p.relationship} · ${p.birthDate}` });
-      }
-    });
-
+    const mapped = dbResults.map(mapDbResult);
     SETTINGS_ITEMS.forEach((s) => {
+      const q = query.toLowerCase();
       if (s.title.toLowerCase().includes(q) || s.subtitle.toLowerCase().includes(q)) {
-        r.push({ id: s.id, type: 'setting', title: s.title, subtitle: s.subtitle });
+        if (!mapped.some((m) => m.id === s.id)) {
+          mapped.push({ id: s.id, type: 'setting', title: s.title, subtitle: s.subtitle });
+        }
       }
     });
-
-    return r;
-  }, [query, people]);
+    return mapped;
+  }, [query, dbResults]);
 
   const handleResultPress = (result: SearchResult) => {
     addRecentSearch(query.trim());
     if (result.type === 'setting') {
-      const item = SETTINGS_ITEMS.find((s) => s.id === result.id);
-      if (item) router.push(item.route as never);
+      const route = SETTINGS_ROUTE_MAP[result.id];
+      if (route) router.push(route as never);
+      return;
+    }
+    if (result.type === 'person') {
+      router.push({ pathname: '/add-person', params: { personId: result.id } });
+      return;
+    }
+    if (result.type === 'wish') {
+      router.push('/wish-history');
+      return;
+    }
+    if (result.type === 'card') {
+      router.push('/card-studio');
+      return;
+    }
+    if (result.type === 'event') {
+      router.push('/notifications');
     }
   };
 
-  const iconForType = (type: SearchResult['type']) => {
-    const map = { person: User, event: Calendar, wish: Search, card: Search, setting: Settings };
-    return map[type];
+  const resultIcon = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'setting':
+        return Settings;
+      case 'wish':
+        return Wand2;
+      case 'card':
+        return CreditCard;
+      case 'event':
+        return Calendar;
+      default:
+        return User;
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="flex-row items-center px-5 py-3 gap-3">
-        <Pressable onPress={() => router.back()} accessibilityRole="button">
-          <ArrowLeft size={22} color="#111827" />
+        <Pressable
+          onPress={() => router.back()}
+          className="h-10 w-10 rounded-full bg-surface border border-border items-center justify-center"
+          accessibilityRole="button">
+          <ArrowLeft size={20} color="#111827" />
         </Pressable>
-        <View className="flex-1 flex-row items-center bg-surface border border-border rounded-xl px-3">
+        <View className="flex-1 flex-row items-center bg-surface border border-border rounded-xl px-3 h-11">
           <Search size={18} color="#9CA3AF" />
           <TextInput
             ref={inputRef}
+            className="flex-1 ml-2 text-[15px] text-foreground"
+            placeholder="Search people, wishes, cards..."
+            placeholderTextColor="#9CA3AF"
             value={query}
             onChangeText={setQuery}
-            placeholder="Search people, settings..."
-            placeholderTextColor="#9CA3AF"
-            className="flex-1 py-2.5 px-2 text-[15px] text-foreground"
             autoFocus
-            returnKeyType="search"
-            onSubmitEditing={() => { if (query.trim()) addRecentSearch(query.trim()); }}
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')} accessibilityRole="button">
@@ -90,72 +144,53 @@ export const SearchScreen = () => {
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
-        {query.trim() === '' ? (
-          <>
-            {recentSearches.length > 0 && (
-              <View className="mt-2">
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase">Recent Searches</Text>
-                  <Pressable onPress={clearRecentSearches} accessibilityRole="button">
-                    <Text className="text-[11px] font-bold text-primary">Clear All</Text>
-                  </Pressable>
-                </View>
-                {recentSearches.map((s) => (
-                  <Pressable
-                    key={s}
-                    className="flex-row items-center py-2.5"
-                    onPress={() => setQuery(s)}
-                    accessibilityRole="button">
-                    <Clock size={16} color="#9CA3AF" />
-                    <Text className="text-[14px] text-foreground ml-3 flex-1">{s}</Text>
-                    <Pressable onPress={() => removeRecentSearch(s)} accessibilityRole="button" accessibilityLabel={`Remove ${s}`}>
-                      <Trash2 size={14} color="#9CA3AF" />
-                    </Pressable>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-            <EmptyState
-              icon={Search}
-              title="Search"
-              subtitle="Search people, events, and settings"
-              className="pt-8"
-            />
-          </>
-        ) : results.length === 0 ? (
-          <EmptyState
-            icon={SearchX}
-            title="No results found"
-            subtitle="Try a different search term"
-            className="pt-8"
-          />
-        ) : (
-          <>
-            <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mt-2 mb-2">{results.length} Results</Text>
-            {results.map((r) => {
-              const Icon = iconForType(r.type);
-              return (
-                <Pressable
-                  key={r.id}
-                  className="flex-row items-center py-3 bg-surface rounded-xl px-3 mb-2 border border-border/60"
-                  onPress={() => handleResultPress(r)}
-                  accessibilityRole="button">
-                  <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-primary/10">
-                    <Icon size={18} color="#7C3AED" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-[14px] font-medium text-foreground">{r.title}</Text>
-                    <Text className="text-[12px] text-foreground-secondary mt-0.5">{r.subtitle}</Text>
-                  </View>
-                  <View className="bg-border/40 rounded-full px-2 py-0.5">
-                    <Text className="text-[10px] text-foreground-secondary capitalize">{r.type}</Text>
-                  </View>
+      <ScrollView className="flex-1 px-5" keyboardShouldPersistTaps="handled">
+        {query.trim() === '' && recentSearches.length > 0 && (
+          <View className="mb-4">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-[13px] font-semibold text-foreground-secondary">Recent</Text>
+              <Pressable onPress={clearRecentSearches}>
+                <Text className="text-[12px] text-primary font-semibold">Clear</Text>
+              </Pressable>
+            </View>
+            {recentSearches.map((term) => (
+              <Pressable
+                key={term}
+                onPress={() => setQuery(term)}
+                className="flex-row items-center py-2.5 border-b border-border/40">
+                <Clock size={16} color="#9CA3AF" />
+                <Text className="flex-1 ml-3 text-[14px] text-foreground">{term}</Text>
+                <Pressable onPress={() => removeRecentSearch(term)}>
+                  <Trash2 size={16} color="#9CA3AF" />
                 </Pressable>
-              );
-            })}
-          </>
+              </Pressable>
+            ))}
+          </View>
         )}
+
+        {query.trim() !== '' && results.length === 0 && (
+          <EmptyState icon={SearchX} title="No results" subtitle={`Nothing found for "${query}"`} />
+        )}
+
+        {results.map((result) => {
+          const Icon = resultIcon(result.type);
+          return (
+            <Pressable
+              key={`${result.type}-${result.id}`}
+              onPress={() => handleResultPress(result)}
+              className="flex-row items-center py-3.5 border-b border-border/40">
+              <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center mr-3">
+                <Icon size={18} color="#7C3AED" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[15px] font-semibold text-foreground">{result.title}</Text>
+                <Text className="text-[12px] text-foreground-secondary mt-0.5" numberOfLines={2}>
+                  {result.subtitle}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );

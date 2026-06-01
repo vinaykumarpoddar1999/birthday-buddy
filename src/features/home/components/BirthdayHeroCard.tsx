@@ -13,6 +13,7 @@ export type BirthdayHeroCardProps = {
   friendCount: number;
   extraFriends: number;
   quickActions: QuickActionCardProps[];
+  onChevronPress?: () => void;
 };
 
 export function BirthdayHeroCard({
@@ -23,6 +24,7 @@ export function BirthdayHeroCard({
   friendCount,
   extraFriends,
   quickActions,
+  onChevronPress,
 }: BirthdayHeroCardProps) {
   return (
     <View className="rounded-lg overflow-hidden shadow-lg">
@@ -64,7 +66,8 @@ export function BirthdayHeroCard({
               <Pressable
                 accessibilityRole="button"
                 className="h-8 w-8 rounded-full bg-[#4C1D95]/80 items-center justify-center self-end mb-2"
-                onPress={() => {}}>
+                onPress={onChevronPress}
+                disabled={!onChevronPress}>
                 <ChevronRight size={18} color="#FFFFFF" />
               </Pressable>
               <View className="relative items-center">

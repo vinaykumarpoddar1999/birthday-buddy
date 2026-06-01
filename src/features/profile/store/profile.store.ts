@@ -1,60 +1,45 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { accountService } from '@/services/account/account.service';
+import {
+  DEFAULT_APPEARANCE_SETTINGS,
+  DEFAULT_BACKUP_SETTINGS,
+  DEFAULT_CALENDAR_SYNC,
+  DEFAULT_NOTIFICATION_PREFS,
+  DEFAULT_PRIVACY_SETTINGS,
+  DEFAULT_REMINDER_SETTINGS,
+  DEFAULT_USER_PROFILE,
+  profileService,
+} from '@/services/profile/profile.service';
+import { reminderService } from '@/services/reminder/reminder.service';
+import { useThemeStore } from '@/stores/theme.store';
 import type {
+  AppearanceSettings,
   AppCurrency,
   AppIconOption,
   AppLanguage,
   BackupSettings,
+  CalendarSyncSettings,
   NotificationPreferences,
   PrivacySettings,
   ReminderSettings,
   UserProfile,
 } from '../types';
 
-const DEFAULT_PROFILE: UserProfile = {
-  id: 'user-1',
-  fullName: 'Ananya Mehta',
-  email: 'ananya.mehta@gmail.com',
-  phone: '+91 98765 43210',
-  gender: 'female',
-  birthday: '1998-03-15',
-  location: 'Mumbai, India',
-  bio: 'Making every birthday special!',
-  profileImage: null,
-  isPremium: true,
-  streak: 12,
-  joinedAt: '2025-01-15T00:00:00.000Z',
-};
-
-const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
-  pushNotifications: true,
-  birthdayAlerts: true,
-  wishSuggestions: true,
-  specialEventAlerts: true,
-  systemNotifications: true,
-};
-
-const DEFAULT_REMINDER: ReminderSettings = {
-  defaultTime: '08:00',
-  quietHoursStart: '22:00',
-  quietHoursEnd: '07:00',
-  birthdayAlarm: true,
-};
-
-const DEFAULT_PRIVACY: PrivacySettings = {
-  faceId: false,
-  biometricLock: false,
-  appLock: false,
-  hidePersonalData: false,
-};
-
-const DEFAULT_BACKUP: BackupSettings = {
-  cloudBackup: true,
-  localBackup: false,
-  lastBackupDate: '2026-05-28T10:30:00.000Z',
-  backupStatus: 'idle',
+const calcProfileCompletion = (profile: UserProfile): number => {
+  const fields = [
+    profile.profileImage,
+    profile.fullName,
+    profile.birthday,
+    profile.preferences,
+    profile.email,
+    profile.phone,
+    profile.gender !== 'other' ? profile.gender : '',
+    profile.location,
+    profile.bio,
+  ];
+  const filled = fields.filter((f) => f && String(f).length > 0).length;
+  return Math.round((filled / fields.length) * 100);
 };
 
 interface ProfileStoreState {
@@ -68,6 +53,8 @@ interface ProfileStoreState {
   reminderSettings: ReminderSettings;
   privacySettings: PrivacySettings;
   backupSettings: BackupSettings;
+  appearanceSettings: AppearanceSettings;
+  calendarSync: CalendarSyncSettings;
   appRating: number | null;
   profileCompletion: number;
 
@@ -81,98 +68,159 @@ interface ProfileStoreState {
   updateReminderSettings: (updates: Partial<ReminderSettings>) => void;
   updatePrivacySettings: (updates: Partial<PrivacySettings>) => void;
   updateBackupSettings: (updates: Partial<BackupSettings>) => void;
+  updateAppearanceSettings: (updates: Partial<AppearanceSettings>) => void;
+  updateCalendarSync: (updates: Partial<CalendarSyncSettings>) => void;
   setAppRating: (rating: number) => void;
-  deleteAccount: () => void;
+  deleteAccount: () => Promise<void>;
   resetStore: () => void;
 }
 
-const calcProfileCompletion = (profile: UserProfile): number => {
-  const fields = [
-    profile.fullName,
-    profile.email,
-    profile.phone,
-    profile.gender,
-    profile.birthday,
-    profile.location,
-    profile.bio,
-    profile.profileImage,
-  ];
-  const filled = fields.filter((f) => f && f.length > 0).length;
-  return Math.round((filled / fields.length) * 100);
-};
+function persistState(get: () => ProfileStoreState): void {
+  const state = get();
+  void profileService.saveBundle({
+    profile: state.profile,
+    language: state.language,
+    currency: state.currency,
+    theme: state.theme,
+    appIcon: state.appIcon,
+    hapticFeedback: state.hapticFeedback,
+    notificationPrefs: state.notificationPrefs,
+    reminderSettings: state.reminderSettings,
+    privacySettings: state.privacySettings,
+    backupSettings: state.backupSettings,
+    appearanceSettings: state.appearanceSettings,
+    calendarSync: state.calendarSync,
+    appRating: state.appRating,
+  });
+}
 
-export const useProfileStore = create<ProfileStoreState>()(
-  persist(
-    (set) => ({
-      profile: DEFAULT_PROFILE,
-      language: 'english',
-      currency: 'INR',
-      theme: 'system',
-      appIcon: 'classic',
-      hapticFeedback: true,
-      notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
-      reminderSettings: DEFAULT_REMINDER,
-      privacySettings: DEFAULT_PRIVACY,
-      backupSettings: DEFAULT_BACKUP,
-      appRating: null,
-      profileCompletion: calcProfileCompletion(DEFAULT_PROFILE),
+let rescheduleTimer: ReturnType<typeof setTimeout> | null = null;
 
-      updateProfile: (updates) =>
-        set((s) => {
-          const updated = { ...s.profile, ...updates };
-          return { profile: updated, profileCompletion: calcProfileCompletion(updated) };
-        }),
+function queueReminderReschedule(): void {
+  if (rescheduleTimer) clearTimeout(rescheduleTimer);
+  rescheduleTimer = setTimeout(() => {
+    void reminderService.rescheduleAll();
+  }, 400);
+}
 
-      setLanguage: (language) => set({ language }),
-      setCurrency: (currency) => set({ currency }),
-      setTheme: (theme) => set({ theme }),
-      setAppIcon: (appIcon) => set({ appIcon }),
-      setHapticFeedback: (hapticFeedback) => set({ hapticFeedback }),
+export const useProfileStore = create<ProfileStoreState>()((set, get) => ({
+  profile: DEFAULT_USER_PROFILE,
+  language: 'english',
+  currency: 'INR',
+  theme: 'system',
+  appIcon: 'classic',
+  hapticFeedback: true,
+  notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
+  reminderSettings: DEFAULT_REMINDER_SETTINGS,
+  privacySettings: DEFAULT_PRIVACY_SETTINGS,
+  backupSettings: DEFAULT_BACKUP_SETTINGS,
+  appearanceSettings: DEFAULT_APPEARANCE_SETTINGS,
+  calendarSync: DEFAULT_CALENDAR_SYNC,
+  appRating: null,
+  profileCompletion: 0,
 
-      updateNotificationPrefs: (updates) =>
-        set((s) => ({ notificationPrefs: { ...s.notificationPrefs, ...updates } })),
+  updateProfile: (updates) => {
+    set((s) => {
+      const profile = { ...s.profile, ...updates };
+      return { profile, profileCompletion: calcProfileCompletion(profile) };
+    });
+    persistState(get);
+  },
 
-      updateReminderSettings: (updates) =>
-        set((s) => ({ reminderSettings: { ...s.reminderSettings, ...updates } })),
+  setLanguage: (language) => {
+    set({ language });
+    persistState(get);
+  },
 
-      updatePrivacySettings: (updates) =>
-        set((s) => ({ privacySettings: { ...s.privacySettings, ...updates } })),
+  setCurrency: (currency) => {
+    set({ currency });
+    persistState(get);
+  },
 
-      updateBackupSettings: (updates) =>
-        set((s) => ({ backupSettings: { ...s.backupSettings, ...updates } })),
+  setTheme: (theme) => {
+    set((s) => ({
+      theme,
+      appearanceSettings: { ...s.appearanceSettings, theme },
+    }));
+    useThemeStore.getState().setMode(theme);
+    persistState(get);
+  },
 
-      setAppRating: (appRating) => set({ appRating }),
+  setAppIcon: (appIcon) => {
+    set({ appIcon });
+    persistState(get);
+  },
 
-      deleteAccount: () =>
-        set({
-          profile: { ...DEFAULT_PROFILE, fullName: '', email: '', phone: '', bio: '', profileImage: null },
-          notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
-          reminderSettings: DEFAULT_REMINDER,
-          privacySettings: DEFAULT_PRIVACY,
-          backupSettings: DEFAULT_BACKUP,
-          appRating: null,
-          profileCompletion: 0,
-        }),
+  setHapticFeedback: (hapticFeedback) => {
+    set({ hapticFeedback });
+    persistState(get);
+  },
 
-      resetStore: () =>
-        set({
-          profile: DEFAULT_PROFILE,
-          language: 'english',
-          currency: 'INR',
-          theme: 'system',
-          appIcon: 'classic',
-          hapticFeedback: true,
-          notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
-          reminderSettings: DEFAULT_REMINDER,
-          privacySettings: DEFAULT_PRIVACY,
-          backupSettings: DEFAULT_BACKUP,
-          appRating: null,
-          profileCompletion: calcProfileCompletion(DEFAULT_PROFILE),
-        }),
-    }),
-    {
-      name: 'birthday-buddy-profile-v1',
-      storage: createJSONStorage(() => AsyncStorage),
-    },
-  ),
-);
+  updateNotificationPrefs: (updates) => {
+    set((s) => ({ notificationPrefs: { ...s.notificationPrefs, ...updates } }));
+    persistState(get);
+    queueReminderReschedule();
+  },
+
+  updateReminderSettings: (updates) => {
+    set((s) => ({ reminderSettings: { ...s.reminderSettings, ...updates } }));
+    persistState(get);
+    queueReminderReschedule();
+  },
+
+  updatePrivacySettings: (updates) => {
+    set((s) => ({ privacySettings: { ...s.privacySettings, ...updates } }));
+    persistState(get);
+  },
+
+  updateBackupSettings: (updates) => {
+    set((s) => ({ backupSettings: { ...s.backupSettings, ...updates } }));
+    persistState(get);
+  },
+
+  updateAppearanceSettings: (updates) => {
+    set((s) => {
+      const appearanceSettings = { ...s.appearanceSettings, ...updates };
+      if (updates.theme) {
+        useThemeStore.getState().setMode(updates.theme);
+        return { appearanceSettings, theme: updates.theme };
+      }
+      return { appearanceSettings };
+    });
+    persistState(get);
+  },
+
+  updateCalendarSync: (updates) => {
+    set((s) => ({ calendarSync: { ...s.calendarSync, ...updates } }));
+    persistState(get);
+  },
+
+  setAppRating: (appRating) => {
+    set({ appRating });
+    persistState(get);
+  },
+
+  deleteAccount: () => accountService.wipeLocalData(),
+
+  resetStore: () => {
+    void profileService.resetToDefaults().then(() => {
+      set({
+        profile: DEFAULT_USER_PROFILE,
+        language: 'english',
+        currency: 'INR',
+        theme: 'system',
+        appIcon: 'classic',
+        hapticFeedback: true,
+        notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
+        reminderSettings: DEFAULT_REMINDER_SETTINGS,
+        privacySettings: DEFAULT_PRIVACY_SETTINGS,
+        backupSettings: DEFAULT_BACKUP_SETTINGS,
+        appearanceSettings: DEFAULT_APPEARANCE_SETTINGS,
+        calendarSync: DEFAULT_CALENDAR_SYNC,
+        appRating: null,
+        profileCompletion: 0,
+      });
+      useThemeStore.getState().setMode('system');
+    });
+  },
+}));

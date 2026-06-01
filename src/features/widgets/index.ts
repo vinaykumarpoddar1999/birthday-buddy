@@ -1,2 +1,4 @@
-export * from './types';
-export * from './api/widgets.api';
+/** Widgets — offline stub */
+export function useWidgets() {
+  return { widgets: [] };
+}

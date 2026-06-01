@@ -4,13 +4,11 @@ import { Heart, ScrollText, Search, Trash2, X } from 'lucide-react-native';
 
 import { EmptyState } from '@shared/ui';
 
-import { useAIWishesStore } from '../store/ai-wishes.store';
+import { useWishHistory } from '../hooks/useWishHistory';
 import type { WishHistoryEntry } from '../types';
 
 export function WishHistoryTab() {
-  const history = useAIWishesStore((s) => s.history);
-  const toggleFavorite = useAIWishesStore((s) => s.toggleFavorite);
-  const deleteFromHistory = useAIWishesStore((s) => s.deleteFromHistory);
+  const { history, toggleFavorite, deleteFromHistory } = useWishHistory();
 
   const [search, setSearch] = useState('');
   const [filterFav, setFilterFav] = useState(false);
@@ -67,7 +65,7 @@ export function WishHistoryTab() {
         </View>
         <View className="flex-row border-t border-gray-50">
           <Pressable
-            onPress={() => toggleFavorite(item.id)}
+            onPress={() => toggleFavorite(item.id, !item.isFavorite)}
             className="flex-1 flex-row items-center justify-center py-2.5 gap-1"
             accessibilityRole="button">
             <Heart

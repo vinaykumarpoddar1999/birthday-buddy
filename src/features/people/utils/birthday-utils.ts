@@ -1,6 +1,6 @@
 import { differenceInDays, format } from 'date-fns';
 
-import type { StoredPerson } from '@store/people.store';
+import type { Person } from '@/types/entities';
 import type { CalendarDayEvent, UpcomingEvent } from '@features/calendar/types';
 import type { ProfilePlaceholderVariant } from '@shared/ui/ProfilePlaceholder';
 import type { BirthdayEvent, Contact, EventState } from '../types';
@@ -23,6 +23,18 @@ export function getDaysUntilBirthday(birthDate: string): number {
   today.setHours(0, 0, 0, 0);
   const next = getNextBirthdayDate(birthDate);
   return differenceInDays(next, today);
+}
+
+/** Days from today until this person's birthday in a specific calendar year. */
+export function getDaysUntilBirthdayInYear(birthDate: string, year: number): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const birth = new Date(birthDate);
+  let target = new Date(year, birth.getMonth(), birth.getDate());
+  if (year === today.getFullYear() && target < today) {
+    target = new Date(year + 1, birth.getMonth(), birth.getDate());
+  }
+  return differenceInDays(target, today);
 }
 
 export function getAge(birthDate: string): number {
@@ -51,6 +63,68 @@ export function getCountdownLabel(days: number): string {
   return `In ${days} Days`;
 }
 
+export type DetailedCountdown = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  primaryLabel: string;
+  secondaryLabel: string;
+  isToday: boolean;
+  isPast: boolean;
+};
+
+export function getNextBirthdayDateTime(birthDate: string): Date {
+  const next = getNextBirthdayDate(birthDate);
+  next.setHours(0, 0, 0, 0);
+  return next;
+}
+
+/** Live countdown until the next birthday at midnight local time. */
+export function getDetailedCountdown(birthDate: string, now = new Date()): DetailedCountdown {
+  const target = getNextBirthdayDateTime(birthDate);
+  const diffMs = target.getTime() - now.getTime();
+  const isPast = diffMs < 0;
+  const abs = Math.max(0, diffMs);
+  const totalSeconds = Math.floor(abs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const isToday = days === 0 && !isPast;
+
+  let primaryLabel: string;
+  let secondaryLabel: string;
+
+  if (isToday) {
+    primaryLabel = "Today's the day!";
+    secondaryLabel = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} — Celebrate now`;
+  } else if (days === 0 && hours > 0) {
+    primaryLabel = 'Less than a day left';
+    secondaryLabel = `${hours}h ${minutes}m remaining`;
+  } else if (days === 1) {
+    primaryLabel = '1 Day Left';
+    secondaryLabel = `${hours} Hours Remaining`;
+  } else {
+    primaryLabel = `${days} Days Left`;
+    secondaryLabel = `${hours} Hours Remaining`;
+  }
+
+  return { days, hours, minutes, seconds, primaryLabel, secondaryLabel, isToday, isPast };
+}
+
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  friend: 'Friend',
+  family: 'Family',
+  colleague: 'Colleague',
+  partner: 'Partner',
+  relative: 'Relative',
+};
+
+export function formatRelationship(relationship: string): string {
+  return RELATIONSHIP_LABELS[relationship] ?? relationship;
+}
+
 export function getBadgeLabel(days: number): string {
   if (days === 0) return 'Today';
   if (days < 99) return `${days}D`;
@@ -68,13 +142,13 @@ export function getEventState(days: number): EventState {
 
 // ─── Sorting & filtering ──────────────────────────────────────────────────────
 
-export function sortByUpcoming(people: StoredPerson[]): StoredPerson[] {
+export function sortByUpcoming(people: Person[]): Person[] {
   return [...people].sort(
     (a, b) => getDaysUntilBirthday(a.birthDate) - getDaysUntilBirthday(b.birthDate),
   );
 }
 
-export function getUpcomingPeople(people: StoredPerson[], limit?: number): StoredPerson[] {
+export function getUpcomingPeople(people: Person[], limit?: number): Person[] {
   const sorted = sortByUpcoming(people);
   return limit ? sorted.slice(0, limit) : sorted;
 }
@@ -105,7 +179,7 @@ export type HomeUpcomingCardData = {
   badgeClass: string;
 };
 
-export function toHomeUpcomingCard(person: StoredPerson, index: number): HomeUpcomingCardData {
+export function toHomeUpcomingCard(person: Person, index: number): HomeUpcomingCardData {
   const days = getDaysUntilBirthday(person.birthDate);
   return {
     id: person.id,
@@ -118,7 +192,7 @@ export function toHomeUpcomingCard(person: StoredPerson, index: number): HomeUpc
   };
 }
 
-export function toBirthdayEvent(person: StoredPerson): BirthdayEvent {
+export function toBirthdayEvent(person: Person): BirthdayEvent {
   const days = getDaysUntilBirthday(person.birthDate);
   const nextBirthday = getNextBirthdayDate(person.birthDate);
   const monthName = format(nextBirthday, 'd MMM');
@@ -136,7 +210,7 @@ export function toBirthdayEvent(person: StoredPerson): BirthdayEvent {
   };
 }
 
-export function toContact(person: StoredPerson): Contact {
+export function toContact(person: Person): Contact {
   const birth = new Date(person.birthDate);
   return {
     id: person.id,
@@ -154,7 +228,7 @@ export function toContact(person: StoredPerson): Contact {
 // ─── Calendar events ──────────────────────────────────────────────────────────
 
 export function getBirthdayCalendarEvents(
-  people: StoredPerson[],
+  people: Person[],
   month: number,
 ): Record<number, CalendarDayEvent[]> {
   const events: Record<number, CalendarDayEvent[]> = {};
@@ -177,7 +251,7 @@ const MONTH_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SE
 const WEEKDAY_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 export function getCalendarUpcomingEvents(
-  people: StoredPerson[],
+  people: Person[],
   year: number,
   month: number,
 ): UpcomingEvent[] {
@@ -188,21 +262,22 @@ export function getCalendarUpcomingEvents(
       const birth = new Date(person.birthDate);
       const day = birth.getDate();
       const birthdayDate = new Date(year, birth.getMonth(), day);
-      const days = getDaysUntilBirthday(person.birthDate);
+      const days = getDaysUntilBirthdayInYear(person.birthDate, year);
       const ageAtBirthday = getAgeAtNextBirthday(person.birthDate);
       return {
         id: `upcoming-${person.id}-${year}`,
+        personId: person.id,
         day,
         weekday: WEEKDAY_SHORT[birthdayDate.getDay()],
         month: MONTH_SHORT[birth.getMonth()],
         name: person.fullName,
         description: `Turns ${ageAtBirthday} · Birthday`,
-        countdown: getCountdownLabel(days),
+        countdown: getCountdownLabel(Math.max(0, days)),
         type: 'birthday' as const,
         avatarVariant: (person.gender === 'female' ? 'female' : 'user') as ProfilePlaceholderVariant,
         cardTint: 'bg-violet-50',
         primaryAction: { label: 'Send Wish', icon: 'send' as const },
-        secondaryAction: { label: 'Gift Ideas', icon: 'gift' as const },
+        secondaryAction: { label: 'Create Card', icon: 'card' as const },
       };
     });
 }
@@ -215,7 +290,7 @@ export type BirthdayStats = {
   totalCount: number;
 };
 
-export function getBirthdayStats(people: StoredPerson[]): BirthdayStats {
+export function getBirthdayStats(people: Person[]): BirthdayStats {
   let todayCount = 0;
   let upcoming30Count = 0;
   for (const p of people) {

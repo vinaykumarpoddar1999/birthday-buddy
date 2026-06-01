@@ -1,9 +1,12 @@
 import { router } from 'expo-router';
 import { ArrowLeft, Cake, FileText, Heart, Mail, Shield } from 'lucide-react-native';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFeedback } from '@/shared/hooks/useFeedback';
+
 export const AboutScreen = () => {
+  const { showSuccess } = useFeedback();
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="flex-row items-center px-5 py-3">
@@ -47,7 +50,7 @@ export const AboutScreen = () => {
         <View className="bg-surface rounded-2xl border border-border/60">
           <Pressable
             className="flex-row items-center py-3.5 px-4"
-            onPress={() => Alert.alert('Terms & Conditions', 'Terms and conditions will be displayed here. By using BirthdayBuddy, you agree to our terms of service.')}
+            onPress={() => showSuccess('Terms & Conditions', 'By using BirthdayBuddy, you agree to our terms of service.')}
             accessibilityRole="button">
             <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#DBEAFE]">
               <FileText size={18} color="#3B82F6" />
@@ -57,7 +60,7 @@ export const AboutScreen = () => {
           <View className="h-[0.5px] bg-border/60 mx-4" />
           <Pressable
             className="flex-row items-center py-3.5 px-4"
-            onPress={() => Alert.alert('Privacy Policy', 'Your privacy is important to us. We do not share your personal data with third parties without your consent.')}
+            onPress={() => showSuccess('Privacy Policy', 'Your privacy is important to us. We do not share your personal data with third parties without your consent.')}
             accessibilityRole="button">
             <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#DCFCE7]">
               <Shield size={18} color="#22C55E" />
@@ -67,7 +70,7 @@ export const AboutScreen = () => {
           <View className="h-[0.5px] bg-border/60 mx-4" />
           <Pressable
             className="flex-row items-center py-3.5 px-4"
-            onPress={() => Alert.alert('Contact Support', 'Email us at support@birthdaybuddy.app for any questions or issues.')}
+            onPress={() => showSuccess('Contact Support', 'Email us at support@birthdaybuddy.app for any questions or issues.')}
             accessibilityRole="button">
             <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#FEF3C7]">
               <Mail size={18} color="#F59E0B" />

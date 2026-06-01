@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Badge } from '@shared/ui';
 
 const features = [
-  { title: 'AI Wishes', description: 'Generate personalized messages via Supabase Edge Functions.' },
+  { title: 'AI Wishes', description: 'Generate personalized messages offline with local AI templates.' },
   { title: 'Greeting Cards', description: 'Build and share custom celebration cards.' },
   { title: 'Gift Ideas', description: 'AI-powered gift recommendations per contact.' },
   { title: 'Memory Timeline', description: 'Photos and captions for every celebration.' },

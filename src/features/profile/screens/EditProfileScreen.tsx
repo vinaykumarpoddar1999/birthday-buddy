@@ -1,21 +1,23 @@
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ArrowLeft, Camera, Crown } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { useFeedback } from '@/shared/hooks/useFeedback';
+import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
+import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 
 import { useProfileStore } from '../store/profile.store';
 
-const GIRL_AVATAR = require('../../../../assets/images/girl.png');
-const BOY_AVATAR = require('../../../../assets/images/boy.png');
-
 const GENDERS = ['male', 'female', 'other'] as const;
+const RELATIONSHIP_OPTIONS = ['Single', 'In a relationship', 'Married', 'Prefer not to say'];
 
 export const EditProfileScreen = () => {
   const profile = useProfileStore((s) => s.profile);
   const updateProfile = useProfileStore((s) => s.updateProfile);
   const profileCompletion = useProfileStore((s) => s.profileCompletion);
+  const { toast } = useFeedback();
 
   const [name, setName] = useState(profile.fullName);
   const [email, setEmail] = useState(profile.email);
@@ -24,14 +26,28 @@ export const EditProfileScreen = () => {
   const [birthday, setBirthday] = useState(profile.birthday);
   const [location, setLocation] = useState(profile.location);
   const [bio, setBio] = useState(profile.bio);
+  const [relationshipStatus, setRelationshipStatus] = useState(profile.relationshipStatus);
+  const [preferences, setPreferences] = useState(profile.preferences);
+  const [profileImage, setProfileImage] = useState(profile.profileImage);
+
+  const { showImagePicker } = useProfileImagePicker((uri) => setProfileImage(uri));
 
   const handleSave = () => {
-    updateProfile({ fullName: name, email, phone, gender, birthday, location, bio });
-    Alert.alert('Profile Updated', 'Your changes have been saved.');
+    updateProfile({
+      fullName: name,
+      email,
+      phone,
+      gender,
+      birthday,
+      location,
+      bio,
+      relationshipStatus,
+      preferences,
+      profileImage,
+    });
+    toast('Profile updated successfully', 'success');
     router.back();
   };
-
-  const avatarSource = gender === 'male' ? BOY_AVATAR : GIRL_AVATAR;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -46,14 +62,15 @@ export const EditProfileScreen = () => {
       </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
-        {/* Avatar */}
         <View className="items-center my-5">
-          <View className="relative">
-            <Image source={avatarSource} style={{ width: 96, height: 96, borderRadius: 48 }} contentFit="cover" />
-            <Pressable className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary items-center justify-center border-2 border-surface" accessibilityRole="button">
-              <Camera size={14} color="#FFFFFF" />
-            </Pressable>
-          </View>
+          <Pressable onPress={showImagePicker} accessibilityRole="button" accessibilityLabel="Change profile photo">
+            <View className="relative">
+              <ProfileAvatar size="xl" profileImage={profileImage} gender={gender} />
+              <View className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary items-center justify-center border-2 border-surface">
+                <Camera size={14} color="#FFFFFF" />
+              </View>
+            </View>
+          </Pressable>
           <View className="flex-row items-center mt-3 gap-2">
             <View className="h-1.5 w-20 bg-border/40 rounded-full overflow-hidden">
               <View className="h-full bg-primary rounded-full" style={{ width: `${profileCompletion}%` }} />
@@ -62,12 +79,13 @@ export const EditProfileScreen = () => {
           </View>
         </View>
 
-        {/* Premium Badge */}
         {profile.isPremium && (
           <View className="bg-primary/5 rounded-xl p-3 flex-row items-center justify-center gap-2 mb-5 border border-primary/20">
             <Crown size={16} color="#7C3AED" />
             <Text className="text-[13px] font-bold text-primary">Premium Member</Text>
-            <Text className="text-[11px] text-foreground-secondary">· Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</Text>
+            <Text className="text-[11px] text-foreground-secondary">
+              · Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+            </Text>
           </View>
         )}
 
@@ -92,7 +110,24 @@ export const EditProfileScreen = () => {
           </View>
 
           <FieldInput label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
-          <FieldInput label="Location" value={location} onChangeText={setLocation} placeholder="City, Country" />
+          <FieldInput label="Address / Location" value={location} onChangeText={setLocation} placeholder="City, Country" />
+
+          <View>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Relationship Status</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {RELATIONSHIP_OPTIONS.map((opt) => (
+                <Pressable
+                  key={opt}
+                  onPress={() => setRelationshipStatus(opt)}
+                  className={`px-3 py-2 rounded-xl border ${relationshipStatus === opt ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
+                  accessibilityRole="button">
+                  <Text className={`text-[12px] font-semibold ${relationshipStatus === opt ? 'text-primary' : 'text-foreground-secondary'}`}>{opt}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <FieldInput label="Preferences" value={preferences} onChangeText={setPreferences} placeholder="Gift preferences, interests..." />
           <FieldInput label="Bio" value={bio} onChangeText={setBio} placeholder="Tell us about yourself..." multiline numberOfLines={3} />
         </View>
 

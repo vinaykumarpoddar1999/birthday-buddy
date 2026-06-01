@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Bell, BellRing, Calendar, Gift, Monitor } from 'lucide-react-native';
+import { ArrowLeft, Bell, BellRing, Calendar, Gift, Megaphone, Monitor, Palette, Sparkles } from 'lucide-react-native';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { LucideIcon } from 'lucide-react-native';
@@ -19,9 +19,12 @@ type ToggleItem = {
 const TOGGLES: ToggleItem[] = [
   { key: 'pushNotifications', title: 'Push Notifications', desc: 'Receive push notifications on your device', icon: Bell, color: '#7C3AED', bg: '#EDE9FE' },
   { key: 'birthdayAlerts', title: 'Birthday Alerts', desc: 'Get notified about upcoming birthdays', icon: BellRing, color: '#EF4444', bg: '#FEE2E2' },
-  { key: 'wishSuggestions', title: 'Wish Suggestions', desc: 'AI-generated wish recommendations', icon: Gift, color: '#EC4899', bg: '#FCE7F3' },
+  { key: 'wishSuggestions', title: 'AI Wish Suggestions', desc: 'AI-generated wish recommendations', icon: Sparkles, color: '#EC4899', bg: '#FCE7F3' },
+  { key: 'cardSuggestions', title: 'Card Suggestions', desc: 'Personalized card recommendations', icon: Palette, color: '#8B5CF6', bg: '#EDE9FE' },
   { key: 'specialEventAlerts', title: 'Special Event Alerts', desc: 'Anniversaries, weddings, and custom events', icon: Calendar, color: '#3B82F6', bg: '#DBEAFE' },
   { key: 'systemNotifications', title: 'System Notifications', desc: 'App updates and announcements', icon: Monitor, color: '#F59E0B', bg: '#FEF3C7' },
+  { key: 'marketingNotifications', title: 'Marketing Notifications', desc: 'Promotions and offers', icon: Megaphone, color: '#22C55E', bg: '#DCFCE7' },
+  { key: 'activityUpdates', title: 'Activity Updates', desc: 'Updates on your app activity', icon: Gift, color: '#06B6D4', bg: '#CFFAFE' },
 ];
 
 export const NotificationPrefsScreen = () => {

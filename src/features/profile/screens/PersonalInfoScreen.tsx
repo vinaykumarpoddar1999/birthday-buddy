@@ -1,14 +1,14 @@
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ArrowLeft, Camera } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useProfileStore } from '../store/profile.store';
+import { useFeedback } from '@/shared/hooks/useFeedback';
+import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
+import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
 
-const GIRL_AVATAR = require('../../../../assets/images/girl.png');
-const BOY_AVATAR = require('../../../../assets/images/boy.png');
+import { useProfileStore } from '../store/profile.store';
 
 const GENDERS = ['male', 'female', 'other'] as const;
 
@@ -23,14 +23,15 @@ export const PersonalInfoScreen = () => {
   const [birthday, setBirthday] = useState(profile.birthday);
   const [location, setLocation] = useState(profile.location);
   const [bio, setBio] = useState(profile.bio);
+  const [profileImage, setProfileImage] = useState(profile.profileImage);
+  const { toast } = useFeedback();
+  const { showImagePicker } = useProfileImagePicker((uri) => setProfileImage(uri));
 
   const handleSave = () => {
-    updateProfile({ fullName: name, email, phone, gender, birthday, location, bio });
-    Alert.alert('Saved', 'Your profile has been updated.');
+    updateProfile({ fullName: name, email, phone, gender, birthday, location, bio, profileImage });
+    toast('Your profile has been updated', 'success');
     router.back();
   };
-
-  const avatarSource = gender === 'male' ? BOY_AVATAR : GIRL_AVATAR;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -46,12 +47,14 @@ export const PersonalInfoScreen = () => {
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         <View className="items-center my-5">
-          <View className="relative">
-            <Image source={avatarSource} style={{ width: 96, height: 96, borderRadius: 48 }} contentFit="cover" />
-            <Pressable className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary items-center justify-center border-2 border-surface" accessibilityRole="button" accessibilityLabel="Change photo">
-              <Camera size={14} color="#FFFFFF" />
-            </Pressable>
-          </View>
+          <Pressable onPress={showImagePicker} accessibilityRole="button" accessibilityLabel="Change photo">
+            <View className="relative">
+              <ProfileAvatar size="xl" profileImage={profileImage} gender={gender} />
+              <View className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary items-center justify-center border-2 border-surface">
+                <Camera size={14} color="#FFFFFF" />
+              </View>
+            </View>
+          </Pressable>
         </View>
 
         <View className="gap-4">
@@ -104,7 +107,7 @@ const FieldInput = ({ label, value, onChangeText, placeholder, keyboardType, mul
       keyboardType={keyboardType}
       multiline={multiline}
       numberOfLines={numberOfLines}
-      className={`bg-surface border border-border rounded-xl px-4 py-3 text-[15px] text-foreground ${multiline ? 'min-h-[80px] text-start' : ''}`}
+      className={`bg-surface border border-border rounded-xl px-4 py-3 text-[15px] text-foreground ${multiline ? 'min-h-[80px]' : ''}`}
       style={multiline ? { textAlignVertical: 'top' } : undefined}
     />
   </View>

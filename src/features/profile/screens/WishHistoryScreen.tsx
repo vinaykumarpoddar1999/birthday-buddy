@@ -5,15 +5,14 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@shared/ui/EmptyState';
-import { useAIWishesStore } from '@features/ai-wishes/store/ai-wishes.store';
+import { useWishHistory } from '@features/ai-wishes/hooks/useWishHistory';
 
 const FILTERS = ['All', 'Favorites', 'Recent'] as const;
 type FilterType = (typeof FILTERS)[number];
 
 export const WishHistoryScreen = () => {
-  const history = useAIWishesStore((s) => s.history);
-  const favorites = useAIWishesStore((s) => s.favorites);
-  const toggleFavorite = useAIWishesStore((s) => s.toggleFavorite);
+  const { history, toggleFavorite } = useWishHistory();
+  const favorites = useMemo(() => history.filter((w) => w.isFavorite), [history]);
   const [filter, setFilter] = useState<FilterType>('All');
   const [query, setQuery] = useState('');
 
@@ -26,8 +25,10 @@ export const WishHistoryScreen = () => {
     return items;
   }, [history, favorites, filter, query]);
 
+  const nowMs = useMemo(() => Date.now(), []);
+
   const getRelativeTime = (ts: string) => {
-    const diff = Date.now() - new Date(ts).getTime();
+    const diff = nowMs - new Date(ts).getTime();
     const hours = Math.floor(diff / 3600000);
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
@@ -93,7 +94,7 @@ export const WishHistoryScreen = () => {
                     <Text className="text-[10px] text-foreground-secondary/60">{getRelativeTime(wish.createdAt)}</Text>
                   </View>
                 </View>
-                <Pressable onPress={() => toggleFavorite(wish.id)} className="ml-2 p-1" accessibilityRole="button" accessibilityLabel="Toggle favorite">
+                <Pressable onPress={() => toggleFavorite(wish.id, !wish.isFavorite)} className="ml-2 p-1" accessibilityRole="button" accessibilityLabel="Toggle favorite">
                   <Heart size={18} color={wish.isFavorite ? '#EF4444' : '#9CA3AF'} fill={wish.isFavorite ? '#EF4444' : 'transparent'} />
                 </Pressable>
               </View>

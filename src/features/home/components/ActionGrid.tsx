@@ -1,23 +1,24 @@
 import { Text, View, Pressable } from 'react-native';
 import {
-  BookUser,
+  Contact,
   Gift,
-  UserPlus,
   Users,
+  Wand2,
   type LucideIcon,
 } from 'lucide-react-native';
 
 const iconMap: Record<string, { Icon: LucideIcon; color: string }> = {
-  'user-plus': { Icon: UserPlus, color: '#7C3AED' },
-  book: { Icon: BookUser, color: '#14B8A6' },
+  'user-plus': { Icon: Contact, color: '#7C3AED' },
+  contacts: { Icon: Contact, color: '#14B8A6' },
   users: { Icon: Users, color: '#EC4899' },
   gift: { Icon: Gift, color: '#7C3AED' },
+  wand: { Icon: Wand2, color: '#F472B6' },
 };
 
 export type ActionGridItem = {
   id: string;
   label: string;
-  icon: 'user-plus' | 'book' | 'users' | 'gift';
+  icon: 'user-plus' | 'contacts' | 'users' | 'gift' | 'wand';
   onPress?: () => void;
 };
 
@@ -32,10 +33,18 @@ export function ActionGrid({ items }: { items: ActionGridItem[] }) {
             accessibilityRole="button"
             className="items-center w-[22%]"
             onPress={item.onPress ?? (() => {})}>
-            <View className="h-12 w-12 rounded-xl border-2 border-primary/25 bg-surface items-center justify-center mb-2">
+            <View
+              className="h-14 w-14 rounded-2xl border border-border/60 bg-surface items-center justify-center mb-2"
+              style={{
+                shadowColor: color,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.12,
+                shadowRadius: 6,
+                elevation: 2,
+              }}>
               <Icon size={22} color={color} strokeWidth={2} />
             </View>
-            <Text className="text-[11px] text-foreground-secondary text-center font-medium leading-[14px]">
+            <Text className="text-[10px] text-foreground-secondary text-center font-semibold leading-[13px]">
               {item.label}
             </Text>
           </Pressable>

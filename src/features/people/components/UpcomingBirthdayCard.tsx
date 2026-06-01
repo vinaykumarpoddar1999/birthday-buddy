@@ -1,4 +1,4 @@
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Gift, Send } from 'lucide-react-native';
 import { router } from 'expo-router';
 
@@ -48,14 +48,14 @@ export function UpcomingBirthdayCard({ item }: UpcomingBirthdayCardProps) {
 
         <View className="flex-row gap-2 shrink-0">
           <Pressable
-            onPress={() => router.push({ pathname: '/card-studio', params: { personId: item.id } })}
+            onPress={() => router.push({ pathname: '/ai-wish', params: { personId: item.id } })}
             className="h-9 w-9 rounded-xl bg-primary/10 items-center justify-center"
             accessibilityRole="button"
             accessibilityLabel="Send wish">
             <Send size={15} color="#7C3AED" />
           </Pressable>
           <Pressable
-            onPress={() => Alert.alert('Gift Ideas', `Gift ideas for ${item.name} coming soon!`)}
+            onPress={() => router.push({ pathname: '/ai-wish', params: { personId: item.id } })}
             className="h-9 w-9 rounded-xl bg-pink-50 items-center justify-center"
             accessibilityRole="button"
             accessibilityLabel="Gift ideas">

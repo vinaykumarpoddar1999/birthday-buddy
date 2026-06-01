@@ -1,62 +1,301 @@
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 
-import { REMINDER_OFFSETS_DAYS } from '@/constants/app';
+import { settingsRepository } from '@/repositories/settings.repository';
 import { handleApiError } from '@shared/errors';
+import type { NotificationPreferences, ReminderSettings } from '@features/profile/types';
+import {
+  DEFAULT_NOTIFICATION_PREFS,
+  DEFAULT_REMINDER_SETTINGS,
+} from '@/services/profile/profile.service';
+
+import { isNotificationPermissionGranted } from './permission-utils';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
     shouldShowBanner: true,
     shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
   }),
 });
 
 export type ScheduleBirthdayRemindersInput = {
   contactId: string;
   contactName: string;
-  birthdayDate: Date;
+  birthDate: string;
+  reminderDaysBefore?: number[];
+  notifyTime?: string;
+  repeatYearly?: boolean;
 };
 
-export async function requestNotificationPermissions(): Promise<boolean> {
-  const existing = (await Notifications.getPermissionsAsync()).status;
-  if (existing === 'granted') return true;
+type MonthDay = { month: number; day: number };
 
-  const status = (await Notifications.requestPermissionsAsync()).status;
-  return status === 'granted';
+async function loadNotificationPrefs(): Promise<NotificationPreferences> {
+  const raw = await settingsRepository.getJson<Partial<NotificationPreferences>>('notification_prefs');
+  return { ...DEFAULT_NOTIFICATION_PREFS, ...raw };
+}
+
+async function loadReminderSettings(): Promise<ReminderSettings> {
+  const appSettings = await settingsRepository.getAllSettings();
+  const ext = await settingsRepository.getJson<Partial<ReminderSettings>>('reminder_settings_ext');
+  return {
+    ...DEFAULT_REMINDER_SETTINGS,
+    defaultTime: appSettings.reminderTime,
+    quietHoursStart: appSettings.quietHoursStart ?? DEFAULT_REMINDER_SETTINGS.quietHoursStart,
+    quietHoursEnd: appSettings.quietHoursEnd ?? DEFAULT_REMINDER_SETTINGS.quietHoursEnd,
+    ...ext,
+  };
+}
+
+function parseTime(time: string): { hours: number; minutes: number } {
+  const [h, m] = time.split(':').map(Number);
+  return { hours: h ?? 8, minutes: m ?? 0 };
+}
+
+export function parseBirthMonthDay(birthDate: string): MonthDay | null {
+  const parts = birthDate.trim().split('-');
+  if (parts.length >= 3) {
+    const month = parseInt(parts[parts.length - 2]!, 10);
+    const day = parseInt(parts[parts.length - 1]!, 10);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return { month, day };
+  }
+  if (parts.length === 2) {
+    const month = parseInt(parts[0]!, 10);
+    const day = parseInt(parts[1]!, 10);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return { month, day };
+  }
+  return null;
+}
+
+function subtractDays(month: number, day: number, daysBefore: number): MonthDay {
+  const refYear = month === 2 && day === 29 ? 2024 : 2025;
+  const date = new Date(refYear, month - 1, day);
+  date.setDate(date.getDate() - daysBefore);
+  return { month: date.getMonth() + 1, day: date.getDate() };
+}
+
+function adjustForWeekendRules(
+  monthDay: MonthDay,
+  rule: ReminderSettings['weekendRules'],
+): MonthDay | null {
+  const refYear = monthDay.month === 2 && monthDay.day === 29 ? 2024 : 2025;
+  const date = new Date(refYear, monthDay.month - 1, monthDay.day);
+  const dow = date.getDay();
+
+  if (rule === 'skip' && (dow === 0 || dow === 6)) return null;
+
+  if (rule === 'earlier') {
+    if (dow === 6) date.setDate(date.getDate() - 1);
+    if (dow === 0) date.setDate(date.getDate() - 2);
+  }
+
+  return { month: date.getMonth() + 1, day: date.getDate() };
+}
+
+function buildAdvanceContent(
+  contactName: string,
+  daysBefore: number,
+  settings: ReminderSettings,
+): Notifications.NotificationContentInput {
+  if (daysBefore === 0) {
+    return {
+      title: `🎉 Today is ${contactName}'s birthday!`,
+      body: settings.birthdayAlarm
+        ? "Don't forget to wish them — your birthday alarm is set!"
+        : "Don't forget to wish them!",
+      sound: settings.notificationSound ? 'default' : undefined,
+      priority: settings.birthdayAlarm
+        ? Notifications.AndroidNotificationPriority.MAX
+        : Notifications.AndroidNotificationPriority.HIGH,
+    };
+  }
+
+  return {
+    title: `🎂 ${contactName}'s birthday is in ${daysBefore} day${daysBefore === 1 ? '' : 's'}!`,
+    body: 'Open BirthdayBuddy to plan a wish or card.',
+    sound: settings.notificationSound ? 'default' : undefined,
+    priority: Notifications.AndroidNotificationPriority.HIGH,
+  };
+}
+
+function buildAlarmContent(contactName: string, settings: ReminderSettings): Notifications.NotificationContentInput {
+  return {
+    title: `⏰ Birthday Alarm — ${contactName}`,
+    body: "It's time to celebrate! Send your birthday wish now.",
+    sound: settings.notificationSound ? 'default' : undefined,
+    priority: Notifications.AndroidNotificationPriority.MAX,
+  };
+}
+
+async function ensureAndroidChannels(settings: ReminderSettings): Promise<void> {
+  if (Platform.OS !== 'android') return;
+
+  await Notifications.setNotificationChannelAsync('birthday-reminders', {
+    name: 'Birthday Reminders',
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: settings.notificationSound ? 'default' : undefined,
+    vibrationPattern: settings.vibration ? [0, 250, 250, 250] : undefined,
+  });
+
+  await Notifications.setNotificationChannelAsync('birthday-alarms', {
+    name: 'Birthday Alarms',
+    importance: Notifications.AndroidImportance.MAX,
+    sound: settings.notificationSound ? 'default' : undefined,
+    bypassDnd: true,
+    vibrationPattern: settings.vibration ? [0, 500, 200, 500] : undefined,
+  });
+
+  await Notifications.setNotificationChannelAsync('default', {
+    name: 'General',
+    importance: Notifications.AndroidImportance.DEFAULT,
+  });
+}
+
+export async function registerForNotifications(): Promise<boolean> {
+  const existing = await Notifications.getPermissionsAsync();
+  if (isNotificationPermissionGranted(existing)) {
+    await ensureAndroidChannels(await loadReminderSettings());
+    return true;
+  }
+
+  const requested = await Notifications.requestPermissionsAsync({
+    ios: { allowAlert: true, allowBadge: true, allowSound: true },
+  });
+  if (isNotificationPermissionGranted(requested)) {
+    await ensureAndroidChannels(await loadReminderSettings());
+    return true;
+  }
+  return false;
+}
+
+export async function requestNotificationPermissions(): Promise<boolean> {
+  const prefs = await loadNotificationPrefs();
+  if (!prefs.pushNotifications) return false;
+  return registerForNotifications();
+}
+
+async function scheduleCalendarNotification(
+  content: Notifications.NotificationContentInput,
+  monthDay: MonthDay,
+  time: string,
+  channelId: string,
+  data: Record<string, unknown>,
+): Promise<string> {
+  const { hours, minutes } = parseTime(time);
+
+  return Notifications.scheduleNotificationAsync({
+    content: {
+      ...content,
+      ...(Platform.OS === 'android'
+        ? { android: { channelId } }
+        : {}),
+      data,
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+      month: monthDay.month,
+      day: monthDay.day,
+      hour: hours,
+      minute: minutes,
+      repeats: true,
+    },
+  });
 }
 
 export async function scheduleBirthdayReminders(
   input: ScheduleBirthdayRemindersInput,
 ): Promise<string[]> {
+  const [prefs, reminderSettings] = await Promise.all([
+    loadNotificationPrefs(),
+    loadReminderSettings(),
+  ]);
+
+  if (!prefs.birthdayAlerts) {
+    return [];
+  }
+
+  const granted = await registerForNotifications();
+  if (!granted) {
+    return [];
+  }
+
+  if (input.repeatYearly === false) {
+    return [];
+  }
+
+  const birth = parseBirthMonthDay(input.birthDate);
+  if (!birth) return [];
+
+  await ensureAndroidChannels(reminderSettings);
+
+  const globalOffsets = reminderSettings.reminderDaysBefore.length
+    ? reminderSettings.reminderDaysBefore
+    : [7, 3, 1, 0];
+  const personOffsets = input.reminderDaysBefore ?? [];
+  const offsets = [...new Set([...globalOffsets, ...personOffsets, 0])].sort((a, b) => b - a);
+
+  const notifyTime = input.notifyTime ?? reminderSettings.defaultTime;
   const scheduledIds: string[] = [];
+  const scheduledKeys = new Set<string>();
 
   try {
-    for (const daysBefore of REMINDER_OFFSETS_DAYS) {
-      const triggerDate = new Date(input.birthdayDate);
-      triggerDate.setFullYear(new Date().getFullYear());
-      triggerDate.setDate(triggerDate.getDate() - daysBefore);
-      triggerDate.setHours(daysBefore === 0 ? 8 : 9, 0, 0, 0);
+    for (const daysBefore of offsets) {
+      let triggerMonthDay = subtractDays(birth.month, birth.day, daysBefore);
+      const adjusted = adjustForWeekendRules(triggerMonthDay, reminderSettings.weekendRules);
+      if (!adjusted) continue;
+      triggerMonthDay = adjusted;
 
-      if (triggerDate <= new Date()) continue;
+      const time = notifyTime;
+      const key = `${triggerMonthDay.month}-${triggerMonthDay.day}-${time}-advance-${daysBefore}`;
+      if (scheduledKeys.has(key)) continue;
+      scheduledKeys.add(key);
 
-      const id = await Notifications.scheduleNotificationAsync({
-        content: {
-          title:
-            daysBefore === 0
-              ? `${input.contactName}'s birthday is today!`
-              : `${input.contactName}'s birthday in ${daysBefore} day(s)`,
-          body: 'Open BirthdayBuddy to celebrate',
-          data: { contactId: input.contactId, daysBefore },
+      const content = buildAdvanceContent(input.contactName, daysBefore, reminderSettings);
+      const channelId = daysBefore === 0 && reminderSettings.birthdayAlarm ? 'birthday-alarms' : 'birthday-reminders';
+
+      const id = await scheduleCalendarNotification(
+        content,
+        triggerMonthDay,
+        time,
+        channelId,
+        {
+          contactId: input.contactId,
+          daysBefore,
+          type: daysBefore === 0 ? 'day_of' : 'advance',
+          alarm: reminderSettings.birthdayAlarm,
         },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: triggerDate,
-        },
-      });
-
+      );
       scheduledIds.push(id);
+    }
+
+    if (reminderSettings.birthdayAlarm) {
+      const alarmTimes =
+        reminderSettings.multipleReminderTimes.length > 0
+          ? reminderSettings.multipleReminderTimes
+          : [notifyTime];
+
+      for (const alarmTime of alarmTimes) {
+        const adjusted = adjustForWeekendRules(birth, reminderSettings.weekendRules) ?? birth;
+        const key = `${adjusted.month}-${adjusted.day}-${alarmTime}-alarm`;
+        if (scheduledKeys.has(key)) continue;
+        scheduledKeys.add(key);
+
+        const id = await scheduleCalendarNotification(
+          buildAlarmContent(input.contactName, reminderSettings),
+          adjusted,
+          alarmTime,
+          'birthday-alarms',
+          {
+            contactId: input.contactId,
+            daysBefore: 0,
+            type: 'alarm',
+            alarm: true,
+          },
+        );
+        scheduledIds.push(id);
+      }
     }
   } catch (error) {
     throw handleApiError(error);
@@ -66,5 +305,41 @@ export async function scheduleBirthdayReminders(
 }
 
 export async function cancelScheduledNotifications(ids: string[]): Promise<void> {
-  await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id)));
+  await Promise.all(
+    ids.filter(Boolean).map((id) => Notifications.cancelScheduledNotificationAsync(id)),
+  );
+}
+
+export async function cancelAllScheduledBirthdayNotifications(): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+export async function getAllScheduledNotificationIds(): Promise<string[]> {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  return scheduled.map((n) => n.identifier);
+}
+
+export async function rescheduleAllBirthdayReminders(
+  people: {
+    id: string;
+    fullName: string;
+    birthDate: string;
+    reminderDaysBefore?: number;
+    reminderTime?: string;
+    repeatYearly?: boolean;
+  }[],
+): Promise<void> {
+  await cancelAllScheduledBirthdayNotifications();
+
+  for (const person of people) {
+    const offsets = person.reminderDaysBefore !== undefined ? [person.reminderDaysBefore] : undefined;
+    await scheduleBirthdayReminders({
+      contactId: person.id,
+      contactName: person.fullName,
+      birthDate: person.birthDate,
+      reminderDaysBefore: offsets,
+      notifyTime: person.reminderTime,
+      repeatYearly: person.repeatYearly !== false,
+    });
+  }
 }

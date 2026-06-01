@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
 import { ArrowLeft, Cake, Check, Crown, Gift, PartyPopper } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { useFeedback } from '@/shared/hooks/useFeedback';
 
 import { useProfileStore } from '../store/profile.store';
 import type { AppIconOption } from '../types';
@@ -18,10 +20,11 @@ const ICONS: { key: AppIconOption; icon: LucideIcon; label: string; desc: string
 export const AppIconSelectScreen = () => {
   const appIcon = useProfileStore((s) => s.appIcon);
   const setAppIcon = useProfileStore((s) => s.setAppIcon);
+  const { toast } = useFeedback();
 
   const handleSelect = (icon: AppIconOption) => {
     setAppIcon(icon);
-    Alert.alert('App Icon Updated', 'The app icon will change on next restart.');
+    toast('App icon preference saved', 'success');
   };
 
   return (

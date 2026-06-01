@@ -48,6 +48,7 @@ export interface CardElement {
   opacity: number;
   zIndex: number;
   visible: boolean;
+  locked?: boolean;
   content?: string;
   fontSize?: number;
   fontFamily?: string;
@@ -96,7 +97,6 @@ export interface PersonalizationData {
   age: string;
   message: string;
   quote: string;
-  emoji: string;
   eventType: string;
   date: string;
   location: string;

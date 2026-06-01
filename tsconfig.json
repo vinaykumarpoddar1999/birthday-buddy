@@ -9,6 +9,9 @@
       "@features/*": ["src/features/*"],
       "@services/*": ["src/services/*"],
       "@store/*": ["src/store/*"],
+      "@stores/*": ["src/stores/*"],
+      "@database/*": ["src/database/*"],
+      "@repositories/*": ["src/repositories/*"],
       "@config/*": ["src/config/*"],
       "@/assets/*": ["assets/*"]
     }

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { usePeopleStore } from '@store/people.store';
+import { usePerson } from '@features/people/hooks/usePeople';
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardStudioHeader } from '../components/common/CardStudioHeader';
 import { StepIndicator } from '../components/common/StepIndicator';
@@ -33,25 +33,22 @@ export function CardStudioScreen() {
   const historyLength = useCardStudioStore((s) => s.history.length);
 
   const params = useLocalSearchParams<{ personId?: string }>();
-  const getPersonById = usePeopleStore((s) => s.getPersonById);
+  const { data: person } = usePerson(params.personId);
 
   useEffect(() => {
-    if (params.personId) {
-      const person = getPersonById(params.personId);
-      if (person) {
-        setPreFilledPersonId(params.personId);
-        const birthYear = parseInt(person.birthDate.split('-')[0], 10);
-        const age = new Date().getFullYear() - birthYear;
-        updatePersonalization({
-          recipientName: person.fullName,
-          relationship: person.relationship,
-          age: age > 0 ? String(age) : '',
-          eventType: person.eventType,
-          photoUri: person.profileImage || undefined,
-        });
-      }
+    if (person && params.personId) {
+      setPreFilledPersonId(params.personId);
+      const birthYear = parseInt(person.birthDate.split('-')[0], 10);
+      const age = new Date().getFullYear() - birthYear;
+      updatePersonalization({
+        recipientName: person.fullName,
+        relationship: person.relationship,
+        age: age > 0 ? String(age) : '',
+        eventType: person.eventType,
+        photoUri: person.avatarUri || undefined,
+      });
     }
-  }, [params.personId, getPersonById, setPreFilledPersonId, updatePersonalization]);
+  }, [person, params.personId, setPreFilledPersonId, updatePersonalization]);
 
   const handleBack = () => {
     if (step > 1) {

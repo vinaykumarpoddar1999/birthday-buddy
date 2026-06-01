@@ -1,21 +1,24 @@
 import { useMemo } from 'react';
 
 import { useCardStudioStore } from '../store/card-studio.store';
-import { templateRegistry } from '../templates';
+import {
+  getTrendingTemplates,
+  searchCardTemplates,
+} from '../utils/template-search';
+import { useCardTemplates } from './useCardTemplates';
 
 export function useTemplateSearch() {
   const searchQuery = useCardStudioStore((s) => s.searchQuery);
   const selectedCategory = useCardStudioStore((s) => s.selectedCategory);
   const filters = useCardStudioStore((s) => s.filters);
+  const { data: allTemplates = [], isLoading } = useCardTemplates();
 
   const results = useMemo(
-    () => templateRegistry.searchTemplates(searchQuery, filters, selectedCategory),
-    [searchQuery, selectedCategory, filters],
+    () => searchCardTemplates(allTemplates, searchQuery, filters, selectedCategory),
+    [allTemplates, searchQuery, selectedCategory, filters],
   );
 
-  const trending = useMemo(() => templateRegistry.getTrending(), []);
+  const trending = useMemo(() => getTrendingTemplates(allTemplates), [allTemplates]);
 
-  const allTemplates = useMemo(() => templateRegistry.getAllTemplates(), []);
-
-  return { results, trending, allTemplates };
+  return { results, trending, allTemplates, isLoading };
 }

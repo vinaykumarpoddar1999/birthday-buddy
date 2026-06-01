@@ -1,1 +1,1 @@
-export { env, isSupabaseConfigured, type Env } from './env';
+export { env, type Env } from './env';

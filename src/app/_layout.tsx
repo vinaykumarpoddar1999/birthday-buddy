@@ -2,6 +2,7 @@ import '../global.css';
 
 import { Stack } from 'expo-router';
 
+import '@/services/notifications/notification-scheduler.service';
 import { AppProviders } from '@shared/providers/AppProviders';
 
 export default function RootLayout() {
@@ -33,6 +34,11 @@ export default function RootLayout() {
         <Stack.Screen name="edit-profile" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="activity-history" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="wish-history" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="card-history" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="import-data" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="calendar-sync" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="appearance-settings" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="reminder-settings" options={{ animation: 'slide_from_right' }} />
       </Stack>
     </AppProviders>
   );

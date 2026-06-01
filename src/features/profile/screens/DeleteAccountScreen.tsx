@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { AlertTriangle, ArrowLeft, Check, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
@@ -8,14 +9,22 @@ import { useProfileStore } from '../store/profile.store';
 
 export const DeleteAccountScreen = () => {
   const deleteAccount = useProfileStore((s) => s.deleteAccount);
+  const queryClient = useQueryClient();
   const [agreed, setAgreed] = useState(false);
   const [confirmText, setConfirmText] = useState('');
-  const canDelete = agreed && confirmText === 'DELETE';
+  const [isDeleting, setIsDeleting] = useState(false);
+  const canDelete = agreed && confirmText === 'DELETE' && !isDeleting;
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!canDelete) return;
-    deleteAccount();
-    router.replace('/(tabs)');
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      await queryClient.invalidateQueries();
+      router.replace('/(tabs)');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const deletedItems = [

@@ -1,17 +1,20 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { analytics, ANALYTICS_EVENTS } from '@services/analytics';
-import type { ScheduleBirthdayRemindersInput } from '@services/notifications';
-import { cancelReminders, scheduleReminders } from '../api/reminders.api';
+import {
+  cancelScheduledNotifications,
+  scheduleBirthdayReminders,
+  type ScheduleBirthdayRemindersInput,
+} from '@services/notifications';
 
 export function useReminders() {
   const scheduleMutation = useMutation({
-    mutationFn: (input: ScheduleBirthdayRemindersInput) => scheduleReminders(input),
+    mutationFn: (input: ScheduleBirthdayRemindersInput) => scheduleBirthdayReminders(input),
     onSuccess: () => analytics.track(ANALYTICS_EVENTS.REMINDER_TRIGGERED),
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (ids: string[]) => cancelReminders(ids),
+    mutationFn: (ids: string[]) => cancelScheduledNotifications(ids),
   });
 
   return {

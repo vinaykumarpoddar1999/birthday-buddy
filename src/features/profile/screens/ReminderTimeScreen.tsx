@@ -24,7 +24,10 @@ export const ReminderTimeScreen = () => {
   const [selected, setSelected] = useState(currentTime);
 
   const handleSave = () => {
-    update({ defaultTime: selected });
+    update({
+      defaultTime: selected,
+      multipleReminderTimes: [selected, ...useProfileStore.getState().reminderSettings.multipleReminderTimes.filter((t) => t !== selected)].slice(0, 3),
+    });
     router.back();
   };
 

@@ -1,19 +1,19 @@
 import { router } from 'expo-router';
+import { CalendarDays } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { usePeopleStore } from '@store/people.store';
-import {
-  getBirthdayCalendarEvents,
-  getCalendarUpcomingEvents,
-} from '@features/people/utils/birthday-utils';
+import { CalendarSkeleton, EmptyState, ErrorState } from '@shared/ui';
+import { useCalendarMonth } from '@features/calendar/hooks/useCalendar';
 import {
   AddEventButton,
   CalendarGrid,
   CalendarHeader,
   CalendarSwitcher,
   CalendarToolbar,
+  CalendarEventList,
+  CalendarTimelineView,
   EventLegend,
   FloatingActionButton,
   UpcomingSection,
@@ -26,13 +26,19 @@ const MONTH_NAMES = [
 ];
 
 export function CalendarScreen() {
-  const people = usePeopleStore((s) => s.people);
-
   const today = new Date();
   const [activeView, setActiveView] = useState<CalendarViewMode>('month');
   const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth() + 1); // 1-based
+  const [month, setMonth] = useState(today.getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState(today.getDate());
+
+  const {
+    events: calendarEvents,
+    upcoming: upcomingEvents,
+    isLoading,
+    isError,
+    refetch,
+  } = useCalendarMonth(year, month);
 
   const monthLabel = useMemo(() => `${MONTH_NAMES[month - 1]} ${year}`, [month, year]);
   const shortMonthLabel = useMemo(() => MONTH_NAMES[month - 1], [month]);
@@ -47,17 +53,23 @@ export function CalendarScreen() {
     setMonth((m) => m + 1);
   };
 
-  // Compute calendar events from store for the current month
-  const calendarEvents = useMemo(
-    () => getBirthdayCalendarEvents(people, month),
-    [people, month],
-  );
+  const hasEvents = Object.keys(calendarEvents).length > 0 || upcomingEvents.length > 0;
 
-  // Upcoming events section
-  const upcomingEvents = useMemo(
-    () => getCalendarUpcomingEvents(people, year, month),
-    [people, year, month],
-  );
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <CalendarSkeleton />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <ErrorState kind="database" onRetry={() => void refetch()} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -91,18 +103,43 @@ export function CalendarScreen() {
               />
               <EventLegend />
             </>
+          ) : activeView === 'list' ? (
+            upcomingEvents.length > 0 ? (
+              <CalendarEventList events={upcomingEvents} />
+            ) : (
+              <EmptyState
+                icon={CalendarDays}
+                title="No events this month"
+                subtitle="Birthdays you add will appear on the calendar automatically."
+                primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
+                className="py-8 bg-surface border border-border rounded-2xl"
+              />
+            )
           ) : (
-            <View className="bg-surface rounded-xl border border-border p-6 mb-5 items-center shadow-card min-h-[200px] justify-center">
-              <Text className="text-title text-foreground font-semibold capitalize">
-                {activeView} view
-              </Text>
-              <Text className="text-caption text-foreground-secondary mt-2 text-center">
-                UI placeholder — switch to Month for the full calendar grid.
-              </Text>
-            </View>
+            upcomingEvents.length > 0 ? (
+              <CalendarTimelineView events={upcomingEvents} />
+            ) : (
+              <EmptyState
+                icon={CalendarDays}
+                title="No timeline events"
+                subtitle="Upcoming birthdays will show here once you add people."
+                primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
+                className="py-8"
+              />
+            )
           )}
 
-          <UpcomingSection monthLabel={shortMonthLabel} events={upcomingEvents} />
+          {!hasEvents ? (
+            <EmptyState
+              icon={CalendarDays}
+              title="Your calendar is empty"
+              subtitle="Add people with birthdays to see them marked on every month."
+              primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
+              className="mt-4 bg-primary/5 border border-primary/15 rounded-2xl"
+            />
+          ) : (
+            <UpcomingSection monthLabel={shortMonthLabel} events={upcomingEvents} />
+          )}
         </ScrollView>
 
         <FloatingActionButton onPress={() => router.push('/add-person')} />

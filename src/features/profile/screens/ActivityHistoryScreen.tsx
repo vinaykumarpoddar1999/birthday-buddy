@@ -1,11 +1,14 @@
 import { router } from 'expo-router';
 import { ArrowLeft, Bell, ClipboardList, Download, Palette, Pencil, Share2, Sparkles, Trash2, UserPlus } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { LucideIcon } from 'lucide-react-native';
 
 import { EmptyState } from '@shared/ui/EmptyState';
+
+import { refreshActivityFeed } from '@/services/activity/activity-sync.service';
 
 import { useActivityStore } from '../store/activity.store';
 import type { ActivityEntry } from '../types';
@@ -22,6 +25,10 @@ const TYPE_CONFIG: Record<ActivityEntry['type'], { icon: LucideIcon; color: stri
   reminder_set: { icon: Bell, color: '#F97316', bg: '#FFEDD5' },
   card_shared: { icon: Share2, color: '#14B8A6', bg: '#CCFBF1' },
   card_downloaded: { icon: Download, color: '#6366F1', bg: '#E0E7FF' },
+  settings_changed: { icon: ClipboardList, color: '#6B7280', bg: '#F3F4F6' },
+  backup_created: { icon: Download, color: '#22C55E', bg: '#DCFCE7' },
+  import_performed: { icon: Download, color: '#3B82F6', bg: '#DBEAFE' },
+  export_performed: { icon: Share2, color: '#8B5CF6', bg: '#EDE9FE' },
 };
 
 const FILTER_MAP: Record<FilterType, ActivityEntry['type'][]> = {
@@ -45,6 +52,12 @@ const getRelativeTime = (ts: string) => {
 export const ActivityHistoryScreen = () => {
   const activities = useActivityStore((s) => s.activities);
   const [filter, setFilter] = useState<FilterType>('All');
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshActivityFeed();
+    }, []),
+  );
 
   const filtered = useMemo(() => {
     if (filter === 'All') return activities;

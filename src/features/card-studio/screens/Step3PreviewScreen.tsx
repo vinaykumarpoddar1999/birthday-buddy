@@ -13,6 +13,7 @@ export function Step3PreviewScreen() {
   const template = useCardStudioStore((s) => s.selectedTemplate);
   const personalization = useCardStudioStore((s) => s.personalization);
   const elements = useCardStudioStore((s) => s.elements);
+  const customBackground = useCardStudioStore((s) => s.customBackground);
   const nextStep = useCardStudioStore((s) => s.nextStep);
   const prevStep = useCardStudioStore((s) => s.prevStep);
 
@@ -51,6 +52,7 @@ export function Step3PreviewScreen() {
                 personalization={personalization}
                 elements={elements}
                 scale={PREVIEW_SCALE}
+                customBackground={customBackground}
               />
             </View>
           </View>

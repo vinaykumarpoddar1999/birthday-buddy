@@ -16,10 +16,10 @@ import {
 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 
-import type { StoredPerson } from '@store/people.store';
+import type { Person } from '@/types/entities';
 
 type Props = {
-  person: StoredPerson;
+  person: Person;
   onEditProfile?: () => void;
 };
 
@@ -64,9 +64,9 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
         <View
           className="h-14 w-14 rounded-2xl overflow-hidden mr-3"
           style={{ backgroundColor: '#F3F0FF' }}>
-          {person.profileImage ? (
+          {person.avatarUri ? (
             <Image
-              source={{ uri: person.profileImage }}
+              source={{ uri: person.avatarUri }}
               style={{ width: 56, height: 56 }}
               contentFit="cover"
             />

@@ -1,8 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+
+import { cardStudioPrefsService } from '@/services/card/card-studio-prefs.service';
 
 import type {
+  CardBackground,
   CardElement,
   CardTemplate,
   Draft,
@@ -11,13 +12,12 @@ import type {
 } from '../types';
 
 const DEFAULT_PERSONALIZATION: PersonalizationData = {
-  recipientName: 'Riya',
+  recipientName: '',
   senderName: '',
   relationship: '',
   age: '',
   message: '',
   quote: '',
-  emoji: 'icon:cake',
   eventType: 'birthday',
   date: '',
   location: '',
@@ -49,6 +49,7 @@ interface CardStudioState {
   historyIndex: number;
   uploadedPhotoUri: string | null;
   preFilledPersonId: string | null;
+  customBackground: CardBackground | null;
 
   setStep: (step: 1 | 2 | 3 | 4) => void;
   nextStep: () => void;
@@ -64,6 +65,13 @@ interface CardStudioState {
   updateElement: (id: string, updates: Partial<CardElement>) => void;
   deleteElement: (id: string) => void;
   selectElement: (id: string | null) => void;
+  duplicateElement: (id: string) => void;
+  bringForward: (id: string) => void;
+  sendBackward: (id: string) => void;
+  toggleElementLock: (id: string) => void;
+  toggleElementVisibility: (id: string) => void;
+
+  setCustomBackground: (bg: CardBackground | null) => void;
 
   setSearchQuery: (query: string) => void;
   setSelectedCategory: (category: string) => void;
@@ -87,9 +95,7 @@ interface CardStudioState {
   reset: () => void;
 }
 
-export const useCardStudioStore = create<CardStudioState>()(
-  persist(
-    (set, get) => ({
+export const useCardStudioStore = create<CardStudioState>()((set, get) => ({
       currentStep: 1,
       selectedTemplate: null,
       personalization: { ...DEFAULT_PERSONALIZATION },
@@ -105,6 +111,7 @@ export const useCardStudioStore = create<CardStudioState>()(
       historyIndex: -1,
       uploadedPhotoUri: null,
       preFilledPersonId: null,
+      customBackground: null,
 
       setStep: (step) => set({ currentStep: step }),
 
@@ -123,6 +130,7 @@ export const useCardStudioStore = create<CardStudioState>()(
         set({
           selectedTemplate: template,
           elements,
+          customBackground: null,
           currentStep: 2,
           history: [elements],
           historyIndex: 0,
@@ -160,6 +168,60 @@ export const useCardStudioStore = create<CardStudioState>()(
 
       selectElement: (id) => set({ selectedElementId: id }),
 
+      duplicateElement: (id) => {
+        const el = get().elements.find((e) => e.id === id);
+        if (!el) return;
+        const maxZ = Math.max(...get().elements.map((e) => e.zIndex), 0);
+        const copy: CardElement = {
+          ...el,
+          id: `el-${Date.now()}`,
+          x: el.x + 12,
+          y: el.y + 12,
+          zIndex: maxZ + 1,
+        };
+        set((s) => ({ elements: [...s.elements, copy], selectedElementId: copy.id }));
+        get().pushHistory();
+      },
+
+      bringForward: (id) => {
+        const els = [...get().elements];
+        const idx = els.findIndex((e) => e.id === id);
+        if (idx < 0) return;
+        const maxZ = Math.max(...els.map((e) => e.zIndex));
+        els[idx] = { ...els[idx], zIndex: maxZ + 1 };
+        set({ elements: els });
+        get().pushHistory();
+      },
+
+      sendBackward: (id) => {
+        const els = [...get().elements];
+        const idx = els.findIndex((e) => e.id === id);
+        if (idx < 0) return;
+        const minZ = Math.min(...els.map((e) => e.zIndex));
+        els[idx] = { ...els[idx], zIndex: Math.max(0, minZ - 1) };
+        set({ elements: els });
+        get().pushHistory();
+      },
+
+      toggleElementLock: (id) => {
+        set((s) => ({
+          elements: s.elements.map((el) =>
+            el.id === id ? { ...el, locked: !el.locked } : el,
+          ),
+        }));
+      },
+
+      toggleElementVisibility: (id) => {
+        set((s) => ({
+          elements: s.elements.map((el) =>
+            el.id === id ? { ...el, visible: !el.visible } : el,
+          ),
+        }));
+        get().pushHistory();
+      },
+
+      setCustomBackground: (bg) => set({ customBackground: bg }),
+
       setSearchQuery: (query) => set({ searchQuery: query }),
       setSelectedCategory: (category) => set({ selectedCategory: category }),
       setFilters: (updates) => set((s) => ({ filters: { ...s.filters, ...updates } })),
@@ -167,18 +229,22 @@ export const useCardStudioStore = create<CardStudioState>()(
 
       toggleFavorite: (templateId) =>
         set((s) => {
-          const ids = s.favoriteTemplateIds;
-          return {
-            favoriteTemplateIds: ids.includes(templateId)
-              ? ids.filter((i) => i !== templateId)
-              : [...ids, templateId],
-          };
+          const favoriteTemplateIds = s.favoriteTemplateIds.includes(templateId)
+            ? s.favoriteTemplateIds.filter((i) => i !== templateId)
+            : [...s.favoriteTemplateIds, templateId];
+          void cardStudioPrefsService.saveFavorites(favoriteTemplateIds);
+          return { favoriteTemplateIds };
         }),
 
       addRecent: (templateId) =>
-        set((s) => ({
-          recentTemplateIds: [templateId, ...s.recentTemplateIds.filter((i) => i !== templateId)].slice(0, 20),
-        })),
+        set((s) => {
+          const recentTemplateIds = [templateId, ...s.recentTemplateIds.filter((i) => i !== templateId)].slice(
+            0,
+            20,
+          );
+          void cardStudioPrefsService.saveRecents(recentTemplateIds);
+          return { recentTemplateIds };
+        }),
 
       saveDraft: (name) => {
         const s = get();
@@ -192,7 +258,9 @@ export const useCardStudioStore = create<CardStudioState>()(
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-        set({ drafts: [...s.drafts, draft] });
+        const drafts = [...s.drafts, draft];
+        void cardStudioPrefsService.saveDrafts(drafts);
+        set({ drafts });
         return id;
       },
 
@@ -208,7 +276,11 @@ export const useCardStudioStore = create<CardStudioState>()(
       },
 
       deleteDraft: (draftId) =>
-        set((s) => ({ drafts: s.drafts.filter((d) => d.id !== draftId) })),
+        set((s) => {
+          const drafts = s.drafts.filter((d) => d.id !== draftId);
+          void cardStudioPrefsService.saveDrafts(drafts);
+          return { drafts };
+        }),
 
       pushHistory: () =>
         set((s) => {
@@ -249,16 +321,6 @@ export const useCardStudioStore = create<CardStudioState>()(
           historyIndex: -1,
           uploadedPhotoUri: null,
           preFilledPersonId: null,
+          customBackground: null,
         }),
-    }),
-    {
-      name: 'card-studio-v1',
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({
-        favoriteTemplateIds: s.favoriteTemplateIds,
-        recentTemplateIds: s.recentTemplateIds,
-        drafts: s.drafts,
-      }),
-    },
-  ),
-);
+}));

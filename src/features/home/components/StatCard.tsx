@@ -1,9 +1,11 @@
 import { Text, View, Pressable } from 'react-native';
-import { ArrowRight, Bell, Flame, type LucideIcon } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowRight, Bell, Flame, Users, type LucideIcon } from 'lucide-react-native';
 
 const iconMap = {
   bell: Bell,
   flame: Flame,
+  users: Users,
 } as const;
 
 export type StatCardProps = {
@@ -11,11 +13,8 @@ export type StatCardProps = {
   value: string;
   subtitle?: string;
   icon: keyof typeof iconMap;
-  cardBg: string;
-  iconBg: string;
-  iconColor: string;
-  actionBg: string;
-  actionColor: string;
+  gradientColors: [string, string];
+  onPress?: () => void;
 };
 
 export function StatCard({
@@ -23,36 +22,86 @@ export function StatCard({
   value,
   subtitle,
   icon,
-  cardBg,
-  iconBg,
-  iconColor,
-  actionBg,
-  actionColor,
+  gradientColors,
+  onPress,
 }: StatCardProps) {
-  const Icon: LucideIcon = iconMap[icon];
+  const Icon: LucideIcon = iconMap[icon] ?? Bell;
 
   return (
-    <View className={`flex-1 ${cardBg} rounded-lg p-4 min-h-[120px]`}>
-      <View className="flex-row items-start gap-3">
-        <View className={`${iconBg} h-11 w-11 rounded-xl items-center justify-center shrink-0`}>
-          <Icon size={22} color={iconColor} strokeWidth={2} />
+    <Pressable onPress={onPress} disabled={!onPress} className="flex-1" accessibilityRole="button">
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: 20,
+          padding: 16,
+          minHeight: 140,
+          borderWidth: 1,
+          borderColor: 'rgba(255,255,255,0.25)',
+          shadowColor: gradientColors[0],
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.28,
+          shadowRadius: 12,
+          elevation: 6,
+        }}>
+        <View className="flex-row items-start justify-between">
+          <View
+            style={{
+              height: 44,
+              width: 44,
+              borderRadius: 14,
+              backgroundColor: 'rgba(255,255,255,0.22)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Icon size={22} color="#FFFFFF" strokeWidth={2.2} />
+          </View>
+          <View
+            style={{
+              height: 30,
+              width: 30,
+              borderRadius: 15,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <ArrowRight size={14} color="#FFFFFF" strokeWidth={2.5} />
+          </View>
         </View>
-        <View className="flex-1 min-w-0 pt-0.5">
-          <Text className="text-[11px] text-foreground-secondary font-medium">{title}</Text>
-          <Text className="text-[20px] leading-6 text-foreground font-bold mt-0.5">{value}</Text>
-          {subtitle ? (
-            <Text className="text-[11px] text-foreground-secondary mt-0.5">{subtitle}</Text>
-          ) : null}
-        </View>
-      </View>
-      <View className="flex-row justify-end mt-3">
-        <Pressable
-          accessibilityRole="button"
-          className={`h-8 w-8 rounded-full ${actionBg} items-center justify-center`}
-          onPress={() => {}}>
-          <ArrowRight size={16} color={actionColor} strokeWidth={2.5} />
-        </Pressable>
-      </View>
-    </View>
+        <Text
+          style={{
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.9)',
+            fontWeight: '600',
+            marginTop: 14,
+            letterSpacing: 0.3,
+          }}>
+          {title}
+        </Text>
+        <Text
+          style={{
+            fontSize: 32,
+            lineHeight: 38,
+            color: '#FFFFFF',
+            fontWeight: '800',
+            marginTop: 2,
+          }}>
+          {value}
+        </Text>
+        {subtitle ? (
+          <Text
+            style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.85)',
+              marginTop: 4,
+              fontWeight: '500',
+            }}
+            numberOfLines={2}>
+            {subtitle}
+          </Text>
+        ) : null}
+      </LinearGradient>
+    </Pressable>
   );
 }
