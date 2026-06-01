@@ -10,3 +10,5 @@ export {
   type PersonEventType,
 } from './people.store';
 export { useCardStudioStore } from '@features/card-studio/store/card-studio.store';
+export { useProfileStore } from '@features/profile/store/profile.store';
+export { useActivityStore } from '@features/profile/store/activity.store';

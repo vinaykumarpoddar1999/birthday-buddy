@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePeopleStore } from '@store/people.store';
@@ -32,10 +32,10 @@ export function PeopleScreen() {
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('all');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [filterActive, setFilterActive] = useState(false);
 
   const stats = useMemo(() => getBirthdayStats(people), [people]);
 
-  // Derive contacts from store
   const allContacts = useMemo(
     () =>
       people.map(toContact).sort((a, b) => {
@@ -45,13 +45,11 @@ export function PeopleScreen() {
     [people, sortDirection],
   );
 
-  // Upcoming birthdays (sorted by days until)
   const upcomingBirthdayEvents = useMemo(
     () => sortByUpcoming(people).slice(0, 12).map(toBirthdayEvent),
     [people],
   );
 
-  // Live category counts
   const categoriesWithCounts = useMemo(() => {
     const counts: Record<string, number> = { all: people.length };
     for (const p of people) {
@@ -76,20 +74,44 @@ export function PeopleScreen() {
     });
   }, [allContacts, searchText, selectedCategory]);
 
+  const handleFilterPress = () => {
+    if (filterActive) {
+      setSelectedCategory('all');
+      setSearchText('');
+      setFilterActive(false);
+    } else {
+      setFilterActive(true);
+      Alert.alert(
+        'Filter Options',
+        'Choose a filter',
+        [
+          { text: 'Friends Only', onPress: () => setSelectedCategory('friend') },
+          { text: 'Family Only', onPress: () => setSelectedCategory('family') },
+          { text: 'All People', onPress: () => setSelectedCategory('all') },
+          { text: 'Cancel', style: 'cancel', onPress: () => setFilterActive(false) },
+        ],
+      );
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="px-4 pt-1 pb-32"
+          contentContainerClassName="px-5 pt-2 pb-32"
           showsVerticalScrollIndicator={false}>
           <PeopleHeader
-            contactCountLabel={`${stats.totalCount} Contacts`}
-            onBackPress={() => router.canGoBack() && router.back()}
+            contactCountLabel={`${stats.totalCount} people · ${stats.upcoming30Count} upcoming`}
             onAddPress={() => router.push('/add-person')}
           />
 
-          <SearchBar value={searchText} onChangeText={setSearchText} onFilterPress={() => {}} />
+          <SearchBar
+            value={searchText}
+            onChangeText={setSearchText}
+            onFilterPress={handleFilterPress}
+            filterActive={filterActive}
+          />
 
           <CategoryTabs
             categories={categoriesWithCounts}
@@ -97,16 +119,15 @@ export function PeopleScreen() {
             onSelectCategory={setSelectedCategory}
           />
 
-          <SortDropdown
-            valueLabel="Upcoming Birthdays"
-            sortDirection={sortDirection}
-            onPressDropdown={() => {}}
-            onToggleDirection={() =>
-              setSortDirection((value) => (value === 'asc' ? 'desc' : 'asc'))
-            }
-          />
+          {selectedCategory === 'all' && !searchText.trim() && (
+            <UpcomingBirthdayList items={upcomingBirthdayEvents} />
+          )}
 
-          <UpcomingBirthdayList items={upcomingBirthdayEvents} totalCount={people.length} />
+          <SortDropdown
+            sortDirection={sortDirection}
+            onToggleDirection={() => setSortDirection((v) => (v === 'asc' ? 'desc' : 'asc'))}
+            resultCount={filteredContacts.length}
+          />
 
           <ContactList contacts={filteredContacts} />
         </ScrollView>

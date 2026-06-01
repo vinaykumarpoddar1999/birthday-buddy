@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { Camera, ImagePlus } from 'lucide-react-native';
+import { Camera, ChevronRight, ImagePlus, Layers } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 
 import { useCardStudioStore } from '../store/card-studio.store';
@@ -9,11 +10,26 @@ import { PersonalizationForm } from '../components/editor/PersonalizationForm';
 import { DecorationPicker } from '../components/editor/DecorationPicker';
 import { AIGeneratorPanel } from '../components/editor/AIGeneratorPanel';
 
+function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
+  return (
+    <View className="flex-row items-center px-5 mb-3">
+      <View className="h-8 w-8 rounded-xl bg-primary/8 items-center justify-center mr-2.5">
+        {icon}
+      </View>
+      <View className="flex-1">
+        <Text className="text-[15px] font-bold text-foreground">{title}</Text>
+        <Text className="text-[10px] text-foreground-muted mt-0.5">{subtitle}</Text>
+      </View>
+    </View>
+  );
+}
+
 export function Step2CustomizeScreen() {
   const updatePersonalization = useCardStudioStore((s) => s.updatePersonalization);
   const addElement = useCardStudioStore((s) => s.addElement);
   const elements = useCardStudioStore((s) => s.elements);
   const nextStep = useCardStudioStore((s) => s.nextStep);
+  const template = useCardStudioStore((s) => s.selectedTemplate);
 
   const pickPhoto = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -72,35 +88,58 @@ export function Step2CustomizeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-28"
         keyboardShouldPersistTaps="handled">
-        {/* Live card preview */}
+
+        {/* Live Card Preview */}
         <CardCanvas />
 
-        {/* Photo actions */}
-        <View className="flex-row gap-3 px-5 mb-5">
+        {/* Photo Actions */}
+        <View className="flex-row gap-3 px-5 mb-6">
           <Pressable
             onPress={pickPhoto}
-            className="flex-1 flex-row items-center justify-center bg-white border border-gray-200 rounded-xl py-3 gap-2"
+            className="flex-1 flex-row items-center justify-center bg-white rounded-2xl py-3.5 gap-2.5 border border-gray-100"
+            style={({ pressed }) => ({
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 4,
+              elevation: 1,
+            })}
             accessibilityRole="button">
-            <ImagePlus size={16} color="#7C3AED" />
-            <Text className="text-[12px] font-semibold text-primary">Add Photo</Text>
+            <View className="h-7 w-7 rounded-lg bg-primary/8 items-center justify-center">
+              <ImagePlus size={14} color="#7C3AED" />
+            </View>
+            <Text className="text-[13px] font-semibold text-foreground">Gallery</Text>
           </Pressable>
           <Pressable
             onPress={takePhoto}
-            className="flex-1 flex-row items-center justify-center bg-white border border-gray-200 rounded-xl py-3 gap-2"
+            className="flex-1 flex-row items-center justify-center bg-white rounded-2xl py-3.5 gap-2.5 border border-gray-100"
+            style={({ pressed }) => ({
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 4,
+              elevation: 1,
+            })}
             accessibilityRole="button">
-            <Camera size={16} color="#7C3AED" />
-            <Text className="text-[12px] font-semibold text-primary">Take Photo</Text>
+            <View className="h-7 w-7 rounded-lg bg-secondary/8 items-center justify-center">
+              <Camera size={14} color="#EC4899" />
+            </View>
+            <Text className="text-[13px] font-semibold text-foreground">Camera</Text>
           </Pressable>
         </View>
 
-        {/* Personalization form */}
-        <View className="mb-2">
-          <View className="px-5 mb-3">
-            <Text className="text-body font-bold text-foreground">Personalize Your Card</Text>
-            <Text className="text-[11px] text-foreground-muted mt-0.5">
-              Changes update the card in real time
-            </Text>
-          </View>
+        {/* Divider */}
+        <View className="h-[1px] bg-gray-100 mx-5 mb-5" />
+
+        {/* Personalization Section */}
+        <View className="mb-5">
+          <SectionHeader
+            icon={<Layers size={15} color="#7C3AED" />}
+            title="Personalize Your Card"
+            subtitle="Changes update the card in real time"
+          />
           <PersonalizationForm />
         </View>
 
@@ -112,12 +151,28 @@ export function Step2CustomizeScreen() {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-5 py-4">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-3 bg-background/95">
         <Pressable
           onPress={nextStep}
-          className="bg-primary rounded-2xl py-4 items-center shadow-md"
+          className="overflow-hidden rounded-2xl"
+          style={({ pressed }) => ({
+            transform: [{ scale: pressed ? 0.98 : 1 }],
+            shadowColor: '#7C3AED',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.3,
+            shadowRadius: 12,
+            elevation: 8,
+          })}
           accessibilityRole="button">
-          <Text className="text-[15px] font-bold text-white">Preview Card →</Text>
+          <LinearGradient
+            colors={['#7C3AED', '#5B21B6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}>
+            <View className="flex-row items-center justify-center py-4 gap-2">
+              <Text className="text-[15px] font-bold text-white">Preview Card</Text>
+              <ChevronRight size={18} color="#FFF" />
+            </View>
+          </LinearGradient>
         </Pressable>
       </View>
     </View>

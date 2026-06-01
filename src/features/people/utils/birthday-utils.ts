@@ -46,13 +46,13 @@ export function formatBirthdayShort(birthDate: string): string {
 }
 
 export function getCountdownLabel(days: number): string {
-  if (days === 0) return 'Today! 🎂';
+  if (days === 0) return 'Today!';
   if (days === 1) return 'Tomorrow';
   return `In ${days} Days`;
 }
 
 export function getBadgeLabel(days: number): string {
-  if (days === 0) return '🎂';
+  if (days === 0) return 'Today';
   if (days < 99) return `${days}D`;
   return `${Math.round(days / 30)}M`;
 }

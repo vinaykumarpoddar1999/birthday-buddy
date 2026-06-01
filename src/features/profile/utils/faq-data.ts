@@ -1,0 +1,26 @@
+import type { FAQItem } from '../types';
+
+export const FAQ_DATA: FAQItem[] = [
+  { id: 'faq-1', question: 'How do I add a new birthday?', answer: 'Tap the "+" button on the bottom navigation bar or go to People > Add Person. Fill in their details including name, birthday, and relationship.', category: 'Getting Started' },
+  { id: 'faq-2', question: 'Can I import contacts from my phone?', answer: 'Yes! Go to Home > Import Contacts. BirthdayBuddy will scan your phone contacts for birthdays and let you import them.', category: 'Getting Started' },
+  { id: 'faq-3', question: 'How do birthday reminders work?', answer: 'BirthdayBuddy sends push notifications before each birthday. You can customize how many days before and the reminder time in Settings > Reminder Time.', category: 'Reminders' },
+  { id: 'faq-4', question: 'Can I set different reminder times for different people?', answer: 'Yes! When adding or editing a person, you can set custom reminder days and time for each individual.', category: 'Reminders' },
+  { id: 'faq-5', question: 'What are Quiet Hours?', answer: 'Quiet Hours prevent notifications during sleeping hours. Set your preferred quiet period in Settings > Quiet Hours (e.g., 10 PM – 7 AM).', category: 'Reminders' },
+  { id: 'faq-6', question: 'How does the AI Wish Generator work?', answer: 'Our AI creates personalized birthday wishes based on the person\'s details, your relationship, and selected tone. Choose from heartfelt, funny, romantic, or motivational styles.', category: 'AI Features' },
+  { id: 'faq-7', question: 'Are AI-generated wishes unique?', answer: 'Each wish is generated uniquely based on the person\'s profile and your customization choices. No two wishes are the same!', category: 'AI Features' },
+  { id: 'faq-8', question: 'How do I create a birthday card?', answer: 'Go to Card Studio from the Home screen or a person\'s profile. Choose a template, customize it with text and decorations, then share or download.', category: 'Cards' },
+  { id: 'faq-9', question: 'Can I use my own photos in cards?', answer: 'Absolutely! In the Card Studio editor, you can upload photos from your gallery or take a new photo to add to any card template.', category: 'Cards' },
+  { id: 'faq-10', question: 'How do I share a birthday card?', answer: 'After creating a card, tap Share. You can share via WhatsApp, Instagram, email, or save it to your gallery.', category: 'Cards' },
+  { id: 'faq-11', question: 'What is BirthdayBuddy Premium?', answer: 'Premium gives you unlimited AI wishes, exclusive card templates, no ads, priority support, advanced analytics, and cloud backup features.', category: 'Premium' },
+  { id: 'faq-12', question: 'How do I cancel my Premium subscription?', answer: 'Go to Settings > Premium. You can manage your subscription through your App Store or Play Store account settings.', category: 'Premium' },
+  { id: 'faq-13', question: 'How do I backup my data?', answer: 'Go to Settings > Backup & Restore. Enable Cloud Backup for automatic backups or tap "Backup Now" for a manual backup.', category: 'Data' },
+  { id: 'faq-14', question: 'Can I export my data?', answer: 'Yes! Go to Settings > Export Data. You can export people, wishes, and settings in JSON format.', category: 'Data' },
+  { id: 'faq-15', question: 'How do I change the app theme?', answer: 'Go to Settings > Theme and choose between Light, Dark, or System (follows your device setting).', category: 'Preferences' },
+  { id: 'faq-16', question: 'Can I change the app language?', answer: 'Yes! Go to Settings > Language and select from English, Hindi, Bengali, Spanish, French, or German.', category: 'Preferences' },
+  { id: 'faq-17', question: 'How do I delete my account?', answer: 'Go to Settings > Delete Account. This permanently removes all your data. You\'ll need to confirm multiple times for safety.', category: 'Account' },
+  { id: 'faq-18', question: 'Is my data secure?', answer: 'Yes! BirthdayBuddy uses encryption and follows industry-standard security practices. Enable Face ID or biometric lock in Privacy settings for extra security.', category: 'Privacy' },
+  { id: 'faq-19', question: 'What is the Birthday Streak?', answer: 'Your streak counts consecutive days you\'ve used BirthdayBuddy. It resets if you miss a day. Keep it going for achievements!', category: 'Features' },
+  { id: 'faq-20', question: 'How do I contact support?', answer: 'Go to Settings > Send Feedback or Contact Support. You can also email us at support@birthdaybuddy.app.', category: 'Support' },
+  { id: 'faq-21', question: 'Can I sync across multiple devices?', answer: 'With Premium, your data syncs across devices via cloud backup. Sign in with the same account on each device.', category: 'Features' },
+  { id: 'faq-22', question: 'How do I change my profile photo?', answer: 'Go to your Profile > Edit Profile and tap on the profile photo. You can take a new photo or choose from your gallery.', category: 'Account' },
+];

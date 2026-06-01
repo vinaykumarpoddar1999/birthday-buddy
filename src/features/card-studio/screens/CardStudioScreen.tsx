@@ -15,7 +15,7 @@ import { Step4ShareScreen } from './Step4ShareScreen';
 import '../templates';
 
 const TITLES: Record<number, string> = {
-  1: 'Create Card',
+  1: 'Choose Template',
   2: 'Customize',
   3: 'Preview',
   4: 'Share',
@@ -27,6 +27,10 @@ export function CardStudioScreen() {
   const resetStore = useCardStudioStore((s) => s.reset);
   const updatePersonalization = useCardStudioStore((s) => s.updatePersonalization);
   const setPreFilledPersonId = useCardStudioStore((s) => s.setPreFilledPersonId);
+  const undo = useCardStudioStore((s) => s.undo);
+  const redo = useCardStudioStore((s) => s.redo);
+  const historyIndex = useCardStudioStore((s) => s.historyIndex);
+  const historyLength = useCardStudioStore((s) => s.history.length);
 
   const params = useLocalSearchParams<{ personId?: string }>();
   const getPersonById = usePeopleStore((s) => s.getPersonById);
@@ -70,7 +74,15 @@ export function CardStudioScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <CardStudioHeader onBack={handleBack} title={TITLES[step]} />
+      <CardStudioHeader
+        onBack={handleBack}
+        title={TITLES[step]}
+        showUndoRedo={step === 2}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < historyLength - 1}
+      />
       <StepIndicator currentStep={step} />
       <View className="flex-1">{renderStep()}</View>
     </SafeAreaView>

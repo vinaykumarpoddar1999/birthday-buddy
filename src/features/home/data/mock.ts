@@ -19,7 +19,7 @@ export const homeMock = {
   upcoming: [
     {
       id: '1',
-      name: 'Riya Singh 💖',
+      name: 'Riya Singh',
       date: '25 May',
       badge: '2D',
       avatarVariant: 'female' as const,
@@ -28,7 +28,7 @@ export const homeMock = {
     },
     {
       id: '2',
-      name: 'Arjun Mehta 🎁',
+      name: 'Arjun Mehta',
       date: '28 May',
       badge: '5D',
       avatarVariant: 'user' as const,
@@ -37,7 +37,7 @@ export const homeMock = {
     },
     {
       id: '3',
-      name: 'Mom ❤️',
+      name: 'Mom',
       date: '30 May',
       badge: '7D',
       avatarVariant: 'female' as const,
@@ -46,7 +46,7 @@ export const homeMock = {
     },
     {
       id: '4',
-      name: 'Rohit Verma 🥳',
+      name: 'Rohit Verma',
       date: '1 Jan',
       badge: '9D',
       avatarVariant: 'user' as const,
@@ -71,7 +71,7 @@ export const homeMock = {
       id: 'streak',
       title: 'Your Streak',
       value: '12 Days',
-      subtitle: 'Keep it going! 🔥',
+      subtitle: 'Keep it going!',
       icon: 'flame' as const,
       cardBg: 'bg-[#EDE9FE]',
       iconBg: 'bg-violet-200',

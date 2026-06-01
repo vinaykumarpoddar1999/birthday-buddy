@@ -1,10 +1,22 @@
 import React, { forwardRef } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
+import { Camera } from 'lucide-react-native';
 
+import {
+  getLucideIcon,
+  isIconStickerContent,
+  parseIconStickerContent,
+} from '@shared/utils/lucide-icons';
 import type { CardElement, CardTemplate, PersonalizationData } from '../../types';
 import { resolveElements } from '../../utils/placeholder';
+import {
+  CardStickerElement,
+  CardTextElement,
+  getElementPosition,
+  resolveIconKey,
+} from '../../utils/card-element-render';
 
 const CARD_W = 340;
 const CARD_H = 480;
@@ -12,44 +24,17 @@ const CARD_H = 480;
 function RenderElement({ el }: { el: CardElement }) {
   if (!el.visible) return null;
 
-  const pos = {
-    position: 'absolute' as const,
-    left: el.x,
-    top: el.y,
-    width: el.width,
-    height: el.height,
-    opacity: el.opacity,
-    zIndex: el.zIndex,
-    transform: [{ rotate: `${el.rotation}deg` }],
-  };
-
   if (el.type === 'text') {
-    return (
-      <View style={pos}>
-        <Text
-          style={{
-            fontSize: el.fontSize || 16,
-            fontWeight: (el.fontWeight as '400' | '700') || '400',
-            color: el.color || '#000',
-            textAlign: el.textAlign || 'center',
-            lineHeight: el.lineHeight || (el.fontSize || 16) * 1.35,
-            letterSpacing: el.letterSpacing || 0,
-          }}>
-          {el.content || ''}
-        </Text>
-      </View>
-    );
+    return <CardTextElement el={el} scale={1} />;
   }
 
   if (el.type === 'sticker') {
-    return (
-      <View style={{ ...pos, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: el.fontSize || 32 }}>{el.content || ''}</Text>
-      </View>
-    );
+    return <CardStickerElement el={el} scale={1} defaultColor={el.color || '#7C3AED'} />;
   }
 
   if (el.type === 'image') {
+    const pos = getElementPosition(el, 1);
+
     if (el.uri) {
       return (
         <View style={pos}>
@@ -61,6 +46,13 @@ function RenderElement({ el }: { el: CardElement }) {
         </View>
       );
     }
+
+    const placeholderContent = el.content || 'icon:camera';
+    const iconKey = isIconStickerContent(placeholderContent)
+      ? parseIconStickerContent(placeholderContent)
+      : resolveIconKey(placeholderContent);
+    const PlaceholderIcon = getLucideIcon(iconKey) ?? Camera;
+
     return (
       <View
         style={{
@@ -72,7 +64,11 @@ function RenderElement({ el }: { el: CardElement }) {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-        <Text style={{ fontSize: el.fontSize || 40 }}>{el.content || '📸'}</Text>
+        <PlaceholderIcon
+          size={el.fontSize ? el.fontSize * 0.6 : 24}
+          color="rgba(255,255,255,0.7)"
+          strokeWidth={1.75}
+        />
       </View>
     );
   }

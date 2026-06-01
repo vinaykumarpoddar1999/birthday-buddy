@@ -1,44 +1,57 @@
+import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { CalendarDays, ChevronDown } from 'lucide-react-native';
+import { Cake, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 import { UpcomingBirthdayCard } from './UpcomingBirthdayCard';
 import type { BirthdayEvent } from '../types';
 
 type UpcomingBirthdayListProps = {
   items: BirthdayEvent[];
-  totalCount?: number;
 };
 
-export function UpcomingBirthdayList({ items, totalCount }: UpcomingBirthdayListProps) {
-  const displayCount = totalCount ?? items.length;
+export function UpcomingBirthdayList({ items }: UpcomingBirthdayListProps) {
+  const [expanded, setExpanded] = useState(false);
+  const display = expanded ? items : items.slice(0, 3);
+
+  if (items.length === 0) return null;
+
   return (
-    <View className="mb-3">
-      <View className="flex-row items-center justify-between mb-2.5">
-        <Text className="text-title text-foreground font-bold">Upcoming Birthdays 🎂</Text>
+    <View className="mb-6">
+      <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center gap-1.5">
+          <Cake size={18} color="#7C3AED" strokeWidth={2} />
+          <Text className="text-title font-bold text-foreground">Upcoming</Text>
+        </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="View calendar"
-          onPress={() => {}}
-          className="flex-row items-center">
-          <CalendarDays size={14} color="#7C3AED" />
-          <Text className="text-caption text-primary font-semibold ml-1">View Calendar</Text>
+          onPress={() => router.push('/calendar')}
+          className="flex-row items-center gap-1">
+          <Text className="text-[12px] text-primary font-semibold">Calendar</Text>
         </Pressable>
       </View>
 
-      {items.slice(0, 5).map((item) => (
+      {display.map((item) => (
         <UpcomingBirthdayCard key={item.id} item={item} />
       ))}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="View all upcoming birthdays"
-        onPress={() => {}}
-        className="mt-1 items-center">
-        <View className="flex-row items-center">
-          <Text className="text-caption text-primary font-semibold">View All Upcoming ({displayCount})</Text>
-          <ChevronDown size={14} color="#7C3AED" />
-        </View>
-      </Pressable>
+      {items.length > 3 && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setExpanded((v) => !v)}
+          className="mt-1 items-center py-2">
+          <View className="flex-row items-center gap-1">
+            <Text className="text-[12px] text-primary font-semibold">
+              {expanded ? 'Show Less' : `View All (${items.length})`}
+            </Text>
+            {expanded ? (
+              <ChevronUp size={14} color="#7C3AED" />
+            ) : (
+              <ChevronDown size={14} color="#7C3AED" />
+            )}
+          </View>
+        </Pressable>
+      )}
     </View>
   );
 }

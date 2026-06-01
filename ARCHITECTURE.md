@@ -4,6 +4,7 @@ Feature-driven + Clean Architecture with domain modules under `src/features/`.
 
 ## Folder structure
 
+
 ```text
 src/
 ├── app/                 # Expo Router screens only

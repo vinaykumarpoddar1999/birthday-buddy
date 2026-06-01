@@ -7,6 +7,8 @@ import {
   Download,
   MessageCircle,
   Plus,
+  Save,
+  PartyPopper,
 } from 'lucide-react-native';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
@@ -27,6 +29,7 @@ export function Step4ShareScreen() {
 
   const cardRef = useRef<View>(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [sharing, setSharing] = useState(false);
 
   const capture = useCallback(async () => {
@@ -41,6 +44,7 @@ export function Step4ShareScreen() {
 
   const handleDownload = useCallback(async () => {
     setSaving(true);
+    setSaved(false);
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
@@ -51,7 +55,8 @@ export function Step4ShareScreen() {
       const uri = await capture();
       if (uri) {
         await MediaLibrary.saveToLibraryAsync(uri);
-        Alert.alert('Saved! 🎉', 'Your card has been saved to your gallery.');
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
       }
     } catch {
       Alert.alert('Error', 'Failed to save.');
@@ -83,7 +88,7 @@ export function Step4ShareScreen() {
 
   const handleCopy = useCallback(() => {
     const msg = [
-      `🎂 Happy Birthday, ${personalization.recipientName}!`,
+      `Happy Birthday, ${personalization.recipientName}!`,
       personalization.message ? `\n${personalization.message}` : '',
       personalization.senderName ? `\n\n— ${personalization.senderName}` : '',
     ].join('');
@@ -91,7 +96,7 @@ export function Step4ShareScreen() {
     if (Platform.OS === 'web') {
       navigator.clipboard?.writeText(msg);
     }
-    Alert.alert('Copied! 📋', 'Birthday message copied to clipboard.');
+    Alert.alert('Copied!', 'Birthday message copied to clipboard.');
   }, [personalization]);
 
   if (!template) return null;
@@ -102,33 +107,53 @@ export function Step4ShareScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-12">
-        {/* Success banner */}
-        <View className="mx-5 mt-3 mb-4 overflow-hidden rounded-2xl">
-          <LinearGradient colors={['#ECFDF5', '#D1FAE5']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <View className="flex-row items-center px-4 py-3 gap-3">
-              <View className="h-9 w-9 rounded-full bg-green-500 items-center justify-center">
-                <Check size={18} color="#FFF" />
+        {/* Success Banner */}
+        <View className="mx-5 mt-3 mb-5">
+          <View
+            className="rounded-2xl overflow-hidden"
+            style={{
+              shadowColor: '#22C55E',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              elevation: 4,
+            }}>
+            <LinearGradient
+              colors={['#ECFDF5', '#D1FAE5', '#ECFDF5']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}>
+              <View className="flex-row items-center px-5 py-4 gap-4">
+                <View className="h-12 w-12 rounded-2xl bg-green-500 items-center justify-center">
+                  <PartyPopper size={22} color="#FFF" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[16px] font-bold text-green-800">
+                    Card Ready!
+                  </Text>
+                  <Text className="text-[12px] text-green-700 mt-0.5">
+                    Save it or share with {personalization.recipientName || 'your loved one'}
+                  </Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-[14px] font-bold text-green-800">Card ready! 🎉</Text>
-                <Text className="text-[11px] text-green-700 mt-0.5">Download or share with your loved ones</Text>
-              </View>
-            </View>
-          </LinearGradient>
+            </LinearGradient>
+          </View>
         </View>
 
-        {/* Card preview */}
-        <View className="items-center py-4">
+        {/* Card Preview */}
+        <View className="items-center py-3">
           <View
             ref={cardRef}
             collapsable={false}
+            className="rounded-2xl overflow-hidden"
             style={{
               width: 340 * CARD_SCALE,
               height: 480 * CARD_SCALE,
-              borderRadius: 16,
-              overflow: 'hidden',
-            }}
-            className="shadow-lg">
+              shadowColor: '#7C3AED',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.12,
+              shadowRadius: 20,
+              elevation: 6,
+            }}>
             <CardRenderer
               template={template}
               personalization={personalization}
@@ -138,41 +163,75 @@ export function Step4ShareScreen() {
           </View>
         </View>
 
-        {/* Download */}
-        <View className="px-5 mt-4">
+        {/* Action Buttons */}
+        <View className="px-5 mt-5">
+          {/* Primary: Download */}
           <Pressable
             onPress={handleDownload}
             disabled={saving}
             className="overflow-hidden rounded-2xl mb-3"
+            style={({ pressed }) => ({
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+              shadowColor: saved ? '#22C55E' : '#7C3AED',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.3,
+              shadowRadius: 12,
+              elevation: 8,
+            })}
             accessibilityRole="button">
-            <LinearGradient colors={['#7C3AED', '#5B21B6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <View className="flex-row items-center justify-center py-4 gap-2">
-                <Download size={18} color="#FFF" />
-                <Text className="text-[15px] font-bold text-white">
-                  {saving ? 'Saving...' : 'Save to Gallery'}
+            <LinearGradient
+              colors={saved ? ['#22C55E', '#16A34A'] : ['#7C3AED', '#5B21B6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}>
+              <View className="flex-row items-center justify-center py-4 gap-2.5">
+                {saved ? (
+                  <Check size={20} color="#FFF" strokeWidth={3} />
+                ) : (
+                  <Download size={19} color="#FFF" />
+                )}
+                <Text className="text-[16px] font-bold text-white">
+                  {saving ? 'Saving...' : saved ? 'Saved to Gallery!' : 'Save to Gallery'}
                 </Text>
               </View>
             </LinearGradient>
           </Pressable>
 
           {/* Share actions */}
-          <View className="flex-row gap-3 mb-4">
+          <View className="flex-row gap-3 mb-3">
             <Pressable
               onPress={handleShare}
               disabled={sharing}
-              className="flex-1 flex-row items-center justify-center bg-green-500 rounded-2xl py-3.5 gap-2"
+              className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2"
+              style={({ pressed }) => ({
+                transform: [{ scale: pressed ? 0.97 : 1 }],
+                backgroundColor: '#22C55E',
+                shadowColor: '#22C55E',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+                elevation: 4,
+              })}
               accessibilityRole="button">
-              <MessageCircle size={16} color="#FFF" />
-              <Text className="text-[13px] font-bold text-white">
-                {sharing ? '...' : 'Share'}
+              <MessageCircle size={17} color="#FFF" />
+              <Text className="text-[14px] font-bold text-white">
+                {sharing ? 'Sharing...' : 'Share'}
               </Text>
             </Pressable>
             <Pressable
               onPress={handleCopy}
-              className="flex-1 flex-row items-center justify-center bg-gray-800 rounded-2xl py-3.5 gap-2"
+              className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2"
+              style={({ pressed }) => ({
+                transform: [{ scale: pressed ? 0.97 : 1 }],
+                backgroundColor: '#1F2937',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                elevation: 4,
+              })}
               accessibilityRole="button">
               <ClipboardCopy size={16} color="#FFF" />
-              <Text className="text-[13px] font-bold text-white">Copy Text</Text>
+              <Text className="text-[14px] font-bold text-white">Copy Text</Text>
             </Pressable>
           </View>
 
@@ -183,16 +242,28 @@ export function Step4ShareScreen() {
                 saveDraft();
                 Alert.alert('Saved!', 'Draft has been saved.');
               }}
-              className="flex-1 items-center bg-white border border-gray-200 rounded-2xl py-3.5"
+              className="flex-1 flex-row items-center justify-center bg-white rounded-2xl py-3.5 gap-2 border border-gray-100"
+              style={({ pressed }) => ({
+                transform: [{ scale: pressed ? 0.97 : 1 }],
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 4,
+                elevation: 1,
+              })}
               accessibilityRole="button">
-              <Text className="text-[12px] font-semibold text-foreground">Save Draft</Text>
+              <Save size={15} color="#6B7280" />
+              <Text className="text-[13px] font-semibold text-foreground">Save Draft</Text>
             </Pressable>
             <Pressable
               onPress={reset}
-              className="flex-1 flex-row items-center justify-center bg-primary/10 rounded-2xl py-3.5 gap-1.5"
+              className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2 bg-primary/8 border border-primary/15"
+              style={({ pressed }) => ({
+                transform: [{ scale: pressed ? 0.97 : 1 }],
+              })}
               accessibilityRole="button">
-              <Plus size={14} color="#7C3AED" />
-              <Text className="text-[12px] font-semibold text-primary">New Card</Text>
+              <Plus size={15} color="#7C3AED" />
+              <Text className="text-[13px] font-semibold text-primary">New Card</Text>
             </Pressable>
           </View>
         </View>

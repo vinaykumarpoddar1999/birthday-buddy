@@ -1,5 +1,7 @@
 import { Text, View } from 'react-native';
-import { UsersRound } from 'lucide-react-native';
+import { Search } from 'lucide-react-native';
+
+import { EmptyState } from '@shared/ui/EmptyState';
 
 import { ContactCard } from './ContactCard';
 import type { Contact } from '../types';
@@ -9,16 +11,19 @@ type ContactListProps = {
 };
 
 export function ContactList({ contacts }: ContactListProps) {
+  if (contacts.length === 0) {
+    return (
+      <EmptyState
+        icon={Search}
+        title="No people found"
+        subtitle="Try a different search or category"
+      />
+    );
+  }
+
   return (
     <View>
-      <View className="flex-row items-center justify-between mb-2.5">
-        <View className="flex-row items-center">
-          <Text className="text-title text-foreground font-bold mr-1.5">All Contacts</Text>
-          <UsersRound size={14} color="#7C3AED" />
-        </View>
-        <Text className="text-caption text-primary font-semibold">A - Z</Text>
-      </View>
-
+      <Text className="text-title font-bold text-foreground mb-4">All Contacts</Text>
       {contacts.map((item) => (
         <ContactCard key={item.id} item={item} />
       ))}

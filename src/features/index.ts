@@ -14,3 +14,4 @@ export * as widgets from './widgets';
 export * as sharing from './sharing';
 export * as analytics from './analytics';
 export * as cardStudio from './card-studio';
+export * as aiWishes from './ai-wishes';

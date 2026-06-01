@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
+import { Cake } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@shared/ui/EmptyState';
 import { SectionHeader } from '@shared/ui/SectionHeader';
 import { usePeopleStore } from '@store/people.store';
 import {
@@ -33,17 +35,25 @@ export function HomeDashboardScreen() {
     if (upcomingPeople.length === 0) return null;
     const next = upcomingPeople[0];
     const days = getDaysUntilBirthday(next.birthDate);
-    const quickActions = homeMock.nextBirthday.quickActions.map((qa) => ({
-      ...qa,
-      onPress:
-        qa.title === 'Create Card'
-          ? () =>
-              router.push({
-                pathname: '/card-studio',
-                params: { personId: next.id },
-              })
-          : undefined,
-    }));
+    const quickActions = homeMock.nextBirthday.quickActions.map((qa) => {
+      let onPress: (() => void) | undefined;
+
+      if (qa.title === 'Create Card') {
+        onPress = () =>
+          router.push({
+            pathname: '/card-studio',
+            params: { personId: next.id },
+          });
+      } else if (qa.title === 'AI Wish') {
+        onPress = () =>
+          router.push({
+            pathname: '/ai-wish',
+            params: { personId: next.id },
+          });
+      }
+
+      return { ...qa, onPress };
+    });
     return {
       name: next.fullName,
       age: getAgeAtNextBirthday(next.birthDate),
@@ -89,15 +99,12 @@ export function HomeDashboardScreen() {
           {heroData ? (
             <BirthdayHeroCard {...heroData} />
           ) : (
-            <View className="bg-primary/10 border border-primary/20 rounded-2xl p-6 items-center">
-              <Text className="text-[40px] mb-2">🎂</Text>
-              <Text className="text-title font-bold text-foreground text-center">
-                No upcoming birthdays
-              </Text>
-              <Text className="text-caption text-foreground-secondary text-center mt-1">
-                Add people to see upcoming birthdays here
-              </Text>
-            </View>
+            <EmptyState
+              icon={Cake}
+              title="No upcoming birthdays"
+              subtitle="Add people to see upcoming birthdays here"
+              className="bg-primary/10 border border-primary/20 rounded-2xl py-6"
+            />
           )}
         </View>
 
@@ -132,7 +139,7 @@ export function HomeDashboardScreen() {
             value={String(stats.upcoming30Count)}
             subtitle="Birthdays coming up"
             icon="bell"
-            cardBg="bg-[#FEF9C3]"
+            cardBg="bg-pastel-peach"
             iconBg="bg-amber-200"
             iconColor="#D97706"
             actionBg="bg-amber-300"
@@ -141,9 +148,9 @@ export function HomeDashboardScreen() {
           <StatCard
             title="Total People"
             value={String(stats.totalCount)}
-            subtitle={stats.todayCount > 0 ? `🎂 ${stats.todayCount} today!` : 'Keep adding more'}
+            subtitle={stats.todayCount > 0 ? `${stats.todayCount} birthday${stats.todayCount === 1 ? '' : 's'} today` : 'Keep adding more'}
             icon="flame"
-            cardBg="bg-[#EDE9FE]"
+            cardBg="bg-pastel-lavender"
             iconBg="bg-violet-200"
             iconColor="#7C3AED"
             actionBg="bg-violet-300"

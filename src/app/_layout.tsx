@@ -11,6 +11,28 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="add-person" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="card-studio" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="ai-wish" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="personal-info" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="privacy-security" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="backup-restore" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="export-data" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="delete-account" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="notification-prefs" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="reminder-time" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="quiet-hours" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="search" options={{ animation: 'fade' }} />
+        <Stack.Screen name="language-select" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="currency-select" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="theme-select" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="app-icon-select" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="help-faq" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="send-feedback" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="rate-us" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="about" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="edit-profile" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="activity-history" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="wish-history" options={{ animation: 'slide_from_right' }} />
       </Stack>
     </AppProviders>
   );

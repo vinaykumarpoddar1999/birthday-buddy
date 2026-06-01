@@ -35,7 +35,7 @@ export function BirthdayHeroCard({
             <View className="flex-1 pr-2 min-w-0">
               <Text className="text-caption text-white/75 mb-1">Next Birthday</Text>
               <Text className="text-[22px] leading-[28px] text-white font-bold" numberOfLines={1}>
-                {name} 💖
+                {name}
               </Text>
               <Text className="text-body text-white/90 mt-1">
                 Turns {age} on {dateLabel}

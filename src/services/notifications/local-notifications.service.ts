@@ -45,8 +45,8 @@ export async function scheduleBirthdayReminders(
         content: {
           title:
             daysBefore === 0
-              ? `🎉 ${input.contactName}'s birthday is today!`
-              : `🎂 ${input.contactName}'s birthday in ${daysBefore} day(s)`,
+              ? `${input.contactName}'s birthday is today!`
+              : `${input.contactName}'s birthday in ${daysBefore} day(s)`,
           body: 'Open BirthdayBuddy to celebrate',
           data: { contactId: input.contactId, daysBefore },
         },

@@ -1,9 +1,17 @@
 import React, { memo } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Camera } from 'lucide-react-native';
 
+import { getLucideIcon } from '@shared/utils/lucide-icons';
 import type { CardElement, CardTemplate, PersonalizationData } from '../../types';
 import { resolveElements } from '../../utils/placeholder';
+import {
+  CardStickerElement,
+  CardTextElement,
+  getElementPosition,
+  resolveIconKey,
+} from '../../utils/card-element-render';
 
 const FULL_W = 340;
 const FULL_H = 480;
@@ -15,7 +23,7 @@ const DEFAULT_DATA: PersonalizationData = {
   age: '25',
   message: '',
   quote: '',
-  emoji: '🎂',
+  emoji: 'icon:cake',
   eventType: 'birthday',
   date: '',
   location: '',
@@ -26,44 +34,19 @@ const DEFAULT_DATA: PersonalizationData = {
 function TinyEl({ el, s }: { el: CardElement; s: number }) {
   if (!el.visible) return null;
 
-  const pos = {
-    position: 'absolute' as const,
-    left: el.x * s,
-    top: el.y * s,
-    width: el.width * s,
-    height: el.height * s,
-    opacity: el.opacity,
-    zIndex: el.zIndex,
-    transform: [{ rotate: `${el.rotation}deg` }],
-  };
-
   if (el.type === 'text') {
-    return (
-      <View style={pos}>
-        <Text
-          style={{
-            fontSize: (el.fontSize || 16) * s,
-            fontWeight: (el.fontWeight as '400' | '700') || '400',
-            color: el.color || '#000',
-            textAlign: el.textAlign || 'center',
-            lineHeight: ((el.lineHeight || (el.fontSize || 16) * 1.35)) * s,
-          }}
-          numberOfLines={0}>
-          {el.content || ''}
-        </Text>
-      </View>
-    );
+    return <CardTextElement el={el} scale={s} />;
   }
 
   if (el.type === 'sticker') {
-    return (
-      <View style={{ ...pos, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: (el.fontSize || 32) * s }}>{el.content || ''}</Text>
-      </View>
-    );
+    return <CardStickerElement el={el} scale={s} />;
   }
 
   if (el.type === 'image') {
+    const pos = getElementPosition(el, s);
+    const iconKey = resolveIconKey(el.content || 'icon:camera');
+    const PlaceholderIcon = getLucideIcon(iconKey) ?? Camera;
+
     return (
       <View
         style={{
@@ -73,7 +56,11 @@ function TinyEl({ el, s }: { el: CardElement; s: number }) {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-        <Text style={{ fontSize: (el.fontSize || 30) * s }}>{el.content || '📸'}</Text>
+        <PlaceholderIcon
+          size={(el.fontSize ? el.fontSize * 0.6 : 24) * s}
+          color="rgba(255,255,255,0.7)"
+          strokeWidth={1.75}
+        />
       </View>
     );
   }

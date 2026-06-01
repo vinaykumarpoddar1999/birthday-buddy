@@ -1,41 +1,34 @@
 import { Pressable, Text, View } from 'react-native';
-import { ArrowDownUp, ChevronDown } from 'lucide-react-native';
+import { ArrowDownUp } from 'lucide-react-native';
 
 import type { SortDirection } from '../types';
 
 type SortDropdownProps = {
-  valueLabel: string;
   sortDirection: SortDirection;
-  onPressDropdown: () => void;
   onToggleDirection: () => void;
+  resultCount: number;
 };
 
 export function SortDropdown({
-  valueLabel,
   sortDirection,
-  onPressDropdown,
   onToggleDirection,
+  resultCount,
 }: SortDropdownProps) {
   return (
     <View className="flex-row items-center justify-between mb-3">
-      <View className="flex-row items-center gap-2">
-        <Text className="text-[12px] leading-[16px] text-foreground-secondary">Sort by</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Sort option ${valueLabel}`}
-          onPress={onPressDropdown}
-          className="h-8 px-3 rounded-lg border border-border/80 bg-surface flex-row items-center">
-          <Text className="text-[12px] leading-[16px] text-primary font-semibold mr-1.5">{valueLabel}</Text>
-          <ChevronDown size={14} color="#7C3AED" />
-        </Pressable>
-      </View>
+      <Text className="text-caption text-foreground-secondary">
+        {resultCount} {resultCount === 1 ? 'person' : 'people'} found
+      </Text>
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Sort direction ${sortDirection}`}
+        accessibilityLabel={`Sort ${sortDirection === 'asc' ? 'A to Z' : 'Z to A'}`}
         onPress={onToggleDirection}
-        className="h-8 w-8 rounded-lg border border-border/80 bg-surface items-center justify-center">
-        <ArrowDownUp size={14} color="#7C3AED" />
+        className="flex-row items-center gap-1.5 bg-white border border-gray-100 rounded-full px-3 py-1.5">
+        <ArrowDownUp size={13} color="#7C3AED" />
+        <Text className="text-[11px] text-primary font-semibold">
+          {sortDirection === 'asc' ? 'A → Z' : 'Z → A'}
+        </Text>
       </Pressable>
     </View>
   );

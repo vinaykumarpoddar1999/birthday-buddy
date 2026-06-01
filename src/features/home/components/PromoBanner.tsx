@@ -33,11 +33,14 @@ export function PromoBanner() {
         <View className="flex-row p-4 items-center min-h-[130px]">
           <View className="flex-1 pr-3 min-w-0">
             <Text className="text-[17px] leading-[22px] text-foreground font-bold">
-              Make it extra special 🥳
+              Make it extra special
             </Text>
-            <Text className="text-caption text-foreground-secondary mt-1.5 leading-[18px]">
-              Create stunning cards, add photos, music and AI magic ✨
-            </Text>
+            <View className="flex-row items-start gap-1.5 mt-1.5">
+              <Sparkles size={14} color="#7C3AED" strokeWidth={2} className="mt-0.5" />
+              <Text className="text-caption text-foreground-secondary flex-1 leading-[18px]">
+                Create stunning cards, add photos, music and AI magic
+              </Text>
+            </View>
             <Pressable
               accessibilityRole="button"
               className="mt-3 self-start bg-primary rounded-full px-4 py-2.5 flex-row items-center"

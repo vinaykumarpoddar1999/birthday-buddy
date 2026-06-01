@@ -12,3 +12,5 @@ export {
   ProfilePlaceholder,
   type ProfilePlaceholderProps,
 } from './ProfilePlaceholder';
+export { EmptyState, type EmptyStateProps } from './EmptyState';
+export { IconCircle, type IconCircleProps, type IconCircleSize } from './IconCircle';

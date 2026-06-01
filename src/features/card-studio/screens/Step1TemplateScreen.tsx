@@ -1,7 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { Dimensions, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Sparkles } from 'lucide-react-native';
+import { Search, Sparkles, WandSparkles, X } from 'lucide-react-native';
+
+import { EmptyState } from '@shared/ui';
 
 import { useCardStudioStore } from '../store/card-studio.store';
 import { useTemplateSearch } from '../hooks/useTemplateSearch';
@@ -11,7 +13,7 @@ import { TemplateCard } from '../components/template/TemplateCard';
 import { TrendingSection } from '../components/template/TrendingSection';
 
 const SCREEN_W = Dimensions.get('window').width;
-const CARD_GAP = 12;
+const CARD_GAP = 14;
 const CARD_PADDING = 20;
 const CARD_W = Math.floor((SCREEN_W - CARD_PADDING * 2 - CARD_GAP) / 2);
 
@@ -47,29 +49,51 @@ export function Step1TemplateScreen() {
         {showTrending && (
           <TrendingSection templates={trending} onSelect={handleSelect} />
         )}
-        <View className="px-5 mb-3">
-          <Text className="text-body font-bold text-foreground">All Templates</Text>
+        <View className="flex-row items-center justify-between px-5 mb-3">
+          <View>
+            <Text className="text-[15px] font-bold text-foreground">All Templates</Text>
+            <Text className="text-[10px] text-foreground-muted mt-0.5">{results.length} designs available</Text>
+          </View>
         </View>
       </>
     ),
-    [showTrending, trending, handleSelect],
+    [showTrending, trending, handleSelect, results.length],
   );
 
   return (
     <View className="flex-1 bg-background">
-      {/* Search */}
+      {/* Search Bar */}
       <View className="px-5 mb-4">
-        <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 shadow-sm">
-          <Search size={18} color="#9CA3AF" />
+        <View
+          className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100"
+          style={{
+            shadowColor: '#7C3AED',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+            elevation: 2,
+          }}>
+          <View className="h-8 w-8 rounded-xl bg-primary/8 items-center justify-center mr-3">
+            <Search size={16} color="#7C3AED" />
+          </View>
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search templates..."
+            placeholder="Search by style, mood, color..."
             placeholderTextColor="#9CA3AF"
-            className="flex-1 text-body text-foreground ml-3 p-0"
+            className="flex-1 text-[14px] text-foreground p-0"
             autoCapitalize="none"
             autoCorrect={false}
           />
+          {searchQuery.length > 0 && (
+            <Pressable
+              onPress={() => setSearchQuery('')}
+              className="h-7 w-7 rounded-full bg-gray-100 items-center justify-center ml-2"
+              accessibilityRole="button"
+              accessibilityLabel="Clear search">
+              <X size={13} color="#6B7280" />
+            </Pressable>
+          )}
         </View>
       </View>
 
@@ -78,34 +102,49 @@ export function Step1TemplateScreen() {
         <CategoryPills />
       </View>
 
-      {/* Template grid */}
+      {/* Template Grid */}
       <FlatList
         data={results}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         numColumns={2}
         columnWrapperStyle={{ paddingHorizontal: CARD_PADDING, gap: CARD_GAP }}
-        contentContainerClassName="pb-40"
+        contentContainerClassName="pb-36"
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
-          <View className="items-center py-16 px-8">
-            <Text className="text-[48px] mb-4">🔍</Text>
-            <Text className="text-title font-bold text-foreground text-center">
-              No templates found
-            </Text>
-            <Text className="text-caption text-foreground-secondary text-center mt-2">
-              Try a different search or category
-            </Text>
+          <View className="items-center px-10">
+            <EmptyState
+              icon={Sparkles}
+              title="No templates found"
+              subtitle={'Try a different search term or browse\nanother category'}
+              className="py-20"
+            />
+            <Pressable
+              onPress={() => {
+                setSearchQuery('');
+              }}
+              className="mt-2 px-6 py-2.5 rounded-full bg-primary/10"
+              accessibilityRole="button">
+              <Text className="text-[13px] font-semibold text-primary">Clear Filters</Text>
+            </Pressable>
           </View>
         }
       />
 
       {/* AI Banner */}
       <View className="absolute bottom-0 left-0 right-0 px-5 pb-5">
-        <View className="rounded-2xl overflow-hidden shadow-lg">
+        <View
+          className="rounded-2xl overflow-hidden"
+          style={{
+            shadowColor: '#7C3AED',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.3,
+            shadowRadius: 16,
+            elevation: 10,
+          }}>
           <LinearGradient
-            colors={['#7C3AED', '#EC4899']}
+            colors={['#7C3AED', '#9333EA', '#EC4899']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}>
             <Pressable
@@ -114,17 +153,22 @@ export function Step1TemplateScreen() {
               }}
               className="flex-row items-center justify-between px-5 py-4"
               accessibilityRole="button">
-              <View className="flex-1 mr-3">
-                <Text className="text-[14px] font-bold text-white">
-                  Want something unique?
-                </Text>
-                <Text className="text-[11px] text-white/80 mt-0.5">
-                  Use AI to generate your perfect card
-                </Text>
+              <View className="flex-row items-center flex-1 mr-3">
+                <View className="h-10 w-10 rounded-xl bg-white/15 items-center justify-center mr-3">
+                  <WandSparkles size={18} color="#FFF" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[14px] font-bold text-white">
+                    AI-Powered Creation
+                  </Text>
+                  <Text className="text-[11px] text-white/70 mt-0.5">
+                    Generate a unique card with AI magic
+                  </Text>
+                </View>
               </View>
-              <View className="flex-row items-center bg-white/20 rounded-full px-4 py-2.5 gap-1.5">
-                <Sparkles size={14} color="#FFF" />
-                <Text className="text-[11px] font-bold text-white">Generate</Text>
+              <View className="flex-row items-center bg-white/20 rounded-full px-4 py-2.5 gap-1.5 border border-white/20">
+                <Sparkles size={13} color="#FFF" />
+                <Text className="text-[12px] font-bold text-white">Try AI</Text>
               </View>
             </Pressable>
           </LinearGradient>

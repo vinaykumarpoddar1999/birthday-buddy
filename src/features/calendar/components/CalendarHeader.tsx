@@ -1,5 +1,5 @@
 import { Text, View } from 'react-native';
-import { MoreVertical, Search, SlidersHorizontal } from 'lucide-react-native';
+import { CalendarDays, MoreVertical, Search, SlidersHorizontal } from 'lucide-react-native';
 
 import { IconButton } from '@shared/ui/IconButton';
 
@@ -7,9 +7,10 @@ export function CalendarHeader() {
   return (
     <View className="flex-row items-start justify-between mb-4">
       <View className="flex-1 pr-3">
-        <Text className="text-[26px] leading-[32px] text-foreground font-bold">
-          Calendar ✨
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <CalendarDays size={26} color="#7C3AED" strokeWidth={2} />
+          <Text className="text-[26px] leading-[32px] text-foreground font-bold">Calendar</Text>
+        </View>
         <Text className="text-body text-foreground-secondary mt-0.5">
           Never miss a special day
         </Text>

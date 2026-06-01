@@ -145,7 +145,7 @@ export interface AIGeneratedContent {
 
 export interface DecorationItem {
   id: string;
-  emoji: string;
+  iconKey: string;
   label: string;
   category: 'balloons' | 'cake' | 'flowers' | 'gifts' | 'confetti' | 'hearts' | 'stars' | 'party';
 }

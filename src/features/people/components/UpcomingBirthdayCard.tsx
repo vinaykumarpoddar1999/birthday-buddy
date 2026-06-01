@@ -1,47 +1,67 @@
-import { Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
+import { Gift, Send } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
 import { RelationshipBadge } from './RelationshipBadge';
-import { ActionIconButton } from './ActionIconButton';
 import type { BirthdayEvent } from '../types';
 
 type UpcomingBirthdayCardProps = {
   item: BirthdayEvent;
 };
 
-const eventStateClassMap = {
-  tomorrow: 'text-secondary',
-  in2days: 'text-success',
-  in3days: 'text-warning',
-  in5days: 'text-primary',
-  in7days: 'text-violet-500',
-  in10days: 'text-foreground-secondary',
-} as const;
+const eventStateColors: Record<string, string> = {
+  tomorrow: '#EC4899',
+  in2days: '#22C55E',
+  in3days: '#F59E0B',
+  in5days: '#7C3AED',
+  in7days: '#8B5CF6',
+  in10days: '#6B7280',
+};
 
 export function UpcomingBirthdayCard({ item }: UpcomingBirthdayCardProps) {
+  const color = eventStateColors[item.eventState] || '#6B7280';
+
   return (
-    <View className="flex-row items-center rounded-2xl bg-surface border border-border/80 px-3 py-2.5 mb-2.5">
-      <ProfilePlaceholder
-        size="header"
-        variant={item.gender === 'female' ? 'female' : 'user'}
-        label={item.name}
-        className="mr-3"
-      />
+    <View className="bg-surface rounded-2xl border border-border px-4 py-3.5 mb-3 shadow-sm">
+      <View className="flex-row items-center gap-3">
+        <ProfilePlaceholder
+          size="header"
+          variant={item.gender === 'female' ? 'female' : 'user'}
+          label={item.name}
+        />
 
-      <View className="flex-1 pr-2">
-        <Text className="text-body text-foreground font-semibold">{item.name}</Text>
-        <Text className={`text-caption mt-0.5 ${eventStateClassMap[item.eventState]}`}>
-          {item.eventLabel}
-        </Text>
-        <View className="mt-1">
-          <RelationshipBadge relationship={item.relationship} />
+        <View className="flex-1 min-w-0 mr-2">
+          <Text className="text-[15px] text-foreground font-semibold" numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text className="text-[12px] mt-0.5 font-medium" style={{ color }}>
+            {item.eventLabel}
+          </Text>
+          <View className="flex-row items-center gap-2 mt-1.5">
+            <RelationshipBadge relationship={item.relationship} />
+            <Text className="text-[11px] text-foreground-muted">
+              Turning {item.age}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View className="items-end">
-        <Text className="text-[24px] leading-[24px] text-secondary font-bold">{item.age}</Text>
-        <Text className="text-[10px] text-foreground-secondary mb-1.5">Years</Text>
-        <ActionIconButton action="wish" onPress={() => {}} />
+        <View className="flex-row gap-2 shrink-0">
+          <Pressable
+            onPress={() => router.push({ pathname: '/card-studio', params: { personId: item.id } })}
+            className="h-9 w-9 rounded-xl bg-primary/10 items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel="Send wish">
+            <Send size={15} color="#7C3AED" />
+          </Pressable>
+          <Pressable
+            onPress={() => Alert.alert('Gift Ideas', `Gift ideas for ${item.name} coming soon!`)}
+            className="h-9 w-9 rounded-xl bg-pink-50 items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel="Gift ideas">
+            <Gift size={15} color="#EC4899" />
+          </Pressable>
+        </View>
       </View>
     </View>
   );

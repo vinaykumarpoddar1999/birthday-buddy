@@ -1,0 +1,40 @@
+import type { CardTemplate } from '../../types';
+
+export const midnightGalaxyTemplate: CardTemplate = {
+  id: 'midnight-galaxy',
+  name: 'Midnight Galaxy',
+  category: 'modern',
+  tags: ['birthday', 'modern', 'dark', 'galaxy', 'space', 'stars', 'premium', 'gradient'],
+  isPremium: true,
+  isTrending: true,
+  background: {
+    type: 'gradient',
+    value: ['#0F0C29', '#302B63', '#24243E'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 0.5, y: 1 },
+  },
+  colors: { primary: '#A78BFA', secondary: '#818CF8', text: '#E0E7FF', accent: '#C4B5FD' },
+  fonts: { heading: 'System', body: 'System' },
+  placeholders: {
+    recipientName: 'Riya',
+    message: 'You light up the universe like the brightest star in the sky',
+    senderName: 'With Cosmic Love',
+  },
+  decorations: ['icon:sparkles', 'icon:moon', 'icon:star'],
+  layout: 'portrait',
+  elements: [
+    { id: 'mg-1', type: 'sticker', content: 'icon:moon', x: 25, y: 20, width: 28, height: 28, rotation: -8, opacity: 0.7, zIndex: 1, visible: true, fontSize: 22 },
+    { id: 'mg-2', type: 'sticker', content: 'icon:sparkles', x: 290, y: 25, width: 24, height: 24, rotation: 12, opacity: 0.5, zIndex: 1, visible: true, fontSize: 18 },
+    { id: 'mg-3', type: 'sticker', content: 'icon:star', x: 55, y: 50, width: 16, height: 16, rotation: 0, opacity: 0.3, zIndex: 1, visible: true, fontSize: 12 },
+    { id: 'mg-4', type: 'sticker', content: 'icon:sparkles', x: 250, y: 60, width: 16, height: 16, rotation: 0, opacity: 0.25, zIndex: 1, visible: true, fontSize: 10 },
+    { id: 'mg-5', type: 'text', content: 'HAPPY', x: 30, y: 80, width: 280, height: 40, rotation: 0, opacity: 0.6, zIndex: 2, visible: true, fontSize: 18, fontWeight: '600', color: '#818CF8', textAlign: 'center', letterSpacing: 12 },
+    { id: 'mg-6', type: 'text', content: 'Birthday', x: 30, y: 115, width: 280, height: 55, rotation: 0, opacity: 1, zIndex: 2, visible: true, fontSize: 44, fontWeight: '800', color: '#C4B5FD', textAlign: 'center' },
+    { id: 'mg-7', type: 'text', content: '{{recipientName}}', x: 20, y: 185, width: 300, height: 50, rotation: 0, opacity: 1, zIndex: 3, visible: true, fontSize: 38, fontWeight: '800', color: '#FFFFFF', textAlign: 'center', isPlaceholder: true, placeholderKey: 'recipientName' },
+    { id: 'mg-8', type: 'sticker', content: 'icon:moon', x: 140, y: 252, width: 60, height: 60, rotation: 0, opacity: 0.9, zIndex: 2, visible: true, fontSize: 50 },
+    { id: 'mg-9', type: 'sticker', content: 'icon:star', x: 95, y: 265, width: 20, height: 20, rotation: -15, opacity: 0.35, zIndex: 1, visible: true, fontSize: 14 },
+    { id: 'mg-10', type: 'sticker', content: 'icon:sparkles', x: 225, y: 270, width: 20, height: 20, rotation: 10, opacity: 0.35, zIndex: 1, visible: true, fontSize: 14 },
+    { id: 'mg-11', type: 'text', content: '{{message}}', x: 35, y: 335, width: 270, height: 55, rotation: 0, opacity: 0.8, zIndex: 2, visible: true, fontSize: 14, fontWeight: '400', color: '#C4B5FD', textAlign: 'center', lineHeight: 21, isPlaceholder: true, placeholderKey: 'message' },
+    { id: 'mg-12', type: 'text', content: '— {{senderName}} —', x: 35, y: 415, width: 270, height: 25, rotation: 0, opacity: 0.55, zIndex: 2, visible: true, fontSize: 12, fontWeight: '600', color: '#818CF8', textAlign: 'center', letterSpacing: 2, isPlaceholder: true, placeholderKey: 'senderName' },
+    { id: 'mg-13', type: 'sticker', content: 'icon:moon', x: 158, y: 450, width: 22, height: 22, rotation: 0, opacity: 0.35, zIndex: 1, visible: true, fontSize: 16 },
+  ],
+};

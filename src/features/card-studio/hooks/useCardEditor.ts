@@ -43,13 +43,13 @@ export function useCardEditor() {
   );
 
   const addStickerElement = useCallback(
-    (emoji: string) => {
+    (iconKey: string) => {
       const id = `el-${Date.now()}`;
       const maxZ = elements.length > 0 ? Math.max(...elements.map((e) => e.zIndex)) : 0;
       const el: CardElement = {
         id,
         type: 'sticker',
-        content: emoji,
+        content: `icon:${iconKey}`,
         x: 130,
         y: 200,
         width: 50,
