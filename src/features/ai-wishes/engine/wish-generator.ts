@@ -230,3 +230,18 @@ export function generateWish(params: GenerateWishParams): GeneratedWish {
 
   return wish;
 }
+
+export function formatGeneratedWishText(
+  text: string,
+  options: {
+    personName: string;
+    personalContext?: string;
+    language: WishLanguage;
+  },
+): string {
+  let finalText = stripEmojis(
+    personalizeWish(text, options.personName, options.personalContext),
+  );
+  finalText = stripEmojis(applyLanguage(finalText, options.language, options.personName));
+  return finalText;
+}

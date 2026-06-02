@@ -8,6 +8,8 @@ export function useFeedback() {
   const showWarning = useFeedbackStore((s) => s.showWarning);
   const showConfirm = useFeedbackStore((s) => s.showConfirm);
   const showDeleteConfirm = useFeedbackStore((s) => s.showDeleteConfirm);
+  const showSecurity = useFeedbackStore((s) => s.showSecurity);
+  const showPermission = useFeedbackStore((s) => s.showPermission);
   const showActionSheet = useFeedbackStore((s) => s.showActionSheet);
   const showToast = useFeedbackStore((s) => s.showToast);
 
@@ -24,6 +26,8 @@ export function useFeedback() {
     showWarning,
     showConfirm,
     showDeleteConfirm,
+    showSecurity,
+    showPermission,
     showActionSheet,
     showToast,
     toast,

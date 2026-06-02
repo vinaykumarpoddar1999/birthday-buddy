@@ -8,7 +8,10 @@ import { useFeedback } from '@/shared/hooks/useFeedback';
 import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
 
+import { z } from 'zod';
+
 import { useProfileStore } from '../store/profile.store';
+import { COUNTRY_OPTIONS, profileSchema, TIMEZONE_OPTIONS } from '../validation/profile.schema';
 
 const GENDERS = ['male', 'female', 'other'] as const;
 
@@ -23,14 +26,36 @@ export const PersonalInfoScreen = () => {
   const [birthday, setBirthday] = useState(profile.birthday);
   const [location, setLocation] = useState(profile.location);
   const [bio, setBio] = useState(profile.bio);
+  const [timezone, setTimezone] = useState(profile.timezone);
+  const [country, setCountry] = useState(profile.country);
   const [profileImage, setProfileImage] = useState(profile.profileImage);
-  const { toast } = useFeedback();
+  const { toast, showError } = useFeedback();
   const { showImagePicker } = useProfileImagePicker((uri) => setProfileImage(uri));
 
   const handleSave = () => {
-    updateProfile({ fullName: name, email, phone, gender, birthday, location, bio, profileImage });
-    toast('Your profile has been updated', 'success');
-    router.back();
+    try {
+      const validated = profileSchema.parse({
+        fullName: name,
+        email,
+        phone,
+        gender,
+        birthday,
+        location,
+        bio,
+        relationshipStatus: profile.relationshipStatus,
+        relationship: profile.relationship,
+        timezone,
+        country,
+        preferences: profile.preferences,
+      });
+      updateProfile({ ...validated, profileImage });
+      toast('Your profile has been updated', 'success');
+      router.back();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        showError('Validation Error', error.issues[0]?.message ?? 'Please check your input.');
+      }
+    }
   };
 
   return (
@@ -79,6 +104,37 @@ export const PersonalInfoScreen = () => {
 
           <FieldInput label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
           <FieldInput label="Location" value={location} onChangeText={setLocation} placeholder="City, Country" />
+
+          <View>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Country</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {COUNTRY_OPTIONS.slice(0, 6).map((c) => (
+                <Pressable
+                  key={c}
+                  onPress={() => setCountry(c)}
+                  className={`px-3 py-2 rounded-xl border ${country === c ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
+                  accessibilityRole="button">
+                  <Text className={`text-[12px] font-semibold ${country === c ? 'text-primary' : 'text-foreground-secondary'}`}>{c}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Timezone</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {TIMEZONE_OPTIONS.slice(0, 6).map((tz) => (
+                <Pressable
+                  key={tz}
+                  onPress={() => setTimezone(tz)}
+                  className={`px-3 py-2 rounded-xl border ${timezone === tz ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
+                  accessibilityRole="button">
+                  <Text className={`text-[11px] font-semibold ${timezone === tz ? 'text-primary' : 'text-foreground-secondary'}`}>{tz.replace(/_/g, ' ')}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
           <FieldInput label="Bio" value={bio} onChangeText={setBio} placeholder="Tell us about yourself..." multiline numberOfLines={3} />
         </View>
       </ScrollView>

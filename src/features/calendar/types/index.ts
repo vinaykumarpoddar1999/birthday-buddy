@@ -7,6 +7,7 @@ export type EventType = 'birthday' | 'anniversary' | 'special' | 'custom';
 export type CalendarDayEvent = {
   id: string;
   type: EventType;
+  personId?: string;
   avatarVariant: ProfilePlaceholderVariant;
 };
 

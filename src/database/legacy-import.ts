@@ -1,9 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { DatabaseManager } from './database-manager';
-import { peopleRepository } from '@/repositories/people.repository';
-import { eventRepository } from '@/repositories/event.repository';
-import { settingsRepository } from '@/repositories/settings.repository';
 import type { CreatePersonInput, EventType, Gender, RelationshipType } from '@/types/entities';
 
 const LEGACY_STORAGE_KEY = 'birthday-buddy-people-v1';
@@ -31,6 +27,8 @@ interface LegacyStoredPerson {
 async function importPerson(
   data: CreatePersonInput & { legacyId?: string },
 ): Promise<void> {
+  const { peopleRepository } = await import('@/repositories/people.repository');
+  const { eventRepository } = await import('@/repositories/event.repository');
   const legacyUuid = data.legacyId;
   const uuid = await peopleRepository.insert(data, legacyUuid);
   const personId = await peopleRepository.getInternalId(uuid);
@@ -67,7 +65,8 @@ function mapLegacyPerson(p: LegacyStoredPerson): CreatePersonInput & { legacyId:
   };
 }
 
-export async function runLegacyImport(_manager: typeof DatabaseManager): Promise<void> {
+export async function runLegacyImport(): Promise<void> {
+  const { settingsRepository } = await import('@/repositories/settings.repository');
   if (await settingsRepository.hasLegacyImportDone()) return;
 
   const raw = await AsyncStorage.getItem(LEGACY_STORAGE_KEY);
@@ -75,6 +74,7 @@ export async function runLegacyImport(_manager: typeof DatabaseManager): Promise
     try {
       const parsed = JSON.parse(raw) as { state?: { people?: LegacyStoredPerson[] } };
       const people = parsed.state?.people ?? [];
+      const { DatabaseManager } = await import('./database-manager');
       await DatabaseManager.withTransaction(async () => {
         for (const p of people) {
           await importPerson(mapLegacyPerson(p));

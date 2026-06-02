@@ -1,28 +1,62 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   Briefcase,
+  Flame,
   Heart,
   Laugh,
+  Rocket,
   Sparkles,
   Star,
   type LucideIcon,
 } from 'lucide-react-native';
-
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import type { ToneOption, WishTone } from '../types';
+import { WishSectionHeader } from './WishSectionHeader';
 
-type ToneWithIcon = ToneOption & { Icon: LucideIcon };
+type ToneWithIcon = ToneOption & {
+  Icon: LucideIcon;
+  gradient: [string, string];
+};
 
 const TONES: ToneWithIcon[] = [
-  { id: 'heartfelt', label: 'Heartfelt', Icon: Heart, description: 'Warm & emotional', color: '#EF4444' },
-  { id: 'funny', label: 'Funny', Icon: Laugh, description: 'Witty & playful', color: '#F59E0B' },
-  { id: 'romantic', label: 'Romantic', Icon: Heart, description: 'Love-filled', color: '#EC4899' },
-  { id: 'motivational', label: 'Motivational', Icon: Star, description: 'Inspiring words', color: '#8B5CF6' },
-  { id: 'cute', label: 'Cute', Icon: Heart, description: 'Sweet & adorable', color: '#F472B6' },
-  { id: 'professional', label: 'Professional', Icon: Briefcase, description: 'Formal & polished', color: '#3B82F6' },
-  { id: 'short-sweet', label: 'Short & Sweet', Icon: Sparkles, description: 'Brief & beautiful', color: '#22C55E' },
+  {
+    id: 'heartfelt', label: 'Heartfelt', Icon: Heart,
+    description: 'Warm & emotional', color: '#EF4444',
+    gradient: ['#EF4444', '#DC2626'],
+  },
+  {
+    id: 'funny', label: 'Funny', Icon: Laugh,
+    description: 'Witty & playful', color: '#F59E0B',
+    gradient: ['#F59E0B', '#D97706'],
+  },
+  {
+    id: 'romantic', label: 'Romantic', Icon: Flame,
+    description: 'Love-filled', color: '#EC4899',
+    gradient: ['#EC4899', '#DB2777'],
+  },
+  {
+    id: 'motivational', label: 'Motivational', Icon: Rocket,
+    description: 'Inspiring words', color: '#8B5CF6',
+    gradient: ['#8B5CF6', '#7C3AED'],
+  },
+  {
+    id: 'cute', label: 'Cute', Icon: Star,
+    description: 'Sweet & adorable', color: '#F472B6',
+    gradient: ['#F472B6', '#EC4899'],
+  },
+  {
+    id: 'professional', label: 'Professional', Icon: Briefcase,
+    description: 'Formal & polished', color: '#3B82F6',
+    gradient: ['#3B82F6', '#2563EB'],
+  },
+  {
+    id: 'short-sweet', label: 'Short & Sweet', Icon: Sparkles,
+    description: 'Brief & beautiful', color: '#22C55E',
+    gradient: ['#22C55E', '#16A34A'],
+  },
 ];
 
 export function ToneSelector() {
@@ -30,10 +64,8 @@ export function ToneSelector() {
   const setTone = useAIWishesStore((s) => s.setTone);
 
   return (
-    <View className="mb-5">
-      <View className="px-5 mb-3">
-        <Text className="text-[14px] font-bold text-foreground">1. Choose the tone</Text>
-      </View>
+    <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mb-5">
+      <WishSectionHeader step={1} title="Choose the tone" subtitle="Match the vibe — heartfelt, funny, romantic & more" Icon={Sparkles} />
 
       <ScrollView
         horizontal
@@ -48,7 +80,7 @@ export function ToneSelector() {
               key={tone.id}
               onPress={() => setTone(tone.id as WishTone)}
               style={({ pressed }) => ({
-                transform: [{ scale: pressed ? 0.95 : 1 }],
+                transform: [{ scale: pressed ? 0.93 : 1 }],
               })}
               accessibilityRole="button"
               accessibilityLabel={`${tone.label} tone`}>
@@ -56,39 +88,51 @@ export function ToneSelector() {
                 <View
                   className="rounded-2xl overflow-hidden"
                   style={{
-                    width: 82,
+                    width: 88,
                     shadowColor: tone.color,
-                    shadowOffset: { width: 0, height: 3 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
-                    elevation: 5,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.35,
+                    shadowRadius: 10,
+                    elevation: 6,
                   }}>
                   <LinearGradient
-                    colors={['#7C3AED', '#5B21B6']}
+                    colors={tone.gradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 0, y: 1 }}>
-                    <View className="items-center py-3 px-1.5">
-                      <Icon size={26} color="#FFFFFF" strokeWidth={1.75} />
-                      <Text className="text-[11px] font-bold text-white mt-1.5" numberOfLines={1}>
+                    <View className="items-center py-3 px-2">
+                      <View className="h-10 w-10 rounded-xl bg-white/20 items-center justify-center mb-1.5">
+                        <Icon size={20} color="#FFFFFF" strokeWidth={2} />
+                      </View>
+                      <Text className="text-[11px] font-bold text-white" numberOfLines={1}>
                         {tone.label}
+                      </Text>
+                      <Text className="text-[8px] text-white/70 mt-0.5" numberOfLines={1}>
+                        {tone.description}
                       </Text>
                     </View>
                   </LinearGradient>
                 </View>
               ) : (
                 <View
-                  className="items-center py-3 px-1.5 rounded-2xl bg-white border border-gray-100"
+                  className="items-center py-3 px-2 rounded-2xl bg-white border border-gray-100"
                   style={{
-                    width: 82,
+                    width: 88,
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 1 },
                     shadowOpacity: 0.04,
                     shadowRadius: 4,
                     elevation: 1,
                   }}>
-                  <Icon size={26} color={tone.color} strokeWidth={1.75} />
-                  <Text className="text-[11px] font-semibold text-foreground-secondary mt-1.5" numberOfLines={1}>
+                  <View
+                    className="h-10 w-10 rounded-xl items-center justify-center mb-1.5"
+                    style={{ backgroundColor: `${tone.color}12` }}>
+                    <Icon size={20} color={tone.color} strokeWidth={2} />
+                  </View>
+                  <Text className="text-[11px] font-semibold text-foreground" numberOfLines={1}>
                     {tone.label}
+                  </Text>
+                  <Text className="text-[8px] text-foreground-muted mt-0.5" numberOfLines={1}>
+                    {tone.description}
                   </Text>
                 </View>
               )}
@@ -96,6 +140,6 @@ export function ToneSelector() {
           );
         })}
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }

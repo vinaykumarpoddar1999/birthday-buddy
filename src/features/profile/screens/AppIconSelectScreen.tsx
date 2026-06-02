@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { appIconService } from '@/services/app-icon/app-icon.service';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 
 import { useProfileStore } from '../store/profile.store';
@@ -23,8 +24,14 @@ export const AppIconSelectScreen = () => {
   const { toast } = useFeedback();
 
   const handleSelect = (icon: AppIconOption) => {
-    setAppIcon(icon);
-    toast('App icon preference saved', 'success');
+    void appIconService.setIcon(icon).then((result) => {
+      setAppIcon(icon);
+      if (result.nativeApplied) {
+        toast('App icon updated', 'success');
+      } else {
+        toast('App icon preference saved', 'success');
+      }
+    });
   };
 
   return (

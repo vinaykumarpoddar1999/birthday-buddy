@@ -17,6 +17,10 @@ export type AppBackupSnapshot = {
   wishHistory: Record<string, unknown>[];
   cards: Record<string, unknown>[];
   cardTemplates: Record<string, unknown>[];
+  surpriseExperiences: Record<string, unknown>[];
+  surpriseAnalytics: Record<string, unknown>[];
+  surpriseReactions: Record<string, unknown>[];
+  surpriseReplies: Record<string, unknown>[];
   notifications: Record<string, unknown>[];
   feedbacks: Record<string, unknown>[];
   settings: Record<string, unknown>[];
@@ -34,6 +38,10 @@ export async function exportJsonSnapshot(): Promise<string> {
     wishHistory,
     cards,
     cardTemplates,
+    surpriseExperiences,
+    surpriseAnalytics,
+    surpriseReactions,
+    surpriseReplies,
     notifications,
     feedbacks,
     settings,
@@ -46,6 +54,10 @@ export async function exportJsonSnapshot(): Promise<string> {
     DatabaseManager.getAll(`SELECT * FROM wish_history WHERE COALESCE(is_deleted, 0) = 0`),
     DatabaseManager.getAll(`SELECT * FROM cards WHERE ${notDeleted}`),
     DatabaseManager.getAll(`SELECT * FROM card_templates WHERE COALESCE(is_deleted, 0) = 0`),
+    DatabaseManager.getAll(`SELECT * FROM surprise_experiences WHERE ${notDeleted}`),
+    DatabaseManager.getAll(`SELECT * FROM surprise_analytics WHERE COALESCE(is_deleted, 0) = 0`),
+    DatabaseManager.getAll(`SELECT * FROM surprise_reactions`),
+    DatabaseManager.getAll(`SELECT * FROM surprise_replies`),
     DatabaseManager.getAll(`SELECT * FROM notifications WHERE COALESCE(is_deleted, 0) = 0`),
     DatabaseManager.getAll(`SELECT * FROM feedbacks WHERE ${notDeleted}`),
     DatabaseManager.getAll('SELECT key, value, updated_at FROM settings'),
@@ -57,7 +69,7 @@ export async function exportJsonSnapshot(): Promise<string> {
 
   const snapshot: AppBackupSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: 2,
+    version: 3,
     people: people as Record<string, unknown>[],
     events: events as Record<string, unknown>[],
     reminders: reminders as Record<string, unknown>[],
@@ -65,6 +77,10 @@ export async function exportJsonSnapshot(): Promise<string> {
     wishHistory: wishHistory as Record<string, unknown>[],
     cards: cards as Record<string, unknown>[],
     cardTemplates: cardTemplates as Record<string, unknown>[],
+    surpriseExperiences: surpriseExperiences as Record<string, unknown>[],
+    surpriseAnalytics: surpriseAnalytics as Record<string, unknown>[],
+    surpriseReactions: surpriseReactions as Record<string, unknown>[],
+    surpriseReplies: surpriseReplies as Record<string, unknown>[],
     notifications: notifications as Record<string, unknown>[],
     feedbacks: feedbacks as Record<string, unknown>[],
     settings: settings as Record<string, unknown>[],
@@ -84,8 +100,8 @@ function validateSnapshot(data: unknown): AppBackupSnapshot {
       'This file is a partial module export. Import a full JSON backup from Backup & Restore or Export Data (All).',
     );
   }
-  if (!Array.isArray(snap.people) || !Array.isArray(snap.settings)) {
-    throw new ImportError('Invalid backup file: missing required data sections.');
+  if (!Array.isArray(snap.people)) {
+    throw new ImportError('Invalid backup file: missing people data.');
   }
   return {
     exportedAt: snap.exportedAt ?? new Date().toISOString(),
@@ -97,6 +113,10 @@ function validateSnapshot(data: unknown): AppBackupSnapshot {
     wishHistory: snap.wishHistory ?? [],
     cards: snap.cards ?? [],
     cardTemplates: snap.cardTemplates ?? [],
+    surpriseExperiences: snap.surpriseExperiences ?? [],
+    surpriseAnalytics: snap.surpriseAnalytics ?? [],
+    surpriseReactions: snap.surpriseReactions ?? [],
+    surpriseReplies: snap.surpriseReplies ?? [],
     notifications: snap.notifications ?? [],
     feedbacks: snap.feedbacks ?? [],
     settings: snap.settings ?? [],
@@ -106,6 +126,10 @@ function validateSnapshot(data: unknown): AppBackupSnapshot {
 
 /** Child tables first so FK deletes succeed when foreign_keys is ON. */
 const WIPE_TABLES = [
+  'surprise_replies',
+  'surprise_reactions',
+  'surprise_analytics',
+  'surprise_experiences',
   'wish_history',
   'ai_wishes',
   'reminders',
@@ -172,17 +196,20 @@ function sanitizeForeignKeys(snapshot: AppBackupSnapshot): AppBackupSnapshot {
   return { ...snapshot, events, reminders, wishes, wishHistory, cards };
 }
 
+function toSqlValue(value: unknown): string | number | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  if (typeof value === 'object') return JSON.stringify(value);
+  return value as string | number;
+}
+
 async function insertRows(table: string, rows: Record<string, unknown>[]): Promise<void> {
   if (rows.length === 0) return;
   const columns = Object.keys(rows[0]);
   const placeholders = columns.map(() => '?').join(', ');
   const sql = `INSERT OR REPLACE INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`;
   for (const row of rows) {
-    const values = columns.map((col) => {
-      const v = row[col];
-      if (v === undefined) return null;
-      return v as string | number | null | boolean;
-    });
+    const values = columns.map((col) => toSqlValue(row[col]));
     await DatabaseManager.run(sql, values);
   }
 }
@@ -214,6 +241,10 @@ export async function importJsonSnapshot(json: string): Promise<AppBackupSnapsho
       await insertRows('wish_history', snapshot.wishHistory);
       await insertRows('reminders', snapshot.reminders);
       await insertRows('cards', snapshot.cards);
+      await insertRows('surprise_experiences', snapshot.surpriseExperiences);
+      await insertRows('surprise_analytics', snapshot.surpriseAnalytics);
+      await insertRows('surprise_reactions', snapshot.surpriseReactions);
+      await insertRows('surprise_replies', snapshot.surpriseReplies);
       await insertRows('notifications', snapshot.notifications);
       await insertRows('feedbacks', snapshot.feedbacks);
       await insertRows('activity_logs', snapshot.activityLogs);
@@ -231,6 +262,11 @@ export async function importJsonSnapshot(json: string): Promise<AppBackupSnapsho
       }
 
       await DatabaseManager.run('PRAGMA foreign_keys = ON');
+      await DatabaseManager.run(
+        `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+        ['legacy_import_done', 'true', new Date().toISOString()],
+      );
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Import failed';

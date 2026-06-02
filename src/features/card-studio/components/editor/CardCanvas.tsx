@@ -1,55 +1,67 @@
 import React, { useRef } from 'react';
 import { Dimensions, Pressable, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ViewShot from 'react-native-view-shot';
-import { Move } from 'lucide-react-native';
+import { Move, Sparkles } from 'lucide-react-native';
 
 import { useCardStudioStore } from '../../store/card-studio.store';
-import { CardRenderer, CARD_W, CARD_H } from '../preview/CardRenderer';
-import { DraggableElement } from './DraggableElement';
+import { getCanvasDimensions, getCanvasScale } from '../../utils/canvas-dimensions';
 import { resolveElements } from '../../utils/placeholder';
+import { CardRenderer } from '../preview/CardRenderer';
+import { DraggableElement } from './DraggableElement';
 
 const SCREEN_W = Dimensions.get('window').width;
-const CANVAS_SCALE = Math.min((SCREEN_W - 48) / CARD_W, 0.85);
 
 type Props = {
   viewShotRef?: React.RefObject<React.ComponentRef<typeof ViewShot> | null>;
   editable?: boolean;
 };
 
+function isRenderableElement(el: { x: number; y: number; width: number; height: number }): boolean {
+  return [el.x, el.y, el.width, el.height].every((value) => Number.isFinite(value));
+}
+
 export function CardCanvas({ viewShotRef, editable = true }: Props) {
   const template = useCardStudioStore((s) => s.selectedTemplate);
   const elements = useCardStudioStore((s) => s.elements);
   const personalization = useCardStudioStore((s) => s.personalization);
   const customBackground = useCardStudioStore((s) => s.customBackground);
+  const canvasFormat = useCardStudioStore((s) => s.canvasFormat);
   const selectedElementId = useCardStudioStore((s) => s.selectedElementId);
   const selectElement = useCardStudioStore((s) => s.selectElement);
+  const lastSavedAt = useCardStudioStore((s) => s.lastSavedAt);
 
   const internalRef = useRef<View>(null);
 
   if (!template) return null;
 
+  const canvasScale = getCanvasScale(SCREEN_W, canvasFormat);
   const resolved = resolveElements(elements, personalization);
+  const safeResolved = resolved.filter(isRenderableElement);
+  const { w, h } = getCanvasDimensions(canvasFormat);
 
   return (
-    <View className="items-center py-5">
+    <View className="items-center py-3 px-4">
       <Pressable
         onPress={() => selectElement(null)}
+        accessibilityRole="button"
+        accessibilityLabel="Card canvas. Tap to deselect elements."
         className="rounded-3xl overflow-hidden"
         style={{
-          width: CARD_W * CANVAS_SCALE + 8,
-          height: CARD_H * CANVAS_SCALE + 8,
-          padding: 4,
+          width: w * canvasScale + 10,
+          height: h * canvasScale + 10,
+          padding: 5,
           backgroundColor: '#F3F0FF',
           shadowColor: '#7C3AED',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.12,
-          shadowRadius: 24,
-          elevation: 8,
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.18,
+          shadowRadius: 28,
+          elevation: 12,
         }}>
-        <View
+        <GestureHandlerRootView
           style={{
-            width: CARD_W * CANVAS_SCALE,
-            height: CARD_H * CANVAS_SCALE,
+            width: w * canvasScale,
+            height: h * canvasScale,
             borderRadius: 20,
             overflow: 'hidden',
             position: 'relative',
@@ -60,34 +72,44 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
               template={template}
               personalization={personalization}
               elements={elements}
-              scale={CANVAS_SCALE}
+              scale={canvasScale}
               customBackground={customBackground}
               hideElements={editable}
+              canvasFormat={canvasFormat}
             />
           </ViewShot>
 
           {editable
-            ? resolved
+            ? safeResolved
                 .sort((a, b) => a.zIndex - b.zIndex)
                 .map((el) => (
                   <DraggableElement
                     key={el.id}
                     element={el}
-                    scale={CANVAS_SCALE}
+                    scale={canvasScale}
+                    canvasFormat={canvasFormat}
                     isSelected={selectedElementId === el.id}
                     onSelect={() => selectElement(el.id)}
                   />
                 ))
             : null}
-        </View>
+        </GestureHandlerRootView>
       </Pressable>
 
-      <View className="flex-row items-center mt-3 gap-1.5 bg-white px-3 py-1.5 rounded-full border border-gray-100">
-        <View className="h-2 w-2 rounded-full bg-green-400" />
-        <Text className="text-[10px] font-semibold text-foreground-muted">
-          {editable ? 'Drag · Resize · Rotate' : 'Live Preview'}
-        </Text>
-        <Move size={10} color="#9CA3AF" />
+      <View className="flex-row items-center mt-2.5 gap-2">
+        <View className="flex-row items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-gray-100">
+          <View className="h-2 w-2 rounded-full bg-green-400" />
+          <Text className="text-[10px] font-semibold text-foreground-muted">
+            {editable ? 'Live Preview' : 'Preview'}
+          </Text>
+          <Move size={10} color="#9CA3AF" />
+        </View>
+        {lastSavedAt ? (
+          <View className="flex-row items-center gap-1 bg-green-50 px-2.5 py-1.5 rounded-full border border-green-100">
+            <Sparkles size={9} color="#16A34A" />
+            <Text className="text-[9px] font-semibold text-green-700">Auto-saved</Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );

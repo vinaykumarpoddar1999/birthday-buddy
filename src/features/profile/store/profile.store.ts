@@ -12,7 +12,10 @@ import {
   profileService,
 } from '@/services/profile/profile.service';
 import { reminderService } from '@/services/reminder/reminder.service';
-import { useThemeStore } from '@/stores/theme.store';
+import { useBirthdayStore } from '@/stores/birthday.store';
+import { useCalendarStore } from '@/stores/calendar.store';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useUserStore, calcProfileCompletion } from '@/stores/user.store';
 import type {
   AppearanceSettings,
   AppCurrency,
@@ -25,22 +28,6 @@ import type {
   ReminderSettings,
   UserProfile,
 } from '../types';
-
-const calcProfileCompletion = (profile: UserProfile): number => {
-  const fields = [
-    profile.profileImage,
-    profile.fullName,
-    profile.birthday,
-    profile.preferences,
-    profile.email,
-    profile.phone,
-    profile.gender !== 'other' ? profile.gender : '',
-    profile.location,
-    profile.bio,
-  ];
-  const filled = fields.filter((f) => f && String(f).length > 0).length;
-  return Math.round((filled / fields.length) * 100);
-};
 
 interface ProfileStoreState {
   profile: UserProfile;
@@ -75,23 +62,44 @@ interface ProfileStoreState {
   resetStore: () => void;
 }
 
-function persistState(get: () => ProfileStoreState): void {
-  const state = get();
-  void profileService.saveBundle({
-    profile: state.profile,
-    language: state.language,
-    currency: state.currency,
-    theme: state.theme,
-    appIcon: state.appIcon,
-    hapticFeedback: state.hapticFeedback,
-    notificationPrefs: state.notificationPrefs,
-    reminderSettings: state.reminderSettings,
-    privacySettings: state.privacySettings,
-    backupSettings: state.backupSettings,
-    appearanceSettings: state.appearanceSettings,
-    calendarSync: state.calendarSync,
-    appRating: state.appRating,
-  });
+let persistQueue: Promise<void> = Promise.resolve();
+
+function snapshotForPersistence() {
+  const user = useUserStore.getState();
+  const settings = useSettingsStore.getState();
+  const calendar = useCalendarStore.getState();
+  return {
+    profile: { ...user.profile },
+    language: settings.language,
+    currency: settings.currency,
+    theme: settings.theme,
+    appIcon: settings.appIcon,
+    hapticFeedback: settings.hapticFeedback,
+    notificationPrefs: { ...settings.notificationPrefs },
+    reminderSettings: {
+      ...settings.reminderSettings,
+      reminderDaysBefore: [...settings.reminderSettings.reminderDaysBefore],
+      multipleReminderTimes: [...settings.reminderSettings.multipleReminderTimes],
+    },
+    privacySettings: { ...settings.privacySettings },
+    backupSettings: { ...settings.backupSettings },
+    appearanceSettings: { ...settings.appearanceSettings },
+    calendarSync: {
+      google: { ...calendar.calendarSync.google },
+      apple: { ...calendar.calendarSync.apple },
+      outlook: { ...calendar.calendarSync.outlook },
+    },
+    appRating: settings.appRating,
+  };
+}
+
+function persistState(): void {
+  const snapshot = snapshotForPersistence();
+  persistQueue = persistQueue
+    .then(() => profileService.saveBundle(snapshot))
+    .catch((error) => {
+      console.warn('[ProfileStore] Failed to persist settings to SQLite:', error);
+    });
 }
 
 let rescheduleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -101,6 +109,28 @@ function queueReminderReschedule(): void {
   rescheduleTimer = setTimeout(() => {
     void reminderService.rescheduleAll();
   }, 400);
+}
+
+function syncProfileStoreFromDomains(set: (partial: Partial<ProfileStoreState>) => void): void {
+  const user = useUserStore.getState();
+  const settings = useSettingsStore.getState();
+  const calendar = useCalendarStore.getState();
+  set({
+    profile: user.profile,
+    profileCompletion: user.profileCompletion,
+    language: settings.language,
+    currency: settings.currency,
+    theme: settings.theme,
+    appIcon: settings.appIcon,
+    hapticFeedback: settings.hapticFeedback,
+    notificationPrefs: settings.notificationPrefs,
+    reminderSettings: settings.reminderSettings,
+    privacySettings: settings.privacySettings,
+    backupSettings: settings.backupSettings,
+    appearanceSettings: settings.appearanceSettings,
+    calendarSync: calendar.calendarSync,
+    appRating: settings.appRating,
+  });
 }
 
 export const useProfileStore = create<ProfileStoreState>()((set, get) => ({
@@ -120,107 +150,145 @@ export const useProfileStore = create<ProfileStoreState>()((set, get) => ({
   profileCompletion: 0,
 
   updateProfile: (updates) => {
-    set((s) => {
-      const profile = { ...s.profile, ...updates };
-      return { profile, profileCompletion: calcProfileCompletion(profile) };
-    });
-    persistState(get);
+    useUserStore.getState().updateProfile(updates);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   setLanguage: (language) => {
-    set({ language });
-    persistState(get);
+    useSettingsStore.getState().setLanguage(language);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   setCurrency: (currency) => {
-    set({ currency });
-    persistState(get);
+    useSettingsStore.getState().setCurrency(currency);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   setTheme: (theme) => {
-    set((s) => ({
-      theme,
-      appearanceSettings: { ...s.appearanceSettings, theme },
-    }));
-    useThemeStore.getState().setMode(theme);
-    persistState(get);
+    useSettingsStore.getState().setTheme(theme);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   setAppIcon: (appIcon) => {
-    set({ appIcon });
-    persistState(get);
+    useSettingsStore.getState().setAppIcon(appIcon);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   setHapticFeedback: (hapticFeedback) => {
-    set({ hapticFeedback });
-    persistState(get);
+    useSettingsStore.getState().setHapticFeedback(hapticFeedback);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   updateNotificationPrefs: (updates) => {
-    set((s) => ({ notificationPrefs: { ...s.notificationPrefs, ...updates } }));
-    persistState(get);
+    useSettingsStore.getState().updateNotificationPrefs(updates);
+    syncProfileStoreFromDomains(set);
+    persistState();
     queueReminderReschedule();
   },
 
   updateReminderSettings: (updates) => {
-    set((s) => ({ reminderSettings: { ...s.reminderSettings, ...updates } }));
-    persistState(get);
+    useSettingsStore.getState().updateReminderSettings(updates);
+    syncProfileStoreFromDomains(set);
+    persistState();
     queueReminderReschedule();
   },
 
   updatePrivacySettings: (updates) => {
-    set((s) => ({ privacySettings: { ...s.privacySettings, ...updates } }));
-    persistState(get);
+    useSettingsStore.getState().updatePrivacySettings(updates);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   updateBackupSettings: (updates) => {
-    set((s) => ({ backupSettings: { ...s.backupSettings, ...updates } }));
-    persistState(get);
+    useSettingsStore.getState().updateBackupSettings(updates);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   updateAppearanceSettings: (updates) => {
-    set((s) => {
-      const appearanceSettings = { ...s.appearanceSettings, ...updates };
-      if (updates.theme) {
-        useThemeStore.getState().setMode(updates.theme);
-        return { appearanceSettings, theme: updates.theme };
-      }
-      return { appearanceSettings };
-    });
-    persistState(get);
+    useSettingsStore.getState().updateAppearanceSettings(updates);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   updateCalendarSync: (updates) => {
-    set((s) => ({ calendarSync: { ...s.calendarSync, ...updates } }));
-    persistState(get);
+    useCalendarStore.getState().updateCalendarSync(updates);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
   setAppRating: (appRating) => {
-    set({ appRating });
-    persistState(get);
+    useSettingsStore.getState().setAppRating(appRating);
+    syncProfileStoreFromDomains(set);
+    persistState();
   },
 
-  deleteAccount: () => accountService.wipeLocalData(),
+  deleteAccount: async () => {
+    await accountService.wipeLocalData();
+  },
 
   resetStore: () => {
     void profileService.resetToDefaults().then(() => {
-      set({
-        profile: DEFAULT_USER_PROFILE,
-        language: 'english',
-        currency: 'INR',
-        theme: 'system',
-        appIcon: 'classic',
-        hapticFeedback: true,
-        notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
-        reminderSettings: DEFAULT_REMINDER_SETTINGS,
-        privacySettings: DEFAULT_PRIVACY_SETTINGS,
-        backupSettings: DEFAULT_BACKUP_SETTINGS,
-        appearanceSettings: DEFAULT_APPEARANCE_SETTINGS,
-        calendarSync: DEFAULT_CALENDAR_SYNC,
-        appRating: null,
-        profileCompletion: 0,
-      });
-      useThemeStore.getState().setMode('system');
+      useUserStore.getState().reset();
+      useSettingsStore.getState().reset();
+      useCalendarStore.getState().reset();
+      useBirthdayStore.getState().reset();
+      syncProfileStoreFromDomains(set);
     });
   },
 }));
+
+export function hydrateProfileDomains(bundle: {
+  profile: UserProfile;
+  language: AppLanguage;
+  currency: AppCurrency;
+  theme: 'light' | 'dark' | 'system';
+  appIcon: AppIconOption;
+  hapticFeedback: boolean;
+  notificationPrefs: NotificationPreferences;
+  reminderSettings: ReminderSettings;
+  privacySettings: PrivacySettings;
+  backupSettings: BackupSettings;
+  appearanceSettings: AppearanceSettings;
+  calendarSync: CalendarSyncSettings;
+  appRating: number | null;
+  profileCompletion: number;
+}): void {
+  useUserStore.getState().hydrate(bundle.profile);
+  useSettingsStore.getState().hydrate({
+    language: bundle.language,
+    currency: bundle.currency,
+    theme: bundle.theme,
+    appIcon: bundle.appIcon,
+    hapticFeedback: bundle.hapticFeedback,
+    notificationPrefs: bundle.notificationPrefs,
+    reminderSettings: bundle.reminderSettings,
+    privacySettings: bundle.privacySettings,
+    backupSettings: bundle.backupSettings,
+    appearanceSettings: bundle.appearanceSettings,
+    appRating: bundle.appRating,
+  });
+  useCalendarStore.getState().hydrate(bundle.calendarSync);
+  useProfileStore.setState({
+    profile: bundle.profile,
+    profileCompletion: bundle.profileCompletion ?? calcProfileCompletion(bundle.profile),
+    language: bundle.language,
+    currency: bundle.currency,
+    theme: bundle.theme,
+    appIcon: bundle.appIcon,
+    hapticFeedback: bundle.hapticFeedback,
+    notificationPrefs: bundle.notificationPrefs,
+    reminderSettings: bundle.reminderSettings,
+    privacySettings: bundle.privacySettings,
+    backupSettings: bundle.backupSettings,
+    appearanceSettings: bundle.appearanceSettings,
+    calendarSync: bundle.calendarSync,
+    appRating: bundle.appRating,
+  });
+}

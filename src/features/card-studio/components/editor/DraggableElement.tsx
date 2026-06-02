@@ -1,41 +1,54 @@
-import React, { useMemo, useRef } from 'react';
-import { PanResponder, Pressable, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Pressable, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { RotateCw } from 'lucide-react-native';
 
 import { useCardStudioStore } from '../../store/card-studio.store';
-import type { CardElement } from '../../types';
+import type { CanvasFormat, CardElement } from '../../types';
+import { getCanvasDimensions } from '../../utils/canvas-dimensions';
 import {
+  CardShapeElement,
   CardStickerElement,
   CardTextElement,
 } from '../../utils/card-element-render';
 
-const CARD_W = 340;
-const CARD_H = 480;
 const MIN_SIZE = 24;
 
 type Props = {
   element: CardElement;
   scale: number;
+  canvasFormat: CanvasFormat;
   isSelected: boolean;
   onSelect: () => void;
 };
+
+function safeNumber(value: number | undefined, fallback: number, min?: number): number {
+  if (!Number.isFinite(value)) return fallback;
+  const parsed = value as number;
+  if (typeof min === 'number') return Math.max(min, parsed);
+  return parsed;
+}
 
 function ElementContent({ element, scale }: { element: CardElement; scale: number }) {
   if (element.type === 'text') {
     return (
       <View style={{ width: '100%', height: '100%', justifyContent: 'center' }}>
-        <CardTextElement
-          el={{ ...element, x: 0, y: 0 }}
-          scale={scale}
-        />
+        <CardTextElement el={{ ...element, x: 0, y: 0 }} scale={scale} />
       </View>
     );
   }
-  if (element.type === 'sticker') {
+  if (element.type === 'sticker' || element.type === 'icon') {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <CardStickerElement el={{ ...element, x: 0, y: 0 }} scale={scale} defaultColor={element.color || '#7C3AED'} />
+      </View>
+    );
+  }
+  if (element.type === 'shape' || element.type === 'frame') {
+    return (
+      <View style={{ flex: 1 }}>
+        <CardShapeElement el={{ ...element, x: 0, y: 0 }} scale={scale} />
       </View>
     );
   }
@@ -56,155 +69,178 @@ function ElementContent({ element, scale }: { element: CardElement; scale: numbe
   return null;
 }
 
-export function DraggableElement({ element, scale, isSelected, onSelect }: Props) {
+export function DraggableElement({ element, scale, canvasFormat, isSelected, onSelect }: Props) {
   const updateElement = useCardStudioStore((s) => s.updateElement);
   const pushHistory = useCardStudioStore((s) => s.pushHistory);
+  const setIsDragging = useCardStudioStore((s) => s.setIsDragging);
 
-  const startRef = useRef({ x: element.x, y: element.y, w: element.width, h: element.height, r: element.rotation });
+  const { w: CARD_W, h: CARD_H } = getCanvasDimensions(canvasFormat);
+  const safeX = safeNumber(element.x, 0, 0);
+  const safeY = safeNumber(element.y, 0, 0);
+  const safeWidth = safeNumber(element.width, MIN_SIZE, MIN_SIZE);
+  const safeHeight = safeNumber(element.height, MIN_SIZE, MIN_SIZE);
+  const safeRotation = safeNumber(element.rotation, 0);
+  const safeOpacity = safeNumber(element.opacity, 1, 0);
+  const safeZIndex = safeNumber(element.zIndex, 0, 0);
 
-  const panResponder = useMemo(
+  const liveRef = useRef({ x: safeX, y: safeY, w: safeWidth, h: safeHeight, r: safeRotation });
+  const startRef = useRef({ x: safeX, y: safeY, w: safeWidth, h: safeHeight, r: safeRotation });
+
+  useEffect(() => {
+    liveRef.current = { x: safeX, y: safeY, w: safeWidth, h: safeHeight, r: safeRotation };
+  }, [safeX, safeY, safeWidth, safeHeight, safeRotation]);
+
+  const elementIdRef = useRef(element.id);
+  elementIdRef.current = element.id;
+  const lockedRef = useRef(!!element.locked);
+  lockedRef.current = !!element.locked;
+
+  const dragGesture = useMemo(
     () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !element.locked,
-        onMoveShouldSetPanResponder: () => !element.locked,
-        onPanResponderGrant: () => {
+      Gesture.Pan()
+        .enabled(!element.locked)
+        .onBegin(() => {
           onSelect();
-          startRef.current = {
-            x: element.x,
-            y: element.y,
-            w: element.width,
-            h: element.height,
-            r: element.rotation,
-          };
-        },
-        onPanResponderMove: (_, gesture) => {
-          if (element.locked) return;
-          const nx = Math.max(0, Math.min(CARD_W - element.width, startRef.current.x + gesture.dx / scale));
-          const ny = Math.max(0, Math.min(CARD_H - element.height, startRef.current.y + gesture.dy / scale));
-          updateElement(element.id, { x: nx, y: ny });
-        },
-        onPanResponderRelease: () => pushHistory(),
-      }),
-    [element.id, element.locked, element.width, element.height, element.x, element.y, element.rotation, onSelect, pushHistory, scale, updateElement],
+          setIsDragging(true);
+          startRef.current = { ...liveRef.current };
+        })
+        .onUpdate((e) => {
+          const nx = Math.max(0, Math.min(CARD_W - liveRef.current.w, startRef.current.x + e.translationX / scale));
+          const ny = Math.max(0, Math.min(CARD_H - liveRef.current.h, startRef.current.y + e.translationY / scale));
+          updateElement(elementIdRef.current, { x: nx, y: ny });
+        })
+        .onEnd(() => {
+          setIsDragging(false);
+          pushHistory();
+        })
+        .onFinalize(() => setIsDragging(false)),
+    [element.locked, onSelect, pushHistory, scale, updateElement, setIsDragging, CARD_W, CARD_H],
   );
 
-  const resizeResponder = useMemo(
+  const resizeGesture = useMemo(
     () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !element.locked,
-        onMoveShouldSetPanResponder: () => !element.locked,
-        onPanResponderGrant: () => {
+      Gesture.Pan()
+        .enabled(!element.locked)
+        .onBegin(() => {
           onSelect();
-          startRef.current = {
-            x: element.x,
-            y: element.y,
-            w: element.width,
-            h: element.height,
-            r: element.rotation,
-          };
-        },
-        onPanResponderMove: (_, gesture) => {
-          if (element.locked) return;
-          const nw = Math.max(MIN_SIZE, Math.min(CARD_W - element.x, startRef.current.w + gesture.dx / scale));
-          const nh = Math.max(MIN_SIZE, Math.min(CARD_H - element.y, startRef.current.h + gesture.dy / scale));
-          updateElement(element.id, { width: nw, height: nh });
-        },
-        onPanResponderRelease: () => pushHistory(),
-      }),
-    [element.id, element.locked, element.x, element.y, element.height, element.width, onSelect, pushHistory, scale, updateElement],
+          setIsDragging(true);
+          startRef.current = { ...liveRef.current };
+        })
+        .onUpdate((e) => {
+          const nw = Math.max(MIN_SIZE, Math.min(CARD_W - liveRef.current.x, startRef.current.w + e.translationX / scale));
+          const nh = Math.max(MIN_SIZE, Math.min(CARD_H - liveRef.current.y, startRef.current.h + e.translationY / scale));
+          updateElement(elementIdRef.current, { width: nw, height: nh });
+        })
+        .onEnd(() => {
+          setIsDragging(false);
+          pushHistory();
+        })
+        .onFinalize(() => setIsDragging(false)),
+    [element.locked, onSelect, pushHistory, scale, updateElement, setIsDragging, CARD_W, CARD_H],
   );
 
-  const rotateResponder = useMemo(
+  const rotateGesture = useMemo(
     () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !element.locked,
-        onMoveShouldSetPanResponder: () => !element.locked,
-        onPanResponderGrant: () => {
+      Gesture.Pan()
+        .enabled(!element.locked)
+        .onBegin(() => {
           onSelect();
-          startRef.current.r = element.rotation;
-        },
-        onPanResponderMove: (_, gesture) => {
-          if (element.locked) return;
-          updateElement(element.id, { rotation: startRef.current.r + gesture.dx * 0.5 });
-        },
-        onPanResponderRelease: () => pushHistory(),
-      }),
-    [element.id, element.locked, element.rotation, onSelect, pushHistory, updateElement],
+          setIsDragging(true);
+          startRef.current = { ...liveRef.current };
+        })
+        .onUpdate((e) => {
+          updateElement(elementIdRef.current, { rotation: startRef.current.r + e.translationX * 0.5 });
+        })
+        .onEnd(() => {
+          setIsDragging(false);
+          pushHistory();
+        })
+        .onFinalize(() => setIsDragging(false)),
+    [element.locked, onSelect, pushHistory, updateElement, setIsDragging],
   );
 
   if (!element.visible) return null;
 
-  const left = element.x * scale;
-  const top = element.y * scale;
-  const width = element.width * scale;
-  const height = element.height * scale;
+  const left = safeX * scale;
+  const top = safeY * scale;
+  const width = safeWidth * scale;
+  const height = safeHeight * scale;
 
   return (
-    <View
-      style={{
-        position: 'absolute',
-        left,
-        top,
-        width,
-        height,
-        zIndex: element.zIndex + (isSelected ? 1000 : 0),
-        opacity: element.opacity,
-        transform: [{ rotate: `${element.rotation}deg` }],
-      }}
-      {...panResponder.panHandlers}>
-      <Pressable onPress={onSelect} style={{ flex: 1, overflow: 'hidden' }}>
-        <ElementContent element={element} scale={scale} />
-      </Pressable>
+    <GestureDetector gesture={dragGesture}>
+      <View
+        style={{
+          position: 'absolute',
+          left,
+          top,
+          width,
+          height,
+          zIndex: safeZIndex + (isSelected ? 1000 : 0),
+          opacity: Math.min(1, safeOpacity),
+          transform: [{ rotate: `${safeRotation}deg` }],
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={`${element.type} element${isSelected ? ', selected' : ''}`}>
+        <Pressable onPress={onSelect} style={{ flex: 1, overflow: 'hidden' }}>
+          <ElementContent element={element} scale={scale} />
+        </Pressable>
 
-      {isSelected && !element.locked ? (
-        <>
-          <View
-            {...resizeResponder.panHandlers}
-            style={{
-              position: 'absolute',
-              right: -6,
-              bottom: -6,
-              width: 18,
-              height: 18,
-              borderRadius: 9,
-              backgroundColor: '#7C3AED',
-              borderWidth: 2,
-              borderColor: '#FFF',
-            }}
-          />
-          <View
-            {...rotateResponder.panHandlers}
-            style={{
-              position: 'absolute',
-              right: -6,
-              top: -6,
-              width: 22,
-              height: 22,
-              borderRadius: 11,
-              backgroundColor: '#FFF',
-              borderWidth: 2,
-              borderColor: '#7C3AED',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <RotateCw size={10} color="#7C3AED" />
-          </View>
-          <View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              borderWidth: 1.5,
-              borderColor: '#7C3AED',
-              borderStyle: 'dashed',
-              borderRadius: 4,
-            }}
-          />
-        </>
-      ) : null}
-    </View>
+        {isSelected && !element.locked ? (
+          <>
+            <GestureDetector gesture={resizeGesture}>
+              <View
+                style={{
+                  position: 'absolute',
+                  right: -8,
+                  bottom: -8,
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  backgroundColor: '#7C3AED',
+                  borderWidth: 2.5,
+                  borderColor: '#FFF',
+                }}
+                accessibilityRole="adjustable"
+                accessibilityLabel="Resize handle"
+              />
+            </GestureDetector>
+            <GestureDetector gesture={rotateGesture}>
+              <View
+                style={{
+                  position: 'absolute',
+                  right: -8,
+                  top: -8,
+                  width: 26,
+                  height: 26,
+                  borderRadius: 13,
+                  backgroundColor: '#FFF',
+                  borderWidth: 2,
+                  borderColor: '#7C3AED',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                accessibilityRole="adjustable"
+                accessibilityLabel="Rotate handle">
+                <RotateCw size={11} color="#7C3AED" />
+              </View>
+            </GestureDetector>
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderWidth: 2,
+                borderColor: '#7C3AED',
+                borderStyle: 'dashed',
+                borderRadius: 4,
+              }}
+            />
+          </>
+        ) : null}
+      </View>
+    </GestureDetector>
   );
 }

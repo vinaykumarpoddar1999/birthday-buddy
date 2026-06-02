@@ -39,7 +39,7 @@ export function TrendingSection({ templates, onSelect }: Props) {
           </View>
         </View>
         <Pressable
-          className="px-3 py-1.5 rounded-full bg-primary/8"
+          className="px-3 py-1.5 rounded-full bg-primary/10"
           accessibilityRole="button">
           <Text className="text-[11px] font-semibold text-primary">See All</Text>
         </Pressable>
@@ -48,7 +48,7 @@ export function TrendingSection({ templates, onSelect }: Props) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerClassName="px-5 gap-3"
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
         decelerationRate="fast"
         snapToInterval={168}>
         {templates.map((t) => (

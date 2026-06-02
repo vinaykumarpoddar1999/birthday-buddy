@@ -1,17 +1,19 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import { router } from 'expo-router';
-import { ArrowLeft, Eye, Fingerprint, Lock, Smartphone, Timer } from 'lucide-react-native';
+import { ArrowLeft, Eye, Fingerprint, Lock, Shield, Smartphone, Timer } from 'lucide-react-native';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFeedback } from '@/shared/hooks/useFeedback';
+import { useAuth } from '@features/auth';
 
 import { useProfileStore } from '../store/profile.store';
 
 export const PrivacySecurityScreen = () => {
   const privacy = useProfileStore((s) => s.privacySettings);
   const update = useProfileStore((s) => s.updatePrivacySettings);
+  const { changePassword, updateSecurityPreferences, securityPreferences } = useAuth();
   const { showSuccess, showError, toast } = useFeedback();
   const [passwordModal, setPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -45,15 +47,26 @@ export const PrivacySecurityScreen = () => {
     toast(`${key === 'faceId' ? 'Face ID' : 'Biometric lock'} ${value ? 'enabled' : 'disabled'}`, 'success');
   };
 
-  const handlePasswordChange = () => {
-    if (newPassword.length < 6) {
-      showError('Invalid Password', 'Password must be at least 6 characters.');
+  const handlePasswordChange = async () => {
+    if (newPassword.length < 8) {
+      showError('Invalid Password', 'Password must meet all security requirements.');
       return;
     }
-    setPasswordModal(false);
-    setCurrentPassword('');
-    setNewPassword('');
-    showSuccess('Password Updated', 'Your password has been changed successfully.');
+    try {
+      await changePassword(currentPassword, newPassword);
+      setPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      showSuccess('Password Updated', 'Your password has been changed successfully.');
+    } catch {
+      showError('Update Failed', 'Current password is incorrect or new password is too weak.');
+    }
+  };
+
+  const handleAppLockToggle = async (value: boolean) => {
+    update({ appLock: value });
+    await updateSecurityPreferences({ appLockEnabled: value });
+    toast(`App lock ${value ? 'enabled' : 'disabled'}`, 'success');
   };
 
   const lockTimers = [1, 5, 15, 30];
@@ -85,6 +98,12 @@ export const PrivacySecurityScreen = () => {
                   onValueChange={(v) => {
                     if (item.key === 'faceId' || item.key === 'biometricLock') {
                       void handleBiometricToggle(item.key, v);
+                      void updateSecurityPreferences({
+                        biometricEnabled: v,
+                        faceIdEnabled: item.key === 'faceId' ? v : securityPreferences?.faceIdEnabled,
+                      });
+                    } else if (item.key === 'appLock') {
+                      void handleAppLockToggle(v);
                     } else {
                       update({ [item.key]: v });
                     }
@@ -113,6 +132,19 @@ export const PrivacySecurityScreen = () => {
             ))}
           </View>
         </View>
+
+        <Pressable
+          className="bg-surface rounded-2xl px-4 py-4 border border-border/60 mt-4 flex-row items-center"
+          onPress={() => router.push('/security-center')}
+          accessibilityRole="button">
+          <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#EDE9FE]">
+            <Shield size={18} color="#7C3AED" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-[15px] font-medium text-foreground">Security Center</Text>
+            <Text className="text-[12px] text-foreground-secondary mt-0.5">View score, sessions, and login history</Text>
+          </View>
+        </Pressable>
 
         <Pressable
           className="bg-surface rounded-2xl px-4 py-4 border border-border/60 mt-4 flex-row items-center"

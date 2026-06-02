@@ -1,4 +1,5 @@
 import type {
+  CardBackground,
   CardElement,
   CardTemplate as StudioCardTemplate,
   PersonalizationData,
@@ -84,6 +85,8 @@ export class CardService {
     templateId?: string | null;
     personalization: PersonalizationData;
     elements: CardElement[];
+    customBackground?: CardBackground | null;
+    canvasFormat?: string;
     thumbnailUri?: string;
     exportUri?: string;
   }): Promise<string> {
@@ -91,6 +94,8 @@ export class CardService {
       personalization: input.personalization,
       elements: input.elements,
       templateId: input.templateId,
+      customBackground: input.customBackground,
+      canvasFormat: input.canvasFormat,
     });
     return this.saveCard(
       input.personUuid ?? undefined,

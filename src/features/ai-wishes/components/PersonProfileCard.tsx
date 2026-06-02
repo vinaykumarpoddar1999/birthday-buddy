@@ -5,6 +5,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  Clock,
   FileText,
   Heart,
   Palette,
@@ -15,7 +16,8 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { Image } from 'expo-image';
-
+import { router } from 'expo-router';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import type { Person } from '@/types/entities';
 
 type Props = {
@@ -25,6 +27,7 @@ type Props = {
 
 export function PersonProfileCard({ person, onEditProfile }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const openProfile = onEditProfile ?? (() => router.push({ pathname: '/person-details', params: { personId: person.id } }));
 
   const age = useMemo(() => {
     const birthYear = parseInt(person.birthDate.split('-')[0], 10);
@@ -49,18 +52,24 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
 
   const genderHeartColor = person.gender === 'female' ? '#EC4899' : '#3B82F6';
 
+  const countdownLabel = daysUntilBirthday === 0
+    ? 'Today!'
+    : daysUntilBirthday <= 30
+      ? `${daysUntilBirthday}d away`
+      : '';
+
   return (
-    <View
-      className="mx-5 mb-4 bg-white rounded-2xl overflow-hidden border border-gray-100"
+    <Animated.View
+      entering={FadeInDown.duration(400)}
+      className="mx-5 my-4 bg-white rounded-2xl overflow-hidden border border-gray-100"
       style={{
         shadowColor: '#7C3AED',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 10,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
+        elevation: 4,
       }}>
       <View className="flex-row items-center p-4">
-        {/* Avatar */}
         <View
           className="h-14 w-14 rounded-2xl overflow-hidden mr-3"
           style={{ backgroundColor: '#F3F0FF' }}>
@@ -77,7 +86,6 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
           )}
         </View>
 
-        {/* Info */}
         <View className="flex-1">
           <View className="flex-row items-center gap-1.5">
             <Text className="text-[16px] font-bold text-foreground">
@@ -87,46 +95,55 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
           </View>
           <View className="flex-row items-center gap-3 mt-1">
             <View className="flex-row items-center gap-1">
-              <Calendar size={11} color="#7C3AED" />
-              <Text className="text-[11px] text-foreground-muted">
-                {birthdayFormatted}
-                {daysUntilBirthday <= 30
-                  ? ` (In ${daysUntilBirthday} Days)`
-                  : ''}
+              <Users size={11} color="#7C3AED" />
+              <Text className="text-[11px] text-foreground-muted font-medium">
+                {relLabel}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
-              <Users size={11} color="#EC4899" />
+              <Calendar size={11} color="#EC4899" />
               <Text className="text-[11px] text-foreground-muted">
-                {age} Years · {relLabel}
+                {birthdayFormatted}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <Cake size={11} color="#F59E0B" />
+              <Text className="text-[11px] text-foreground-muted">
+                {age} yrs
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Edit button */}
-        {onEditProfile && (
+        <View className="items-end gap-1.5">
+          {countdownLabel ? (
+            <View className="flex-row items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10">
+              <Clock size={10} color="#7C3AED" />
+              <Text className="text-[10px] font-bold text-primary">{countdownLabel}</Text>
+            </View>
+          ) : null}
           <Pressable
-            onPress={onEditProfile}
-            className="px-3 py-1.5 rounded-lg bg-primary/8"
+            onPress={openProfile}
+            className="px-2.5 py-1 rounded-lg bg-gray-50 active:bg-gray-100"
             accessibilityRole="button"
-            accessibilityLabel="Edit profile">
+            accessibilityLabel="Open profile details">
             <View className="flex-row items-center gap-1">
-              <Pen size={11} color="#7C3AED" />
-              <Text className="text-[10px] font-semibold text-primary">Edit</Text>
+              <Pen size={10} color="#6B7280" />
+              <Text className="text-[10px] font-semibold text-foreground-muted">
+                {onEditProfile ? 'Edit' : 'Details'}
+              </Text>
             </View>
           </Pressable>
-        )}
+        </View>
       </View>
 
-      {/* Expandable about section */}
       {(person.hobbies.length > 0 || person.notes || person.favoriteColor || person.favoriteCake) && (
         <>
           <Pressable
             onPress={() => setExpanded(!expanded)}
-            className="flex-row items-center justify-between px-4 py-2 border-t border-gray-50"
+            className="flex-row items-center justify-between px-4 py-2.5 border-t border-gray-50 active:bg-gray-50/50"
             accessibilityRole="button">
-            <Text className="text-[11px] font-semibold text-foreground-muted">
+            <Text className="text-[11px] font-semibold text-foreground-muted tracking-wide">
               ABOUT {person.fullName.split(' ')[0].toUpperCase()}
             </Text>
             {expanded ? (
@@ -137,7 +154,7 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
           </Pressable>
 
           {expanded && (
-            <View className="px-4 pb-3">
+            <Animated.View entering={FadeInDown.duration(200)} className="px-4 pb-3">
               {person.favoriteColor && (
                 <InfoRow icon={Palette} label="Favorite Color" value={person.favoriteColor} />
               )}
@@ -150,11 +167,11 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
               {person.notes && (
                 <InfoRow icon={FileText} label="Notes" value={person.notes} />
               )}
-            </View>
+            </Animated.View>
           )}
         </>
       )}
-    </View>
+    </Animated.View>
   );
 }
 

@@ -70,7 +70,7 @@ export function EditorToolbar() {
           <Text className="text-[11px] text-primary font-semibold">Deselect</Text>
         </Pressable>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         <ToolBtn icon={Copy} label="Duplicate" onPress={() => duplicateElement(selected.id)} />
         <ToolBtn icon={ArrowUp} label="Forward" onPress={() => bringForward(selected.id)} />
         <ToolBtn icon={ArrowDown} label="Backward" onPress={() => sendBackward(selected.id)} />

@@ -29,7 +29,11 @@ export function QuickActionCard({ title, subtitle, icon, tint, onPress }: QuickA
     <Pressable
       accessibilityRole="button"
       className="flex-1 items-center py-2.5 px-0.5"
-      onPress={onPress ?? (() => {})}>
+      onPress={() => {
+        if (onPress) {
+          requestAnimationFrame(onPress);
+        }
+      }}>
       <View
         className="h-10 w-10 rounded-xl items-center justify-center mb-1.5"
         style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>

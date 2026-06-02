@@ -8,7 +8,7 @@ import { EmptyState } from '@shared/ui/EmptyState';
 
 import { FAQ_DATA } from '../utils/faq-data';
 
-const CATEGORIES = ['All', 'Getting Started', 'Reminders', 'AI Features', 'Cards', 'Premium', 'Data', 'Preferences', 'Account', 'Privacy', 'Features', 'Support'];
+const CATEGORIES = ['All', 'Birthdays', 'Notifications', 'Calendar', 'Contacts', 'Account', 'Getting Started', 'Data', 'Support'];
 
 export const HelpFAQScreen = () => {
   const [query, setQuery] = useState('');

@@ -25,17 +25,50 @@ export type TemplateCategoryFilter =
   | 'family'
   | 'partner';
 
+export type CanvasFormat = 'portrait' | 'landscape' | 'square';
+export type EditorMode = 'quick' | 'advanced';
+export type GradientType = 'linear' | 'radial';
+
+export type BackgroundEffectType =
+  | 'blur'
+  | 'glass'
+  | 'glow'
+  | 'shadow'
+  | 'overlay'
+  | 'vignette'
+  | 'noise'
+  | 'texture'
+  | 'pattern';
+
+export interface BackgroundEffect {
+  type: BackgroundEffectType;
+  intensity: number;
+  color?: string;
+}
+
 export interface CardBackground {
   type: 'solid' | 'gradient' | 'image';
   value: string | string[];
+  gradientType?: GradientType;
   gradientStart?: { x: number; y: number };
   gradientEnd?: { x: number; y: number };
+  opacity?: number;
+  imageScale?: number;
+  imageOffsetX?: number;
+  imageOffsetY?: number;
+  imageRotation?: number;
+  blur?: number;
+  overlayColor?: string;
+  overlayOpacity?: number;
+  effects?: BackgroundEffect[];
 }
 
-export type CardElementType = 'text' | 'image' | 'sticker' | 'shape';
+export type CardElementType = 'text' | 'image' | 'sticker' | 'shape' | 'frame' | 'icon';
 
 export type TextAlign = 'left' | 'center' | 'right';
 export type FontWeight = 'normal' | 'bold' | '300' | '400' | '500' | '600' | '700' | '800';
+export type TextPreset = 'headline' | 'subheading' | 'body' | 'signature' | 'quote' | 'custom';
+export type ShapeType = 'rectangle' | 'circle' | 'rounded';
 
 export interface CardElement {
   id: string;
@@ -57,11 +90,18 @@ export interface CardElement {
   textAlign?: TextAlign;
   lineHeight?: number;
   letterSpacing?: number;
+  textPreset?: TextPreset;
+  textShadowColor?: string;
+  textShadowRadius?: number;
+  strokeColor?: string;
+  strokeWidth?: number;
+  glowColor?: string;
   uri?: string;
   backgroundColor?: string;
   borderRadius?: number;
   borderWidth?: number;
   borderColor?: string;
+  shapeType?: ShapeType;
   isPlaceholder?: boolean;
   placeholderKey?: string;
 }
@@ -86,7 +126,7 @@ export interface CardTemplate {
   };
   placeholders: Record<string, string>;
   elements: CardElement[];
-  layout: 'portrait' | 'landscape' | 'square';
+  layout: CanvasFormat;
   decorations?: string[];
 }
 
@@ -103,6 +143,14 @@ export interface PersonalizationData {
   signature: string;
   additionalNote: string;
   photoUri?: string;
+  theme?: string;
+}
+
+export interface EditorSnapshot {
+  elements: CardElement[];
+  customBackground: CardBackground | null;
+  personalization: PersonalizationData;
+  canvasFormat: CanvasFormat;
 }
 
 export interface Draft {
@@ -111,6 +159,9 @@ export interface Draft {
   templateId: string;
   personalization: PersonalizationData;
   elements: CardElement[];
+  customBackground?: CardBackground | null;
+  canvasFormat?: CanvasFormat;
+  editorMode?: EditorMode;
   createdAt: string;
   updatedAt: string;
 }
@@ -149,3 +200,13 @@ export interface DecorationItem {
   label: string;
   category: 'balloons' | 'cake' | 'flowers' | 'gifts' | 'confetti' | 'hearts' | 'stars' | 'party';
 }
+
+export type EditorPanel =
+  | 'none'
+  | 'background'
+  | 'text'
+  | 'image'
+  | 'sticker'
+  | 'elements'
+  | 'content'
+  | 'quick';

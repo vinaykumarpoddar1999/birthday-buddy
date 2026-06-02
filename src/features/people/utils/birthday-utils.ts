@@ -7,13 +7,19 @@ import type { BirthdayEvent, Contact, EventState } from '../types';
 
 // ─── Core date helpers ────────────────────────────────────────────────────────
 
+/** Parse YYYY-MM-DD without UTC timezone drift. */
+export function parseBirthDateParts(birthDate: string): { year: number; month: number; day: number } {
+  const [year, month, day] = birthDate.split('-').map(Number);
+  return { year, month, day };
+}
+
 export function getNextBirthdayDate(birthDate: string): Date {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const birth = new Date(birthDate);
-  let next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+  const { month, day } = parseBirthDateParts(birthDate);
+  let next = new Date(today.getFullYear(), month - 1, day);
   if (next < today) {
-    next = new Date(today.getFullYear() + 1, birth.getMonth(), birth.getDate());
+    next = new Date(today.getFullYear() + 1, month - 1, day);
   }
   return next;
 }
@@ -29,38 +35,43 @@ export function getDaysUntilBirthday(birthDate: string): number {
 export function getDaysUntilBirthdayInYear(birthDate: string, year: number): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const birth = new Date(birthDate);
-  let target = new Date(year, birth.getMonth(), birth.getDate());
+  const { month, day } = parseBirthDateParts(birthDate);
+  let target = new Date(year, month - 1, day);
   if (year === today.getFullYear() && target < today) {
-    target = new Date(year + 1, birth.getMonth(), birth.getDate());
+    target = new Date(year + 1, month - 1, day);
   }
   return differenceInDays(target, today);
 }
 
 export function getAge(birthDate: string): number {
   const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  const { year, month, day } = parseBirthDateParts(birthDate);
+  let age = today.getFullYear() - year;
+  const m = today.getMonth() + 1 - month;
+  if (m < 0 || (m === 0 && today.getDate() < day)) age--;
   return age;
 }
 
 export function getAgeAtNextBirthday(birthDate: string): number {
-  const birth = new Date(birthDate);
+  const { year } = parseBirthDateParts(birthDate);
   const next = getNextBirthdayDate(birthDate);
-  return next.getFullYear() - birth.getFullYear();
+  return next.getFullYear() - year;
 }
 
 export function formatBirthdayShort(birthDate: string): string {
-  const birth = new Date(birthDate);
-  return format(new Date(new Date().getFullYear(), birth.getMonth(), birth.getDate()), 'd MMM');
+  const { month, day } = parseBirthDateParts(birthDate);
+  return format(new Date(new Date().getFullYear(), month - 1, day), 'd MMM');
+}
+
+export function formatBirthdayLong(birthDate: string): string {
+  const { year, month, day } = parseBirthDateParts(birthDate);
+  return format(new Date(year, month - 1, day), 'd MMMM yyyy');
 }
 
 export function getCountdownLabel(days: number): string {
-  if (days === 0) return 'Today!';
+  if (days === 0) return 'Today';
   if (days === 1) return 'Tomorrow';
-  return `In ${days} Days`;
+  return `${days} Days Left`;
 }
 
 export type DetailedCountdown = {
@@ -82,32 +93,31 @@ export function getNextBirthdayDateTime(birthDate: string): Date {
 
 /** Live countdown until the next birthday at midnight local time. */
 export function getDetailedCountdown(birthDate: string, now = new Date()): DetailedCountdown {
+  const calendarDays = getDaysUntilBirthday(birthDate);
   const target = getNextBirthdayDateTime(birthDate);
   const diffMs = target.getTime() - now.getTime();
   const isPast = diffMs < 0;
   const abs = Math.max(0, diffMs);
   const totalSeconds = Math.floor(abs / 1000);
-  const days = Math.floor(totalSeconds / 86400);
+  const days = calendarDays;
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  const isToday = days === 0 && !isPast;
+  const isToday = calendarDays === 0;
 
   let primaryLabel: string;
   let secondaryLabel: string;
 
   if (isToday) {
-    primaryLabel = "Today's the day!";
-    secondaryLabel = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} — Celebrate now`;
-  } else if (days === 0 && hours > 0) {
-    primaryLabel = 'Less than a day left';
-    secondaryLabel = `${hours}h ${minutes}m remaining`;
-  } else if (days === 1) {
-    primaryLabel = '1 Day Left';
-    secondaryLabel = `${hours} Hours Remaining`;
+    primaryLabel = 'Today';
+    secondaryLabel = 'Celebrate now!';
+  } else if (calendarDays === 1) {
+    primaryLabel = 'Tomorrow';
+    const remainingHours = Math.max(1, Math.ceil(abs / 3600000));
+    secondaryLabel = `${remainingHours} hour${remainingHours === 1 ? '' : 's'} remaining`;
   } else {
-    primaryLabel = `${days} Days Left`;
-    secondaryLabel = `${hours} Hours Remaining`;
+    primaryLabel = `${calendarDays} Days Left`;
+    secondaryLabel = formatBirthdayShort(birthDate);
   }
 
   return { days, hours, minutes, seconds, primaryLabel, secondaryLabel, isToday, isPast };
@@ -211,7 +221,7 @@ export function toBirthdayEvent(person: Person): BirthdayEvent {
 }
 
 export function toContact(person: Person): Contact {
-  const birth = new Date(person.birthDate);
+  const { month, day } = parseBirthDateParts(person.birthDate);
   return {
     id: person.id,
     name: person.fullName,
@@ -219,7 +229,7 @@ export function toContact(person: Person): Contact {
     email: person.email ?? '',
     relationship: person.relationship,
     birthday: formatBirthdayShort(person.birthDate),
-    birthdayLabel: format(new Date(new Date().getFullYear(), birth.getMonth(), birth.getDate()), 'd MMM'),
+    birthdayLabel: format(new Date(new Date().getFullYear(), month - 1, day), 'd MMM'),
     age: getAge(person.birthDate),
     gender: person.gender === 'other' ? 'male' : person.gender,
   };
@@ -233,18 +243,29 @@ export function getBirthdayCalendarEvents(
 ): Record<number, CalendarDayEvent[]> {
   const events: Record<number, CalendarDayEvent[]> = {};
   for (const person of people) {
-    const birth = new Date(person.birthDate);
-    if (birth.getMonth() + 1 === month) {
-      const day = birth.getDate();
+    const { month: birthMonth, day } = parseBirthDateParts(person.birthDate);
+    if (birthMonth === month) {
       if (!events[day]) events[day] = [];
       events[day].push({
         id: `bd-${person.id}`,
         type: 'birthday',
+        personId: person.id,
         avatarVariant: person.gender === 'female' ? 'female' : 'user',
       });
     }
   }
   return events;
+}
+
+export function getPeopleForCalendarDay(
+  people: Person[],
+  month: number,
+  day: number,
+): Person[] {
+  return people.filter((person) => {
+    const parts = parseBirthDateParts(person.birthDate);
+    return parts.month === month && parts.day === day;
+  });
 }
 
 const MONTH_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -256,12 +277,14 @@ export function getCalendarUpcomingEvents(
   month: number,
 ): UpcomingEvent[] {
   return people
-    .filter((p) => new Date(p.birthDate).getMonth() + 1 === month)
-    .sort((a, b) => new Date(a.birthDate).getDate() - new Date(b.birthDate).getDate())
+    .filter((p) => parseBirthDateParts(p.birthDate).month === month)
+    .sort(
+      (a, b) =>
+        parseBirthDateParts(a.birthDate).day - parseBirthDateParts(b.birthDate).day,
+    )
     .map((person) => {
-      const birth = new Date(person.birthDate);
-      const day = birth.getDate();
-      const birthdayDate = new Date(year, birth.getMonth(), day);
+      const { month: birthMonth, day } = parseBirthDateParts(person.birthDate);
+      const birthdayDate = new Date(year, birthMonth - 1, day);
       const days = getDaysUntilBirthdayInYear(person.birthDate, year);
       const ageAtBirthday = getAgeAtNextBirthday(person.birthDate);
       return {
@@ -269,7 +292,7 @@ export function getCalendarUpcomingEvents(
         personId: person.id,
         day,
         weekday: WEEKDAY_SHORT[birthdayDate.getDay()],
-        month: MONTH_SHORT[birth.getMonth()],
+        month: MONTH_SHORT[birthMonth - 1],
         name: person.fullName,
         description: `Turns ${ageAtBirthday} · Birthday`,
         countdown: getCountdownLabel(Math.max(0, days)),

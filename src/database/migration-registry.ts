@@ -9,6 +9,8 @@ import { migration008SeedTemplates } from './migrations/008_seed_templates';
 import { migration009SyncColumnsFeedback } from './migrations/009_sync_columns_feedback';
 import { migration010SearchFtsExtended } from './migrations/010_search_fts_extended';
 import { migration011ProfileSettingsTables } from './migrations/011_profile_settings_tables';
+import { migration012AuthSecurityTables } from './migrations/012_auth_security_tables';
+import { migration013SurpriseExperiences } from './migrations/013_surprise_experiences';
 import type { Migration } from './types';
 
 export const MIGRATION_REGISTRY: Migration[] = [
@@ -23,6 +25,8 @@ export const MIGRATION_REGISTRY: Migration[] = [
   migration009SyncColumnsFeedback,
   migration010SearchFtsExtended,
   migration011ProfileSettingsTables,
+  migration012AuthSecurityTables,
+  migration013SurpriseExperiences,
 ];
 
 export const CURRENT_SCHEMA_VERSION =

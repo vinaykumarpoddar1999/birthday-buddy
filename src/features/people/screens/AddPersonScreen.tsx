@@ -350,12 +350,14 @@ function OptionPickerModal({
 // ─── Main Screen ───────────────────────────────────────────────────────────
 
 export function AddPersonScreen() {
-  const { personId } = useLocalSearchParams<{ personId?: string }>();
+  const { personId, eventFocus } = useLocalSearchParams<{ personId?: string; eventFocus?: string }>();
   const isEditing = Boolean(personId);
   const { data: existingPerson } = usePerson(personId);
   const { addPerson, updatePerson } = usePersonMutations();
 
-  const [eventType, setEventType] = useState<PersonEventType>('birthday');
+  const [eventType, setEventType] = useState<PersonEventType>(
+    eventFocus === 'true' ? 'anniversary' : 'birthday',
+  );
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [hobbyInput, setHobbyInput] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -469,63 +471,22 @@ export function AddPersonScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="mx-5 mb-4 rounded-3xl overflow-hidden"
-        style={{
-          shadowColor: '#6D28D9',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.25,
-          shadowRadius: 14,
-          elevation: 8,
-        }}>
-        <LinearGradient
-          colors={['#A78BFA', '#7C3AED', '#5B21B6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingHorizontal: 18, paddingVertical: 18 }}>
-          <View className="flex-row items-center">
-            <Pressable
-              onPress={() => router.back()}
-              style={{
-                height: 40,
-                width: 40,
-                borderRadius: 20,
-                backgroundColor: 'rgba(255,255,255,0.22)',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 12,
-              }}
-              accessibilityRole="button">
-              <ArrowLeft size={20} color="#FFFFFF" />
-            </Pressable>
-            <View className="flex-1">
-              <View className="flex-row items-center gap-2.5">
-                <View
-                  style={{
-                    height: 36,
-                    width: 36,
-                    borderRadius: 12,
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  {isEditing ? (
-                    <Sparkles size={18} color="#FCD34D" />
-                  ) : (
-                    <User size={18} color="#FCD34D" />
-                  )}
-                </View>
-                <View className="flex-1">
-                  <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 }}>
-                    {isEditing ? 'Edit Person' : 'Add Person'}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>
-                    {isEditing ? 'Update contact details & reminders' : 'Birthday, anniversary or special day'}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
+      <View className="flex-row items-center justify-between px-5 py-3 border-b border-border/60 bg-surface">
+        <Pressable
+          onPress={() => router.back()}
+          className="h-10 w-10 rounded-full bg-background border border-border items-center justify-center"
+          accessibilityRole="button">
+          <ArrowLeft size={20} color="#374151" />
+        </Pressable>
+        <View className="flex-1 items-center px-3">
+          <Text className="text-[17px] font-bold text-foreground">
+            {isEditing ? 'Edit Person' : 'Add Person'}
+          </Text>
+          <Text className="text-[12px] text-foreground-secondary mt-0.5">
+            {isEditing ? 'Update details & reminders' : 'Birthday or special day'}
+          </Text>
+        </View>
+        <View className="h-10 w-10" />
       </View>
 
       <ScrollView

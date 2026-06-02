@@ -87,7 +87,7 @@ export function BackgroundPicker() {
                 colors={(bg.value as string[]) as [string, string, ...string[]]}
                 start={bg.gradientStart}
                 end={bg.gradientEnd}
-                className="h-10 w-16 rounded-xl border-2 border-gray-200"
+                style={{ height: 40, width: 64, borderRadius: 12, borderWidth: 2, borderColor: '#E5E7EB' }}
               />
             </Pressable>
           ))}

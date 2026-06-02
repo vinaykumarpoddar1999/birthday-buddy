@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { ArrowLeft, Calendar, Clock, CreditCard, Search, SearchX, Settings, Trash2, User, Wand2, X } from 'lucide-react-native';
 import { useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@shared/ui/EmptyState';
+import { useDebouncedSearch } from '@features/profile/hooks/useDebouncedSearch';
 import { useSearch } from '@features/profile/hooks/useSearch';
 import { useActivityStore } from '../store/activity.store';
 import type { SearchResult } from '../types';
@@ -56,7 +57,9 @@ function mapDbResult(
 
 export const SearchScreen = () => {
   const [query, setQuery] = useState('');
-  const { data: dbResults = [] } = useSearch(query);
+  const debouncedQuery = useDebouncedSearch(query);
+  const { data: dbResults = [], isLoading, isFetching } = useSearch(debouncedQuery);
+  const isSearching = debouncedQuery.length > 0 && (isLoading || isFetching);
   const recentSearches = useActivityStore((s) => s.recentSearches);
   const addRecentSearch = useActivityStore((s) => s.addRecentSearch);
   const removeRecentSearch = useActivityStore((s) => s.removeRecentSearch);
@@ -64,10 +67,10 @@ export const SearchScreen = () => {
   const inputRef = useRef<TextInput>(null);
 
   const results = useMemo((): SearchResult[] => {
-    if (!query.trim()) return [];
+    if (!debouncedQuery.trim()) return [];
     const mapped = dbResults.map(mapDbResult);
     SETTINGS_ITEMS.forEach((s) => {
-      const q = query.toLowerCase();
+      const q = debouncedQuery.toLowerCase();
       if (s.title.toLowerCase().includes(q) || s.subtitle.toLowerCase().includes(q)) {
         if (!mapped.some((m) => m.id === s.id)) {
           mapped.push({ id: s.id, type: 'setting', title: s.title, subtitle: s.subtitle });
@@ -75,7 +78,7 @@ export const SearchScreen = () => {
       }
     });
     return mapped;
-  }, [query, dbResults]);
+  }, [debouncedQuery, dbResults]);
 
   const handleResultPress = (result: SearchResult) => {
     addRecentSearch(query.trim());
@@ -97,7 +100,7 @@ export const SearchScreen = () => {
       return;
     }
     if (result.type === 'event') {
-      router.push('/notifications');
+      router.push({ pathname: '/notification-detail', params: { id: result.id } });
     }
   };
 
@@ -168,11 +171,24 @@ export const SearchScreen = () => {
           </View>
         )}
 
-        {query.trim() !== '' && results.length === 0 && (
-          <EmptyState icon={SearchX} title="No results" subtitle={`Nothing found for "${query}"`} />
+        {query.trim() !== '' && debouncedQuery === '' && (
+          <View className="py-8 items-center">
+            <ActivityIndicator color="#7C3AED" />
+          </View>
         )}
 
-        {results.map((result) => {
+        {debouncedQuery !== '' && isSearching && (
+          <View className="py-8 items-center">
+            <ActivityIndicator color="#7C3AED" />
+            <Text className="text-[13px] text-foreground-secondary mt-2">Searching...</Text>
+          </View>
+        )}
+
+        {debouncedQuery !== '' && !isSearching && results.length === 0 && (
+          <EmptyState icon={SearchX} title="No results" subtitle={`Nothing found for "${debouncedQuery}"`} />
+        )}
+
+        {debouncedQuery !== '' && !isSearching && results.map((result) => {
           const Icon = resultIcon(result.type);
           return (
             <Pressable

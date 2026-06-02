@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
-import { Apple, ArrowLeft, Calendar, Mail } from 'lucide-react-native';
-import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { Apple, ArrowLeft, Calendar, Mail, Smartphone } from 'lucide-react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { deviceCalendarService } from '@/services/calendar/device-calendar.service';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 
 import { useProfileStore } from '../store/profile.store';
@@ -19,7 +21,8 @@ const PROVIDERS: { key: ProviderKey; title: string; desc: string; icon: typeof C
 export const CalendarSyncScreen = () => {
   const calendarSync = useProfileStore((s) => s.calendarSync);
   const updateCalendarSync = useProfileStore((s) => s.updateCalendarSync);
-  const { toast } = useFeedback();
+  const { toast, showError } = useFeedback();
+  const [syncingDevice, setSyncingDevice] = useState(false);
 
   const toggleProvider = (key: ProviderKey, enabled: boolean) => {
     updateCalendarSync({
@@ -30,6 +33,23 @@ export const CalendarSyncScreen = () => {
       },
     });
     toast(`${PROVIDERS.find((p) => p.key === key)?.title} ${enabled ? 'enabled' : 'disabled'}`, 'success');
+  };
+
+  const handleDeviceSync = async () => {
+    if (syncingDevice) return;
+    setSyncingDevice(true);
+    try {
+      const result = await deviceCalendarService.syncAllBirthdays();
+      if (result.synced === 0 && result.skipped > 0) {
+        showError('Sync Failed', 'Calendar permission denied or no birthdays to sync.');
+        return;
+      }
+      toast(`Synced ${result.synced} birthday${result.synced === 1 ? '' : 's'} to device calendar`, 'success');
+    } catch (error) {
+      showError('Sync Failed', error instanceof Error ? error.message : 'Could not sync to device calendar.');
+    } finally {
+      setSyncingDevice(false);
+    }
   };
 
   return (
@@ -43,8 +63,21 @@ export const CalendarSyncScreen = () => {
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         <Text className="text-[13px] text-foreground-secondary mt-2 mb-4">
-          Configure calendar sync preferences. Full OAuth integration coming in a future update.
+          Configure calendar sync preferences stored offline in SQLite. Calendar provider login can be connected later.
         </Text>
+
+        <Pressable
+          className="bg-primary rounded-2xl py-4 mb-4 flex-row items-center justify-center gap-2"
+          onPress={() => void handleDeviceSync()}
+          disabled={syncingDevice}
+          accessibilityRole="button">
+          {syncingDevice ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Smartphone size={18} color="#FFFFFF" />
+          )}
+          <Text className="text-[15px] font-bold text-white">Sync to Device Calendar</Text>
+        </Pressable>
 
         <View className="bg-surface rounded-2xl px-4 border border-border/60">
           {PROVIDERS.map((item, i) => (

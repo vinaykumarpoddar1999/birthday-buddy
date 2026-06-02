@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePerson } from '@features/people/hooks/usePeople';
 import { useCardStudioStore } from '../store/card-studio.store';
+import { useCardAutosave } from '../hooks/useCardAutosave';
 import { CardStudioHeader } from '../components/common/CardStudioHeader';
 import { StepIndicator } from '../components/common/StepIndicator';
 import { Step1TemplateScreen } from './Step1TemplateScreen';
@@ -16,9 +17,9 @@ import '../templates';
 
 const TITLES: Record<number, string> = {
   1: 'Choose Template',
-  2: 'Customize',
+  2: 'Personalize & Design',
   3: 'Preview',
-  4: 'Share',
+  4: 'Download & Share',
 };
 
 export function CardStudioScreen() {
@@ -31,6 +32,9 @@ export function CardStudioScreen() {
   const redo = useCardStudioStore((s) => s.redo);
   const historyIndex = useCardStudioStore((s) => s.historyIndex);
   const historyLength = useCardStudioStore((s) => s.history.length);
+  const selectedTemplate = useCardStudioStore((s) => s.selectedTemplate);
+
+  useCardAutosave();
 
   const params = useLocalSearchParams<{ personId?: string }>();
   const { data: person } = usePerson(params.personId);
@@ -49,6 +53,13 @@ export function CardStudioScreen() {
       });
     }
   }, [person, params.personId, setPreFilledPersonId, updatePersonalization]);
+
+  useEffect(() => {
+    if (step === 2 && !selectedTemplate) {
+      resetStore();
+      router.replace('/card-studio');
+    }
+  }, [step, selectedTemplate, resetStore]);
 
   const handleBack = () => {
     if (step > 1) {

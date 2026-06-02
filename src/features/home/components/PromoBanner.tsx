@@ -2,6 +2,8 @@ import { Text, View, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Image as ImageIcon, Music, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
+import type { Person } from '@/types/entities';
+import { getDetailedCountdown } from '@features/people/utils/birthday-utils';
 
 function CardMock({ rotate, offsetX, zIndex, colors }: {
   rotate: string;
@@ -24,6 +26,16 @@ function CardMock({ rotate, offsetX, zIndex, colors }: {
 }
 
 export function PromoBanner() {
+  return <HomePromoBanner />;
+}
+
+type HomePromoBannerProps = {
+  person?: Person | null;
+};
+
+export function HomePromoBanner({ person }: HomePromoBannerProps) {
+  const countdown = person ? getDetailedCountdown(person.birthDate) : null;
+
   return (
     <View className="rounded-lg overflow-hidden shadow-card mb-5">
       <LinearGradient
@@ -35,6 +47,11 @@ export function PromoBanner() {
             <Text className="text-[17px] leading-[22px] text-foreground font-bold">
               Make it extra special
             </Text>
+            {person ? (
+              <Text className="text-[11px] text-primary font-semibold mt-1">
+                For {person.fullName} {countdown ? `· ${countdown.primaryLabel}` : ''}
+              </Text>
+            ) : null}
             <View className="flex-row items-start gap-1.5 mt-1.5">
               <Sparkles size={14} color="#7C3AED" strokeWidth={2} className="mt-0.5" />
               <Text className="text-caption text-foreground-secondary flex-1 leading-[18px]">
@@ -44,7 +61,13 @@ export function PromoBanner() {
             <Pressable
               accessibilityRole="button"
               className="mt-3 self-start bg-primary rounded-full px-4 py-2.5 flex-row items-center"
-              onPress={() => router.push('/card-studio')}>
+              onPress={() =>
+                router.push(
+                  person
+                    ? { pathname: '/card-studio', params: { personId: person.id } }
+                    : '/card-studio',
+                )
+              }>
               <Text className="text-caption text-white font-semibold">Explore Cards</Text>
               <ChevronRight size={14} color="#FFFFFF" />
             </Pressable>

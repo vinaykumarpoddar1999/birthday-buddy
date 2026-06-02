@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Bug, Camera, MessageCircle, PartyPopper, Send, Sparkles, TrendingUp } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
@@ -19,11 +19,21 @@ const CATEGORY_CONFIG: Record<Category, { label: string; icon: LucideIcon }> = {
   other: { label: 'Other', icon: MessageCircle },
 };
 
+const isCategory = (value: string | undefined): value is Category =>
+  value !== undefined && (CATEGORIES as readonly string[]).includes(value);
+
 export const SendFeedbackScreen = () => {
+  const { category: categoryParam, subject: subjectParam, message: messageParam } = useLocalSearchParams<{
+    category?: string;
+    subject?: string;
+    message?: string;
+  }>();
   const addFeedback = useActivityStore((s) => s.addFeedback);
-  const [subject, setSubject] = useState('');
-  const [category, setCategory] = useState<Category>('feature');
-  const [message, setMessage] = useState('');
+  const [subject, setSubject] = useState(typeof subjectParam === 'string' ? subjectParam : '');
+  const [category, setCategory] = useState<Category>(
+    isCategory(categoryParam) ? categoryParam : 'feature',
+  );
+  const [message, setMessage] = useState(typeof messageParam === 'string' ? messageParam : '');
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = () => {

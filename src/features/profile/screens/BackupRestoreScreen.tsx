@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { syncBackupScheduler } from '@/services/backup/backup-scheduler.service';
 import { backupService, type BackupHistoryEntry } from '@/services/backup/backup.service';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 
@@ -24,6 +25,10 @@ export const BackupRestoreScreen = () => {
   useEffect(() => {
     void loadHistory();
   }, [loadHistory]);
+
+  useEffect(() => {
+    void syncBackupScheduler(backup.autoBackup);
+  }, [backup.autoBackup]);
 
   const handleBackup = useCallback(async () => {
     if (busy) return;
@@ -182,7 +187,15 @@ export const BackupRestoreScreen = () => {
               <Text className="text-[15px] font-medium text-foreground">Auto Backup</Text>
               <Text className="text-[12px] text-foreground-secondary mt-0.5">Weekly automatic backup</Text>
             </View>
-            <Switch value={backup.autoBackup} onValueChange={(v) => update({ autoBackup: v })} trackColor={{ false: '#E5E7EB', true: '#7C3AED' }} thumbColor="#FFFFFF" />
+            <Switch
+              value={backup.autoBackup}
+              onValueChange={(v) => {
+                update({ autoBackup: v });
+                void syncBackupScheduler(v);
+              }}
+              trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
+              thumbColor="#FFFFFF"
+            />
           </View>
         </View>
 

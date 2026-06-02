@@ -7,6 +7,13 @@ import type { LucideIcon } from 'lucide-react-native';
 import { useProfileStore } from '../store/profile.store';
 import type { NotificationPreferences } from '../types';
 
+const REMINDER_DAY_OPTIONS = [
+  { label: 'Same day', value: 0 },
+  { label: '1 day before', value: 1 },
+  { label: '3 days before', value: 3 },
+  { label: '7 days before', value: 7 },
+];
+
 type ToggleItem = {
   key: keyof NotificationPreferences;
   title: string;
@@ -30,6 +37,8 @@ const TOGGLES: ToggleItem[] = [
 export const NotificationPrefsScreen = () => {
   const prefs = useProfileStore((s) => s.notificationPrefs);
   const update = useProfileStore((s) => s.updateNotificationPrefs);
+  const reminderSettings = useProfileStore((s) => s.reminderSettings);
+  const updateReminder = useProfileStore((s) => s.updateReminderSettings);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -64,6 +73,37 @@ export const NotificationPrefsScreen = () => {
               </View>
             </View>
           ))}
+        </View>
+
+        <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mt-6 mb-2">
+          Birthday Reminder Timing
+        </Text>
+        <View className="bg-surface rounded-2xl px-4 border border-border/60 mb-4">
+          {REMINDER_DAY_OPTIONS.map((opt, i) => {
+            const enabled = reminderSettings.reminderDaysBefore.includes(opt.value);
+            return (
+              <View key={opt.value}>
+                {i > 0 && <View className="h-[0.5px] bg-border/60 ml-4" />}
+                <View className="flex-row items-center py-3.5">
+                  <View className="flex-1">
+                    <Text className="text-[15px] font-medium text-foreground">{opt.label}</Text>
+                  </View>
+                  <Switch
+                    value={enabled}
+                    onValueChange={(v) => {
+                      const current = reminderSettings.reminderDaysBefore;
+                      const next = v
+                        ? [...current, opt.value].sort((a, b) => b - a)
+                        : current.filter((d) => d !== opt.value);
+                      updateReminder({ reminderDaysBefore: next.length ? next : [0] });
+                    }}
+                    trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>

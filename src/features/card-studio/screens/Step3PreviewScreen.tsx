@@ -5,33 +5,37 @@ import { ChevronLeft, Share2, Check, FileText, User, Send } from 'lucide-react-n
 
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardRenderer } from '../components/preview/CardRenderer';
+import { getCanvasDimensions } from '../utils/canvas-dimensions';
 
 const SCREEN_W = Dimensions.get('window').width;
-const PREVIEW_SCALE = Math.min((SCREEN_W - 48) / 340, 0.88);
 
 export function Step3PreviewScreen() {
   const template = useCardStudioStore((s) => s.selectedTemplate);
   const personalization = useCardStudioStore((s) => s.personalization);
   const elements = useCardStudioStore((s) => s.elements);
   const customBackground = useCardStudioStore((s) => s.customBackground);
+  const canvasFormat = useCardStudioStore((s) => s.canvasFormat);
   const nextStep = useCardStudioStore((s) => s.nextStep);
   const prevStep = useCardStudioStore((s) => s.prevStep);
 
   if (!template) return null;
+
+  const { w: cardW, h: cardH } = getCanvasDimensions(canvasFormat);
+  const previewScale = Math.min((SCREEN_W - 48) / cardW, 0.88);
 
   return (
     <View className="flex-1 bg-background">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="pb-28">
+        contentContainerStyle={{ paddingBottom: 112 }}>
         {/* Card Preview */}
         <View className="items-center py-6">
           <View
             className="rounded-3xl overflow-hidden"
             style={{
-              width: 340 * PREVIEW_SCALE + 8,
-              height: 480 * PREVIEW_SCALE + 8,
+              width: cardW * previewScale + 8,
+              height: cardH * previewScale + 8,
               padding: 4,
               backgroundColor: '#F3F0FF',
               shadowColor: '#7C3AED',
@@ -42,8 +46,8 @@ export function Step3PreviewScreen() {
             }}>
             <View
               style={{
-                width: 340 * PREVIEW_SCALE,
-                height: 480 * PREVIEW_SCALE,
+                width: cardW * previewScale,
+                height: cardH * previewScale,
                 borderRadius: 20,
                 overflow: 'hidden',
               }}>
@@ -51,8 +55,9 @@ export function Step3PreviewScreen() {
                 template={template}
                 personalization={personalization}
                 elements={elements}
-                scale={PREVIEW_SCALE}
+                scale={previewScale}
                 customBackground={customBackground}
+                canvasFormat={canvasFormat}
               />
             </View>
           </View>

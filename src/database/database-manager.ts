@@ -2,7 +2,6 @@ import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
 
 import { DatabaseError } from './errors';
 import { runMigrations } from './migration-runner';
-import { runLegacyImport } from './legacy-import';
 import type { SqlParams } from './types';
 
 const DB_NAME = 'birthdaybuddy.db';
@@ -27,7 +26,8 @@ class DatabaseManagerClass {
       await runMigrations(this.db);
       const { getOrCreateDeviceId } = await import('./secure-keys');
       this.deviceId = await getOrCreateDeviceId();
-      await runLegacyImport(this);
+      const { runLegacyImport } = await import('./legacy-import');
+      await runLegacyImport();
       const { templateRegistry } = await import('@features/card-studio/templates');
       const { cardService } = await import('@/services/card/card.service');
       await cardService.syncTemplatesFromRegistry(() => templateRegistry.getAllTemplates());

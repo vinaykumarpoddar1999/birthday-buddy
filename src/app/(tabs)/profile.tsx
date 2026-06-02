@@ -1,5 +1,5 @@
-import { ProfileSettingsScreen } from '@features/profile/screens/ProfileSettingsScreen';
+import { ProfileScreen } from '@features/profile/screens/ProfileScreen';
 
-export default function ProfileScreen() {
-  return <ProfileSettingsScreen />;
+export default function ProfileTab() {
+  return <ProfileScreen />;
 }

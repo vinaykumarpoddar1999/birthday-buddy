@@ -1,0 +1,110 @@
+import type { AutoLockTimer, SecurityPreferences } from '@features/auth/types/auth.types';
+
+export type AppLockState = {
+  isLocked: boolean;
+  lastActivityAt: number;
+  backgroundedAt: number | null;
+};
+
+const AUTO_LOCK_MS: Record<AutoLockTimer, number | null> = {
+  immediate: 0,
+  '1': 60_000,
+  '5': 300_000,
+  '15': 900_000,
+  '30': 1_800_000,
+  '60': 3_600_000,
+  never: null,
+};
+
+class AppLockServiceClass {
+  private state: AppLockState = {
+    isLocked: false,
+    lastActivityAt: Date.now(),
+    backgroundedAt: null,
+  };
+
+  private listeners = new Set<(state: AppLockState) => void>();
+
+  subscribe(listener: (state: AppLockState) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) {
+      listener(this.state);
+    }
+  }
+
+  getState(): AppLockState {
+    return { ...this.state };
+  }
+
+  recordActivity(): void {
+    this.state = { ...this.state, lastActivityAt: Date.now() };
+    this.notify();
+  }
+
+  lock(): void {
+    this.state = { ...this.state, isLocked: true };
+    this.notify();
+  }
+
+  unlock(): void {
+    this.state = {
+      isLocked: false,
+      lastActivityAt: Date.now(),
+      backgroundedAt: null,
+    };
+    this.notify();
+  }
+
+  onBackground(prefs: SecurityPreferences): void {
+    if (!prefs.appLockEnabled) return;
+    this.state = { ...this.state, backgroundedAt: Date.now() };
+    if (prefs.lockOnBackground && prefs.autoLockTimer === 'immediate') {
+      this.lock();
+    }
+    this.notify();
+  }
+
+  onForeground(prefs: SecurityPreferences): boolean {
+    if (!prefs.appLockEnabled) {
+      this.recordActivity();
+      return false;
+    }
+
+    if (this.state.backgroundedAt && prefs.lockOnBackground) {
+      const elapsed = Date.now() - this.state.backgroundedAt;
+      const threshold = AUTO_LOCK_MS[prefs.autoLockTimer];
+
+      if (threshold === 0 || (threshold !== null && elapsed >= threshold)) {
+        this.lock();
+        return true;
+      }
+    }
+
+    this.state = { ...this.state, backgroundedAt: null };
+    this.recordActivity();
+    return this.state.isLocked;
+  }
+
+  shouldLockOnStart(prefs: SecurityPreferences): boolean {
+    if (!prefs.appLockEnabled) return false;
+    return prefs.lockOnRestart;
+  }
+
+  checkInactivity(prefs: SecurityPreferences): boolean {
+    if (!prefs.appLockEnabled || !prefs.lockAfterInactivity) return false;
+    const threshold = AUTO_LOCK_MS[prefs.autoLockTimer];
+    if (threshold === null) return false;
+    const elapsed = Date.now() - this.state.lastActivityAt;
+    if (elapsed >= threshold) {
+      this.lock();
+      return true;
+    }
+    return false;
+  }
+}
+
+export const appLockService = new AppLockServiceClass();

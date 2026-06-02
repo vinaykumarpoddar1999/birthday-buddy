@@ -1,12 +1,11 @@
 import { router } from 'expo-router';
 import { Users } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState, ErrorState, ListSkeleton } from '@shared/ui';
 import { usePeople } from '@features/people/hooks/usePeople';
-import { importContactsFromDevice } from '@/services/contacts/contacts-import.service';
 import { feedback } from '@/shared/feedback';
 import {
   getBirthdayStats,
@@ -37,36 +36,10 @@ export function PeopleScreen() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('all');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterActive, setFilterActive] = useState(false);
-  const [importingContacts, setImportingContacts] = useState(false);
 
-  const handleImportContacts = useCallback(async () => {
-    if (importingContacts) return;
-    setImportingContacts(true);
-    try {
-      const result = await importContactsFromDevice();
-      await refetch();
-      if (result.imported === 0) {
-        feedback.warning(
-          'No New Contacts',
-          result.skipped > 0
-            ? 'Contacts without birthdays or already in your list were skipped.'
-            : 'No contacts with birthdays were found on this device.',
-        );
-      } else {
-        feedback.success(
-          'Contacts Imported',
-          `Added ${result.imported} people${result.skipped > 0 ? ` · ${result.skipped} skipped` : ''}.`,
-        );
-      }
-    } catch (error) {
-      feedback.error(
-        'Import Failed',
-        error instanceof Error ? error.message : 'Could not import contacts.',
-      );
-    } finally {
-      setImportingContacts(false);
-    }
-  }, [importingContacts, refetch]);
+  const handleImportContacts = () => {
+    router.push('/contact-import');
+  };
 
   const stats = useMemo(() => getBirthdayStats(people), [people]);
 
@@ -175,7 +148,7 @@ export function PeopleScreen() {
               primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
               secondaryAction={{
                 label: 'Import Contacts',
-                onPress: () => void handleImportContacts(),
+                onPress: handleImportContacts,
               }}
               className="mt-4 bg-surface border border-border rounded-2xl"
             />

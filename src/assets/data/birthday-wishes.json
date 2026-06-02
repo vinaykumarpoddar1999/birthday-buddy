@@ -1,0 +1,100 @@
+{
+  "Friend": [
+    "Happy birthday, {{name}}! Wishing you a day full of laughter and great memories.",
+    "{{name}}, cheers to another year of friendship and fun adventures ahead!",
+    "Hope your birthday is as awesome as you are, {{name}}. Celebrate big today!",
+    "Sending you the happiest of birthdays, {{name}}. Grateful to call you my friend.",
+    "{{name}}, may this year bring you everything you have been hoping for."
+  ],
+  "Best Friend": [
+    "Happy birthday to my ride-or-die, {{name}}. No one deserves a better day than you.",
+    "{{name}}, you are more than a friend — you are family. Have the best birthday ever.",
+    "To my best friend {{name}}: thank you for every laugh, hug, and late-night talk.",
+    "{{name}}, life is better with you in it. Wishing you the happiest birthday!",
+    "Best friend birthday alert: {{name}}, you are one in a million. Enjoy your day!"
+  ],
+  "Brother": [
+    "Happy birthday, bro {{name}}! Proud of the person you are becoming every year.",
+    "{{name}}, thanks for always having my back. Hope your birthday is legendary.",
+    "To my brother {{name}}: may your year be filled with wins and good times.",
+    "Happy birthday, {{name}}! Keep being awesome — your big sibling is cheering you on.",
+    "{{name}}, another year older and still the best brother. Celebrate like a champ!"
+  ],
+  "Sister": [
+    "Happy birthday, {{name}}! Sisters like you make life brighter and a lot more fun.",
+    "{{name}}, wishing my amazing sister a day as beautiful as her heart.",
+    "To my sister {{name}}: may all your dreams take flight this year.",
+    "Happy birthday, {{name}}! Love you to the moon and back, sis.",
+    "{{name}}, you deserve every bit of happiness today and always. Happy birthday!"
+  ],
+  "Mother": [
+    "Happy birthday, Mom {{name}}. Thank you for your endless love and wisdom.",
+    "{{name}}, you are the heart of our family. Wishing you a peaceful, joyful birthday.",
+    "To the best mom, {{name}}: may your day be as wonderful as you make ours.",
+    "Happy birthday, {{name}}! Your strength and kindness inspire us every day.",
+    "{{name}}, sending hugs and gratitude on your special day. We love you, Mom."
+  ],
+  "Father": [
+    "Happy birthday, Dad {{name}}. Thank you for guiding us with patience and love.",
+    "{{name}}, you are our hero. Wishing you health, happiness, and a great year ahead.",
+    "To my father {{name}}: may your birthday be filled with pride and peaceful moments.",
+    "Happy birthday, {{name}}! Your support means the world to our family.",
+    "{{name}}, cheers to the man who always shows up. Have a fantastic birthday, Dad."
+  ],
+  "Wife": [
+    "Happy birthday, my love {{name}}. Every day with you is a gift I cherish.",
+    "{{name}}, you are my partner, my best friend, and my greatest blessing.",
+    "To my wonderful wife {{name}}: may your birthday sparkle as much as you do.",
+    "Happy birthday, {{name}}! Thank you for filling our home with love and light.",
+    "{{name}}, here's to us and to many more birthdays celebrated side by side."
+  ],
+  "Husband": [
+    "Happy birthday, my dear {{name}}. Grateful for every moment we share together.",
+    "{{name}}, you make life an adventure. Wishing my husband the happiest of days.",
+    "To my amazing husband {{name}}: may this year bring you joy and success.",
+    "Happy birthday, {{name}}! Love you more with every year that passes.",
+    "{{name}}, thank you for being my rock. Enjoy a birthday as special as you are."
+  ],
+  "Girlfriend": [
+    "Happy birthday, beautiful {{name}}. You make my world brighter every single day.",
+    "{{name}}, wishing my girlfriend a day as sweet and lovely as she is.",
+    "To {{name}}: you are the best part of my story. Have an unforgettable birthday.",
+    "Happy birthday, {{name}}! Can't wait to make more memories with you this year.",
+    "{{name}}, you deserve all the love and surprises today. Happy birthday, my love!"
+  ],
+  "Boyfriend": [
+    "Happy birthday, {{name}}! Thanks for being the most caring boyfriend I could ask for.",
+    "{{name}}, wishing you a birthday full of smiles, surprises, and our favorite moments.",
+    "Happy birthday to my amazing boyfriend {{name}}. You mean the world to me.",
+    "{{name}}, may your special day be as incredible as you make mine feel every day.",
+    "To {{name}}: here's to love, laughter, and another year of us. Happy birthday!"
+  ],
+  "Colleague": [
+    "Happy birthday, {{name}}! Wishing you a productive year and a relaxing celebration today.",
+    "{{name}}, hope your birthday brings a well-deserved break and plenty of good cheer.",
+    "Warm birthday wishes to a great colleague, {{name}}. Enjoy your special day!",
+    "Happy birthday, {{name}}! It is always a pleasure working alongside you.",
+    "{{name}}, may your new year be filled with success and positive collaborations."
+  ],
+  "Boss": [
+    "Happy birthday, {{name}}. Thank you for your leadership and guidance throughout the year.",
+    "Wishing you a wonderful birthday, {{name}}. Your vision inspires the whole team.",
+    "{{name}}, hope your birthday is as remarkable as the standards you set for us.",
+    "Happy birthday to our respected leader {{name}}. Wishing you health and happiness.",
+    "{{name}}, may your year ahead be as rewarding as the impact you have on our team."
+  ],
+  "Client": [
+    "Happy birthday, {{name}}! Thank you for your trust and partnership.",
+    "Wishing you a fantastic birthday, {{name}}. It is a pleasure working with you.",
+    "{{name}}, may your special day reflect the success and excellence you bring to every project.",
+    "Happy birthday, {{name}}! Looking forward to another year of great collaboration.",
+    "{{name}}, sending our best wishes for a joyful birthday and a prosperous year ahead."
+  ],
+  "Teacher": [
+    "Happy birthday, {{name}}! Thank you for inspiring us to learn and grow every day.",
+    "Wishing a wonderful birthday to an exceptional teacher, {{name}}.",
+    "{{name}}, your dedication makes a lasting difference. Have a joyful celebration today.",
+    "Happy birthday, {{name}}! Grateful for your patience, wisdom, and encouragement.",
+    "{{name}}, may your birthday be filled with the same kindness you show in the classroom."
+  ]
+}

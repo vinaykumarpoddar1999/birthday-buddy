@@ -1,8 +1,8 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { ChevronLeft, Sparkles, Star } from 'lucide-react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronLeft, Sparkles, Star, Wand2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 
 type Props = {
@@ -13,45 +13,104 @@ export function WishHeader({ onBack }: Props) {
   const credits = useAIWishesStore((s) => s.credits);
 
   return (
-    <View className="flex-row items-center justify-between px-5 py-2.5">
-      <Pressable
-        onPress={onBack}
-        className="h-10 w-10 rounded-full bg-white items-center justify-center border border-gray-100"
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.06,
-          shadowRadius: 3,
-          elevation: 2,
-        }}
-        accessibilityRole="button"
-        accessibilityLabel="Go back">
-        <ChevronLeft size={20} color="#374151" />
-      </Pressable>
+    <LinearGradient
+      colors={['#7C3AED', '#9333EA', '#EC4899']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}>
+      <Animated.View entering={FadeInDown.duration(400)} style={styles.inner}>
+        <Pressable
+          onPress={onBack}
+          style={styles.backBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Go back">
+          <ChevronLeft size={22} color="#FFFFFF" />
+        </Pressable>
 
-      <View className="items-center">
-        <View className="flex-row items-center gap-1.5">
-          <Text className="text-[17px] font-bold text-foreground tracking-tight">
-            AI Wish Generator
-          </Text>
-          <Sparkles size={16} color="#7C3AED" />
-        </View>
-        <Text className="text-[10px] text-foreground-muted mt-0.5">
-          Create the perfect wish for your special one
-        </Text>
-      </View>
-
-      <View className="overflow-hidden rounded-full">
-        <LinearGradient
-          colors={['#F5F3FF', '#EDE9FE']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}>
-          <View className="flex-row items-center px-3 py-1.5 gap-1">
-            <Star size={12} color="#7C3AED" fill="#7C3AED" />
-            <Text className="text-[12px] font-bold text-primary">{credits}</Text>
+        <View style={styles.center}>
+          <View style={styles.titleRow}>
+            <View style={styles.iconWrap}>
+              <Wand2 size={18} color="#FCD34D" />
+            </View>
+            <Text style={styles.title}>AI Wish Generator</Text>
           </View>
-        </LinearGradient>
-      </View>
-    </View>
+          <Text style={styles.tagline}>Personalized messages that feel truly yours</Text>
+        </View>
+
+        <View style={styles.creditsPill}>
+          <Star size={13} color="#FCD34D" fill="#FCD34D" />
+          <Text style={styles.creditsText}>{credits}</Text>
+          <Sparkles size={11} color="rgba(255,255,255,0.7)" />
+        </View>
+      </Animated.View>
+    </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  gradient: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
+  },
+  inner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 19,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -0.4,
+  },
+  tagline: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  creditsPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  creditsText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+});

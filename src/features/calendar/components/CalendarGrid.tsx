@@ -12,6 +12,7 @@ export type CalendarGridProps = {
   events: Record<number, CalendarDayEvent[]>;
   dotOnlyDates: Record<number, EventType[]>;
   onSelectDate: (date: number) => void;
+  onSelectOverflowDate?: (direction: -1 | 1, date: number) => void;
 };
 
 export function CalendarGrid({
@@ -21,6 +22,7 @@ export function CalendarGrid({
   events,
   dotOnlyDates,
   onSelectDate,
+  onSelectOverflowDate,
 }: CalendarGridProps) {
   const cells = buildMonthGrid(year, month);
   const weeks = chunkWeeks(cells);
@@ -56,8 +58,15 @@ export function CalendarGrid({
                 cell.isCurrentMonth && cell.date ? dotOnlyDates[cell.date] ?? [] : []
               }
               onPress={() => {
-                if (cell.isCurrentMonth && cell.date) {
+                if (!cell.date) return;
+                if (cell.isCurrentMonth) {
                   onSelectDate(cell.date);
+                  return;
+                }
+                if (cell.key.startsWith('prev-')) {
+                  onSelectOverflowDate?.(-1, cell.date);
+                } else if (cell.key.startsWith('next-')) {
+                  onSelectOverflowDate?.(1, cell.date);
                 }
               }}
             />

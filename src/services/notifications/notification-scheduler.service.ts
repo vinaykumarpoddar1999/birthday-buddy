@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
 
@@ -10,6 +11,8 @@ import {
 
 export const BACKGROUND_BIRTHDAY_TASK = 'background-birthday-check';
 
+const isExpoGo = Constants.appOwnership === 'expo';
+
 TaskManager.defineTask(BACKGROUND_BIRTHDAY_TASK, async () => {
   try {
     await dailyBirthdayCheckService.run();
@@ -21,10 +24,24 @@ TaskManager.defineTask(BACKGROUND_BIRTHDAY_TASK, async () => {
 
 export async function initializeNotificationSystem(): Promise<void> {
   ensureNotificationHandler();
-  await registerForNotifications();
-  await reminderService.rescheduleAll();
-  await dailyBirthdayCheckService.run();
-  await registerBackgroundBirthdayTask();
+  try {
+    await registerForNotifications();
+  } catch {
+    // Never block app startup if notification setup fails on a device/build variant.
+  }
+  try {
+    await reminderService.rescheduleAll();
+  } catch {
+    // Keep hydration resilient; reminders can be retried later.
+  }
+  try {
+    await dailyBirthdayCheckService.run();
+  } catch {
+    // Ignore non-critical notification feed errors during boot.
+  }
+  if (!isExpoGo) {
+    await registerBackgroundBirthdayTask();
+  }
 }
 
 async function registerBackgroundBirthdayTask(): Promise<void> {
@@ -41,6 +58,6 @@ async function registerBackgroundBirthdayTask(): Promise<void> {
       });
     }
   } catch {
-    /* Background fetch unavailable on web/simulator */
+    /* Background fetch unavailable in Expo Go, web, or simulator */
   }
 }

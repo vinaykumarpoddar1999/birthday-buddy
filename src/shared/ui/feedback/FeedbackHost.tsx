@@ -1,7 +1,8 @@
 import {
-  AlertTriangle,
-  CheckCircle2,
+  TriangleAlert,
+  CircleCheck,
   Info,
+  Shield,
   X,
   XCircle,
 } from 'lucide-react-native';
@@ -11,12 +12,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFeedbackStore } from '@/stores/feedback.store';
 
 const MODAL_ICON = {
-  success: { Icon: CheckCircle2, color: '#22C55E', bg: '#DCFCE7' },
+  success: { Icon: CircleCheck, color: '#22C55E', bg: '#DCFCE7' },
   error: { Icon: XCircle, color: '#EF4444', bg: '#FEE2E2' },
-  warning: { Icon: AlertTriangle, color: '#F59E0B', bg: '#FEF3C7' },
+  warning: { Icon: TriangleAlert, color: '#F59E0B', bg: '#FEF3C7' },
   confirm: { Icon: Info, color: '#7C3AED', bg: '#EDE9FE' },
-  delete: { Icon: AlertTriangle, color: '#EF4444', bg: '#FEE2E2' },
+  delete: { Icon: TriangleAlert, color: '#EF4444', bg: '#FEE2E2' },
   'action-sheet': { Icon: Info, color: '#7C3AED', bg: '#EDE9FE' },
+  security: { Icon: Shield, color: '#7C3AED', bg: '#EDE9FE' },
+  permission: { Icon: Shield, color: '#3B82F6', bg: '#DBEAFE' },
 } as const;
 
 function FeedbackModal() {
@@ -29,7 +32,7 @@ function FeedbackModal() {
   const config = MODAL_ICON[modal.type];
   const Icon = config.Icon;
   const isActionSheet = modal.type === 'action-sheet';
-  const hasCancel = modal.type === 'confirm' || modal.type === 'delete';
+  const hasCancel = modal.type === 'confirm' || modal.type === 'delete' || modal.type === 'permission';
 
   const handleConfirm = () => {
     modal.onConfirm?.();

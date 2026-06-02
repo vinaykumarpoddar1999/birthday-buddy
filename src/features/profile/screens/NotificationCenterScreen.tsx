@@ -8,13 +8,13 @@ import type { LucideIcon } from 'lucide-react-native';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 
-import { useActivityStore } from '../store/activity.store';
+import { useNotificationStore } from '@/stores/notification.store';
 import type { AppNotification } from '../types';
 
 const FILTERS = ['All', 'Birthdays', 'Reminders', 'Wishes', 'Cards', 'System'] as const;
 type FilterType = (typeof FILTERS)[number];
 
-const TYPE_CONFIG: Record<AppNotification['type'], { icon: LucideIcon; color: string; bg: string }> = {
+const TYPE_CONFIG: Partial<Record<AppNotification['type'], { icon: LucideIcon; color: string; bg: string }>> = {
   birthday: { icon: Gift, color: '#EC4899', bg: '#FCE7F3' },
   wish: { icon: BellRing, color: '#7C3AED', bg: '#EDE9FE' },
   reminder: { icon: Clock, color: '#F59E0B', bg: '#FEF3C7' },
@@ -35,11 +35,10 @@ const getRelativeTime = (ts: string) => {
 };
 
 export const NotificationCenterScreen = () => {
-  const notifications = useActivityStore((s) => s.notifications);
-  const markAsRead = useActivityStore((s) => s.markAsRead);
-  const markAllAsRead = useActivityStore((s) => s.markAllAsRead);
-  const deleteNotification = useActivityStore((s) => s.deleteNotification);
-  const clearAllNotifications = useActivityStore((s) => s.clearAllNotifications);
+  const notifications = useNotificationStore((s) => s.notifications);
+  const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
+  const deleteNotification = useNotificationStore((s) => s.deleteNotification);
+  const clearAllNotifications = useNotificationStore((s) => s.clearAllNotifications);
   const [filter, setFilter] = useState<FilterType>('All');
   const { showDeleteConfirm } = useFeedback();
 
@@ -144,14 +143,14 @@ export const NotificationCenterScreen = () => {
           <EmptyState icon={Bell} title="No notifications" subtitle="You are all caught up!" className="pt-12" />
         ) : (
           filtered.map((n) => {
-            const config = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.system;
+            const config = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.system ?? { icon: Bell, color: '#3B82F6', bg: '#DBEAFE' };
             const Icon = config.icon;
             return (
               <Pressable
                 key={n.id}
                 className={`bg-surface rounded-xl p-3.5 mb-2 border flex-row ${n.isRead ? 'border-border/60' : 'border-l-4 border-primary border-t-border/60 border-r-border/60 border-b-border/60'}`}
                 onPress={() => {
-                  if (!n.isRead) markAsRead(n.id);
+                  router.push({ pathname: '/notification-detail', params: { id: n.id } });
                 }}
                 accessibilityRole="button">
                 <View className="h-9 w-9 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: config.bg }}>

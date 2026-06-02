@@ -76,17 +76,17 @@ export const CardHistoryScreen = () => {
           <EmptyState icon={Palette} title="No cards yet" subtitle="Create cards in Card Studio" className="pt-12" />
         ) : (
           filtered.map((card) => (
-            <View key={card.id} className="bg-surface rounded-xl p-3.5 mb-2 border border-border/60 flex-row items-center">
-              <View className="h-10 w-10 rounded-xl bg-primary/10 items-center justify-center mr-3">
-                <Palette size={18} color="#7C3AED" />
+            <View key={card.id} className="bg-surface rounded-xl px-3 py-2 mb-1 border border-border/60 flex-row items-center min-h-[52px]">
+              <View className="h-9 w-9 rounded-lg bg-primary/10 items-center justify-center mr-2.5">
+                <Palette size={16} color="#7C3AED" />
               </View>
-              <View className="flex-1">
-                <Text className="text-[14px] font-semibold text-foreground">{parseCardTitle(card.cardJson)}</Text>
-                <Text className="text-[11px] text-foreground-secondary mt-0.5">
+              <View className="flex-1 min-w-0">
+                <Text className="text-[13px] font-semibold text-foreground" numberOfLines={1}>{parseCardTitle(card.cardJson)}</Text>
+                <Text className="text-[10px] text-foreground-secondary mt-0.5">
                   {new Date(card.createdAt).toLocaleDateString()}
                 </Text>
               </View>
-              <View className="flex-row gap-2">
+              <View className="flex-row gap-1.5 ml-2">
                 {card.favorite && <Heart size={14} color="#EC4899" fill="#EC4899" />}
                 {card.exportUri && <Download size={14} color="#9CA3AF" />}
                 {card.exportUri && <Share2 size={14} color="#22C55E" />}

@@ -1,4 +1,5 @@
-import * as DocumentPicker from 'expo-document-picker';
+import { pickDocumentAsync } from '@/utils/document-picker';
+import { saveToDevice } from '@/utils/file-download';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
@@ -51,7 +52,7 @@ export class BackupService {
 
   async shareJsonBackup(): Promise<void> {
     const json = await this.exportJson();
-    await this.writeAndShare(json, `birthday-buddy-backup-${Date.now()}.json`, 'application/json');
+    await saveToDevice(json, `birthday-buddy-backup-${Date.now()}.json`, 'application/json');
   }
 
   async shareModuleExport(module: ExportModule, format: 'json' | 'csv' = 'json'): Promise<void> {
@@ -59,14 +60,15 @@ export class BackupService {
     const ext = format === 'csv' ? 'csv' : 'json';
     const mime = format === 'csv' ? 'text/csv' : 'application/json';
     const fileName = `birthday-buddy-${module}-${Date.now()}.${ext}`;
-    await this.writeAndShare(content, fileName, mime);
+    await saveToDevice(content, fileName, mime);
     await this.addExportHistory(module, fileName, content.length, format);
   }
 
   async restoreFromPicker(): Promise<void> {
-    const result = await DocumentPicker.getDocumentAsync({
+    const result = await pickDocumentAsync({
       type: ['application/json', 'text/json', '*/*'],
       copyToCacheDirectory: true,
+      multiple: false,
     });
     if (result.canceled || !result.assets[0]) {
       throw new ImportError('Restore cancelled.');
@@ -79,12 +81,22 @@ export class BackupService {
     await reminderService.rescheduleAll();
     await queryClient.invalidateQueries({ queryKey: peopleQueryKeys.all });
     await queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    await queryClient.invalidateQueries({ queryKey: ['wish-history'] });
     await this.addBackupHistory('json', result.assets[0].name ?? 'restore.json', json.length, ['all'], 'completed');
   }
 
   async previewImport(uri: string): Promise<{ people: number; wishes: number; cards: number; settings: number }> {
     const json = await FileSystem.readAsStringAsync(uri);
-    const data = JSON.parse(json) as Record<string, unknown[]>;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      throw new ImportError('Invalid JSON backup file.');
+    }
+    const data = parsed as Record<string, unknown[]>;
+    if (!Array.isArray(data.people)) {
+      throw new ImportError('Invalid backup file: missing people data.');
+    }
     return {
       people: data.people?.length ?? 0,
       wishes: (data.wishes?.length ?? 0) + (data.wishHistory?.length ?? 0),
@@ -101,6 +113,9 @@ export class BackupService {
     await reminderService.rescheduleAll();
     await queryClient.invalidateQueries({ queryKey: peopleQueryKeys.all });
     await queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    await queryClient.invalidateQueries({ queryKey: ['wish-history'] });
+    await queryClient.invalidateQueries({ queryKey: ['card-history'] });
+    await this.recordBackupMeta(json.length);
   }
 
   async exportSqlite(): Promise<Uint8Array> {
@@ -112,7 +127,7 @@ export class BackupService {
     const dir = FileSystem.cacheDirectory;
     if (!dir) throw new BackupError('Cache directory unavailable');
     const path = `${dir}birthday-buddy-${Date.now()}.db`;
-    const base64 = btoa(String.fromCharCode(...bytes));
+    const base64 = bytesToBase64(bytes);
     await FileSystem.writeAsStringAsync(path, base64, {
       encoding: FileSystem.EncodingType.Base64,
     });
@@ -192,16 +207,6 @@ export class BackupService {
     });
   }
 
-  private async writeAndShare(content: string, fileName: string, mimeType: string): Promise<void> {
-    const dir = FileSystem.cacheDirectory;
-    if (!dir) throw new BackupError('Cache directory unavailable');
-    const path = `${dir}${fileName}`;
-    await FileSystem.writeAsStringAsync(path, content, { encoding: FileSystem.EncodingType.UTF8 });
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) throw new BackupError('Sharing is not available on this device');
-    await Sharing.shareAsync(path, { mimeType, dialogTitle: 'Birthday Buddy Export' });
-  }
-
   private async addBackupHistory(
     backupType: BackupHistoryEntry['backupType'],
     fileName: string,
@@ -235,3 +240,13 @@ export class BackupService {
 }
 
 export const backupService = new BackupService();
+
+function bytesToBase64(bytes: Uint8Array): string {
+  const chunkSize = 8192;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+}

@@ -10,11 +10,13 @@ export function useCalendarMonth(year: number, month: number) {
   const events = useQuery({
     queryKey: [...calendarQueryKeys.month(year, month), 'events'],
     queryFn: () => calendarService.getMonthEvents(month),
+    staleTime: 0,
   });
 
   const upcoming = useQuery({
     queryKey: [...calendarQueryKeys.month(year, month), 'upcoming'],
     queryFn: () => calendarService.getUpcomingForMonth(year, month),
+    staleTime: 0,
   });
 
   return {

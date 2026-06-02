@@ -22,6 +22,9 @@ export interface UserProfile {
   bio: string;
   profileImage: string | null;
   relationshipStatus: string;
+  relationship: string;
+  timezone: string;
+  country: string;
   preferences: string;
   isPremium: boolean;
   streak: number;
@@ -75,6 +78,7 @@ export interface AppearanceSettings {
   cardStyle: 'classic' | 'modern' | 'minimal';
   animationsEnabled: boolean;
   layoutDensity: 'compact' | 'comfortable' | 'spacious';
+  dynamicTheme: boolean;
 }
 
 export interface CalendarSyncProvider {
@@ -90,7 +94,7 @@ export interface CalendarSyncSettings {
 
 export interface AppNotification {
   id: string;
-  type: 'birthday' | 'wish' | 'reminder' | 'system' | 'premium' | 'activity' | 'card';
+  type: 'birthday' | 'wish' | 'reminder' | 'system' | 'premium' | 'activity' | 'card' | 'alarm' | 'calendar' | 'update';
   title: string;
   message: string;
   timestamp: string;

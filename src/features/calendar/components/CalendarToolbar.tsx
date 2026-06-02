@@ -1,13 +1,14 @@
 import { Pressable, Text, View } from 'react-native';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 export type CalendarToolbarProps = {
   monthLabel: string;
   onPrevious: () => void;
   onNext: () => void;
+  onToday?: () => void;
 };
 
-export function CalendarToolbar({ monthLabel, onPrevious, onNext }: CalendarToolbarProps) {
+export function CalendarToolbar({ monthLabel, onPrevious, onNext, onToday }: CalendarToolbarProps) {
   return (
     <View className="flex-row items-center justify-between mb-4 px-1">
       <Pressable
@@ -20,10 +21,15 @@ export function CalendarToolbar({ monthLabel, onPrevious, onNext }: CalendarTool
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${monthLabel}, open month picker`}
-        className="flex-row items-center gap-1 px-3 min-h-[44px]">
+        accessibilityLabel={`${monthLabel}, jump to today`}
+        onPress={onToday}
+        className="flex-row items-center gap-2 px-4 py-2 rounded-full bg-primary/10 min-h-[44px]">
         <Text className="text-title text-foreground font-bold">{monthLabel}</Text>
-        <ChevronDown size={18} color="#6B7280" />
+        {onToday ? (
+          <View className="bg-primary rounded-full px-2 py-0.5">
+            <Text className="text-[10px] font-bold text-white">Today</Text>
+          </View>
+        ) : null}
       </Pressable>
 
       <Pressable

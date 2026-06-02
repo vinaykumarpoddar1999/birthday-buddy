@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { LucideIcon } from 'lucide-react-native';
 
 import { useProfileStore } from '../store/profile.store';
-import { useThemeStore } from '@/stores/theme.store';
 
 type ThemeItem = { key: 'light' | 'dark' | 'system'; icon: LucideIcon; title: string; desc: string; bg: string; iconColor: string };
 
@@ -18,11 +17,9 @@ const THEMES: ThemeItem[] = [
 export const ThemeSelectScreen = () => {
   const theme = useProfileStore((s) => s.theme);
   const setTheme = useProfileStore((s) => s.setTheme);
-  const setThemeMode = useThemeStore((s) => s.setMode);
 
   const handleSelect = (t: 'light' | 'dark' | 'system') => {
     setTheme(t);
-    setThemeMode(t);
   };
 
   return (

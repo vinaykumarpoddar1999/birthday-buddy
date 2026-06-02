@@ -1,8 +1,10 @@
 import { DatabaseManager } from '@/database/database-manager';
 import {
+  formatGeneratedWishText,
   generateWish,
   type GenerateWishParams,
 } from '@features/ai-wishes/engine/wish-generator';
+import { birthdayWishService } from '@/services/wish/birthday-wish.service';
 import type {
   GeneratedWish,
   WishLanguage,
@@ -28,6 +30,30 @@ function mapRelationship(rel: string): WishRelationship {
 }
 
 export class WishService {
+  buildGeneratedWish(
+    personUuid: string,
+    personName: string,
+    relationship: string,
+    params: Omit<GenerateWishParams, 'personId' | 'personName' | 'relationship'>,
+  ): GeneratedWish {
+    const catalogText = birthdayWishService.getWishByRelationship(
+      relationship,
+      personName,
+    );
+    const generated = generateWish({
+      ...params,
+      personId: personUuid,
+      personName,
+      relationship,
+    });
+    const text = formatGeneratedWishText(catalogText, {
+      personName,
+      personalContext: params.personalContext,
+      language: params.language,
+    });
+    return { ...generated, text, originalText: text };
+  }
+
   private toGeneratedWish(
     wish: AiWish,
     meta: {
@@ -64,11 +90,12 @@ export class WishService {
     const person = await peopleRepository.findByUuid(personUuid);
     if (!person) throw new Error('Person not found');
 
-    const generated = generateWish({
-      ...params,
-      personId: personUuid,
-      personName: person.fullName,
-    });
+    const generated = this.buildGeneratedWish(
+      personUuid,
+      person.fullName,
+      person.relationship,
+      params,
+    );
 
     const wishUuid = await DatabaseManager.withTransaction(async () => {
       const personId = await peopleRepository.getInternalId(personUuid);

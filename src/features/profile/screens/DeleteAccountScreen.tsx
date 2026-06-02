@@ -21,7 +21,7 @@ export const DeleteAccountScreen = () => {
     try {
       await deleteAccount();
       await queryClient.invalidateQueries();
-      router.replace('/(tabs)');
+      router.replace('/(auth)/welcome');
     } finally {
       setIsDeleting(false);
     }

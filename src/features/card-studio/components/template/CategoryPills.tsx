@@ -48,7 +48,7 @@ export function CategoryPills() {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerClassName="px-5 gap-2.5 pb-1">
+      contentContainerStyle={{ paddingHorizontal: 20, gap: 10, paddingBottom: 4 }}>
       {CATEGORIES.map((cat) => {
         const active = selected === cat.id;
         const { Icon } = cat;
@@ -70,7 +70,7 @@ export function CategoryPills() {
                   colors={['#7C3AED', '#5B21B6']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}>
-                  <View className="flex-row items-center px-4.5 py-2.5 gap-1.5">
+                  <View className="flex-row items-center px-4 py-2.5 gap-1.5">
                     <Icon size={14} color="#FFFFFF" strokeWidth={2} />
                     <Text className="text-[13px] font-bold text-white">{cat.label}</Text>
                   </View>

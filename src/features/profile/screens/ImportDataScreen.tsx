@@ -1,11 +1,12 @@
-import * as DocumentPicker from 'expo-document-picker';
+import { pickDocumentAsync } from '@/utils/document-picker';
 import { router } from 'expo-router';
-import { ArrowLeft, FileJson, Upload, Users } from 'lucide-react-native';
+import { AlertTriangle, ArrowLeft, FileJson, Upload, Users } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { backupService } from '@/services/backup/backup.service';
+import { ImportError } from '@/shared/errors';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 
 export const ImportDataScreen = () => {
@@ -13,23 +14,30 @@ export const ImportDataScreen = () => {
   const [fileUri, setFileUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState('');
   const [busy, setBusy] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const { showConfirm, showSuccess, showError } = useFeedback();
 
   const pickFile = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
+    const result = await pickDocumentAsync({
       type: ['application/json', 'text/json', '*/*'],
       copyToCacheDirectory: true,
+      multiple: false,
     });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
     setFileUri(asset.uri);
     setFileName(asset.name);
+    setValidationError(null);
     try {
       const stats = await backupService.previewImport(asset.uri);
       setPreview(stats);
-    } catch {
+    } catch (error) {
       setPreview(null);
-      showError('Invalid File', 'Could not read backup file. Ensure it is a valid BirthdayBuddy JSON backup.');
+      const message =
+        error instanceof ImportError
+          ? error.message
+          : 'Could not read backup file. Ensure it is a valid BirthdayBuddy JSON backup.';
+      setValidationError(message);
     }
   };
 
@@ -84,6 +92,19 @@ export const ImportDataScreen = () => {
           <View className="bg-primary/5 rounded-xl p-3 mt-4 flex-row items-center gap-2">
             <FileJson size={18} color="#7C3AED" />
             <Text className="text-[13px] font-medium text-foreground flex-1" numberOfLines={1}>{fileName}</Text>
+          </View>
+        ) : null}
+
+        {validationError ? (
+          <View className="bg-error/10 rounded-xl p-4 mt-4 border border-error/20">
+            <View className="flex-row items-center gap-2 mb-2">
+              <AlertTriangle size={18} color="#EF4444" />
+              <Text className="text-[14px] font-bold text-error">Invalid Backup File</Text>
+            </View>
+            <Text className="text-[13px] text-error/80 leading-5">{validationError}</Text>
+            <Text className="text-[12px] text-foreground-secondary mt-3 leading-5">
+              Use a full JSON backup exported from Backup &amp; Restore or Export Data (Export All Data).
+            </Text>
           </View>
         ) : null}
 

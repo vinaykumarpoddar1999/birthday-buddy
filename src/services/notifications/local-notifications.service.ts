@@ -10,16 +10,7 @@ import {
 } from '@/services/profile/profile.service';
 
 import { isNotificationPermissionGranted } from './permission-utils';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+import { ensureNotificationHandler } from './notification-init.utils';
 
 export type ScheduleBirthdayRemindersInput = {
   contactId: string;
@@ -50,8 +41,12 @@ async function loadReminderSettings(): Promise<ReminderSettings> {
 }
 
 function parseTime(time: string): { hours: number; minutes: number } {
-  const [h, m] = time.split(':').map(Number);
-  return { hours: h ?? 8, minutes: m ?? 0 };
+  const [rawHours, rawMinutes] = time.split(':');
+  const parsedHours = Number(rawHours);
+  const parsedMinutes = Number(rawMinutes);
+  const hours = Number.isFinite(parsedHours) ? Math.min(23, Math.max(0, parsedHours)) : 8;
+  const minutes = Number.isFinite(parsedMinutes) ? Math.min(59, Math.max(0, parsedMinutes)) : 0;
+  return { hours, minutes };
 }
 
 export function parseBirthMonthDay(birthDate: string): MonthDay | null {
@@ -126,7 +121,24 @@ function buildAlarmContent(contactName: string, settings: ReminderSettings): Not
     body: "It's time to celebrate! Send your birthday wish now.",
     sound: settings.notificationSound ? 'default' : undefined,
     priority: Notifications.AndroidNotificationPriority.MAX,
+    categoryIdentifier: BIRTHDAY_ALARM_CATEGORY,
   };
+}
+
+export const BIRTHDAY_ALARM_CATEGORY = 'birthday-alarm-snooze';
+
+const SNOOZE_ACTION_ID = 'snooze-1h';
+
+export async function ensureBirthdayAlarmNotificationCategory(): Promise<void> {
+  await Notifications.setNotificationCategoryAsync(BIRTHDAY_ALARM_CATEGORY, [
+    {
+      identifier: SNOOZE_ACTION_ID,
+      buttonTitle: 'Snooze 1 hour',
+      options: {
+        opensAppToForeground: false,
+      },
+    },
+  ]);
 }
 
 async function ensureAndroidChannels(settings: ReminderSettings): Promise<void> {
@@ -154,9 +166,13 @@ async function ensureAndroidChannels(settings: ReminderSettings): Promise<void> 
 }
 
 export async function registerForNotifications(): Promise<boolean> {
+  ensureNotificationHandler();
+
   const existing = await Notifications.getPermissionsAsync();
   if (isNotificationPermissionGranted(existing)) {
-    await ensureAndroidChannels(await loadReminderSettings());
+    const settings = await loadReminderSettings();
+    await ensureBirthdayAlarmNotificationCategory();
+    await ensureAndroidChannels(settings);
     return true;
   }
 
@@ -164,7 +180,9 @@ export async function registerForNotifications(): Promise<boolean> {
     ios: { allowAlert: true, allowBadge: true, allowSound: true },
   });
   if (isNotificationPermissionGranted(requested)) {
-    await ensureAndroidChannels(await loadReminderSettings());
+    const settings = await loadReminderSettings();
+    await ensureBirthdayAlarmNotificationCategory();
+    await ensureAndroidChannels(settings);
     return true;
   }
   return false;
@@ -193,14 +211,26 @@ async function scheduleCalendarNotification(
         : {}),
       data,
     },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-      month: monthDay.month,
-      day: monthDay.day,
-      hour: hours,
-      minute: minutes,
-      repeats: true,
-    },
+    trigger:
+      Platform.OS === 'android'
+        ? {
+            // Android expects YEARLY trigger for month/day repeats.
+            // Month is JS-indexed (0-11) for this trigger.
+            type: Notifications.SchedulableTriggerInputTypes.YEARLY,
+            month: monthDay.month - 1,
+            day: monthDay.day,
+            hour: hours,
+            minute: minutes,
+            channelId,
+          }
+        : {
+            type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+            month: monthDay.month,
+            day: monthDay.day,
+            hour: hours,
+            minute: minutes,
+            repeats: true,
+          },
   });
 }
 
@@ -228,6 +258,7 @@ export async function scheduleBirthdayReminders(
   const birth = parseBirthMonthDay(input.birthDate);
   if (!birth) return [];
 
+  await ensureBirthdayAlarmNotificationCategory();
   await ensureAndroidChannels(reminderSettings);
 
   const globalOffsets = reminderSettings.reminderDaysBefore.length

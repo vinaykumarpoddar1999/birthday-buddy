@@ -46,9 +46,16 @@ function ActionButton({
   const Icon = actionIconMap[icon];
 
   const handlePress = () => {
-    if (label === 'Create Card' || label === 'Plan Surprise') {
+        if (label === 'Create Card') {
       router.push({
         pathname: '/card-studio',
+        params: personId ? { personId } : undefined,
+      });
+      return;
+    }
+    if (label === 'Plan Surprise' || label === 'Create Surprise') {
+      router.push({
+        pathname: '/surprise-link-studio',
         params: personId ? { personId } : undefined,
       });
       return;
@@ -58,7 +65,7 @@ function ActionButton({
       return;
     }
     if (label === 'Gift Ideas' && personId) {
-      router.push({ pathname: '/ai-wish', params: { personId } });
+      router.push({ pathname: '/coming-soon', params: { feature: 'gift-ideas' } });
     }
   };
 
@@ -66,7 +73,10 @@ function ActionButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={handlePress}
+      onPress={(e) => {
+        e?.stopPropagation?.();
+        handlePress();
+      }}
       className="flex-row items-center justify-center border border-border rounded-lg px-2 py-1.5 min-h-[32px] bg-surface gap-1">
       <Icon size={12} color="#7C3AED" strokeWidth={2} />
       <Text className="text-[10px] text-foreground font-semibold">{label}</Text>
@@ -78,9 +88,19 @@ export function UpcomingEventCard({ event }: UpcomingEventCardProps) {
   const typeConfig = EVENT_TYPE_CONFIG[event.type];
   const BadgeIcon = eventBadgeIcons[event.type];
 
+  const openDetails = () => {
+    if (event.personId) {
+      router.push({ pathname: '/person-details', params: { personId: event.personId } });
+    }
+  };
+
   return (
-    <View
-      className={`${event.cardTint} rounded-xl border border-border/60 p-3.5 mb-3 flex-row items-center shadow-card`}>
+    <Pressable
+      onPress={openDetails}
+      accessibilityRole="button"
+      accessibilityLabel={`View ${event.name} details`}>
+      <View
+        className={`${event.cardTint} rounded-xl border border-border/60 p-3 mb-3 flex-row items-center shadow-card`}>
       <View className="w-[52px] items-center mr-3 shrink-0">
         <Text className="text-[22px] leading-6 text-foreground font-bold">{event.day}</Text>
         <Text className="text-[10px] text-foreground-secondary font-bold tracking-wide">
@@ -120,6 +140,7 @@ export function UpcomingEventCard({ event }: UpcomingEventCardProps) {
           personId={event.personId}
         />
       </View>
-    </View>
+      </View>
+    </Pressable>
   );
 }

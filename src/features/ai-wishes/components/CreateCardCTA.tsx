@@ -2,8 +2,8 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Gift, Sparkles } from 'lucide-react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
-
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import { useCardStudioStore } from '@features/card-studio/store/card-studio.store';
 
@@ -23,7 +23,7 @@ export function CreateCardCTA() {
   };
 
   return (
-    <View className="px-5 mb-6">
+    <Animated.View entering={FadeInDown.delay(200).duration(400)} className="px-5 mb-4">
       <Pressable
         onPress={handleCreateCard}
         className="overflow-hidden rounded-2xl"
@@ -31,11 +31,12 @@ export function CreateCardCTA() {
           transform: [{ scale: pressed ? 0.98 : 1 }],
           shadowColor: '#7C3AED',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
+          shadowOpacity: 0.12,
           shadowRadius: 12,
           elevation: 5,
         })}
-        accessibilityRole="button">
+        accessibilityRole="button"
+        accessibilityLabel="Create a birthday card">
         <LinearGradient
           colors={['#F5F3FF', '#EDE9FE', '#E9D5FF']}
           start={{ x: 0, y: 0 }}
@@ -45,14 +46,14 @@ export function CreateCardCTA() {
               <Gift size={22} color="#7C3AED" />
             </View>
             <View className="flex-1">
-              <View className="flex-row items-center gap-1">
+              <View className="flex-row items-center gap-1.5">
                 <Text className="text-[14px] font-bold text-foreground">
                   Make it extra special!
                 </Text>
                 <Sparkles size={13} color="#7C3AED" />
               </View>
               <Text className="text-[11px] text-foreground-muted mt-0.5">
-                Create an interactive birthday card with photos, music & more
+                Create an interactive birthday card with photos & music
               </Text>
             </View>
             <View className="h-9 w-9 rounded-full bg-primary items-center justify-center ml-2">
@@ -61,6 +62,6 @@ export function CreateCardCTA() {
           </View>
         </LinearGradient>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }

@@ -6,7 +6,9 @@ export type FeedbackModalType =
   | 'warning'
   | 'confirm'
   | 'delete'
-  | 'action-sheet';
+  | 'action-sheet'
+  | 'security'
+  | 'permission';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -57,6 +59,8 @@ type FeedbackStore = {
     onConfirm: () => void;
     onCancel?: () => void;
   }) => void;
+  showSecurity: (title: string, message?: string, onDismiss?: () => void) => void;
+  showPermission: (title: string, message?: string, onConfirm?: () => void) => void;
   showActionSheet: (opts: { title: string; options: ActionSheetOption[] }) => void;
   hideModal: () => void;
   showToast: (message: string, type?: ToastType, durationMs?: number) => void;
@@ -151,6 +155,32 @@ export const useFeedbackStore = create<FeedbackStore>((set, get) => ({
         cancelLabel: 'Cancel',
         onConfirm,
         onCancel: onCancel ?? null,
+      },
+    }),
+
+  showSecurity: (title, message = '', onDismiss) =>
+    set({
+      modal: {
+        ...defaultModal,
+        visible: true,
+        type: 'security',
+        title,
+        message,
+        onConfirm: onDismiss ?? null,
+      },
+    }),
+
+  showPermission: (title, message = '', onConfirm) =>
+    set({
+      modal: {
+        ...defaultModal,
+        visible: true,
+        type: 'permission',
+        title,
+        message,
+        confirmLabel: 'Allow',
+        cancelLabel: 'Not Now',
+        onConfirm: onConfirm ?? null,
       },
     }),
 

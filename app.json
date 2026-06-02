@@ -18,7 +18,13 @@
         "VIBRATE",
         "SCHEDULE_EXACT_ALARM",
         "USE_EXACT_ALARM",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -60,11 +66,23 @@
         {
           "contactsPermission": "Allow BirthdayBuddy to import birthdays from your contacts."
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow BirthdayBuddy to sync birthdays with your device calendar."
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e1c5520d-5e5e-4d9b-8315-3652331f1017"
+      }
     }
   }
 }

@@ -112,6 +112,18 @@ export const AppearanceSettingsScreen = () => {
         </View>
 
         <View className="bg-surface rounded-2xl px-4 border border-border/60">
+          <View className="flex-row items-center py-3.5 border-b border-border/60">
+            <View className="flex-1">
+              <Text className="text-[15px] font-medium text-foreground">Dynamic Theme</Text>
+              <Text className="text-[12px] text-foreground-secondary mt-0.5">Adapt colors to time of day</Text>
+            </View>
+            <Switch
+              value={appearance.dynamicTheme}
+              onValueChange={(v) => updateAppearance({ dynamicTheme: v })}
+              trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
           <View className="flex-row items-center py-3.5">
             <View className="flex-1">
               <Text className="text-[15px] font-medium text-foreground">Animations</Text>

@@ -41,6 +41,9 @@ export const DEFAULT_USER_PROFILE: UserProfile = {
   bio: '',
   profileImage: null,
   relationshipStatus: '',
+  relationship: '',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+  country: '',
   preferences: '',
   isPremium: false,
   streak: 0,
@@ -94,6 +97,7 @@ export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
   cardStyle: 'modern',
   animationsEnabled: true,
   layoutDensity: 'comfortable',
+  dynamicTheme: true,
 };
 
 export const DEFAULT_CALENDAR_SYNC: CalendarSyncSettings = {

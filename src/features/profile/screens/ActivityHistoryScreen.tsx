@@ -75,17 +75,17 @@ export const ActivityHistoryScreen = () => {
       </View>
 
       {/* Filter Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-5 mb-3" contentContainerClassName="gap-2">
+      <View className="flex-row flex-wrap gap-2 px-5 mb-3">
         {FILTERS.map((f) => (
           <Pressable
             key={f}
             onPress={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 border ${filter === f ? 'bg-primary border-primary' : 'bg-surface border-border'}`}
+            className={`rounded-full px-3.5 py-1 border ${filter === f ? 'bg-primary border-primary' : 'bg-surface border-border'}`}
             accessibilityRole="button">
-            <Text className={`text-[12px] font-semibold ${filter === f ? 'text-white' : 'text-foreground-secondary'}`}>{f}</Text>
+            <Text className={`text-[11px] font-semibold ${filter === f ? 'text-white' : 'text-foreground-secondary'}`}>{f}</Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         {filtered.length === 0 ? (
@@ -100,15 +100,15 @@ export const ActivityHistoryScreen = () => {
             const config = TYPE_CONFIG[activity.type];
             const Icon = config.icon;
             return (
-              <View key={activity.id} className="bg-surface rounded-xl p-3.5 mb-2 border border-border/60 flex-row">
-                <View className="h-9 w-9 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: config.bg }}>
-                  <Icon size={18} color={config.color} />
+              <View key={activity.id} className="bg-surface rounded-xl px-3 py-2.5 mb-1.5 border border-border/60 flex-row items-center">
+                <View className="h-8 w-8 rounded-lg items-center justify-center mr-2.5" style={{ backgroundColor: config.bg }}>
+                  <Icon size={16} color={config.color} />
                 </View>
-                <View className="flex-1">
-                  <Text className="text-[14px] font-semibold text-foreground">{activity.title}</Text>
-                  <Text className="text-[12px] text-foreground-secondary mt-0.5">{activity.description}</Text>
-                  <Text className="text-[10px] text-foreground-secondary/60 mt-1">{getRelativeTime(activity.timestamp)}</Text>
+                <View className="flex-1 min-w-0">
+                  <Text className="text-[13px] font-semibold text-foreground" numberOfLines={1}>{activity.title}</Text>
+                  <Text className="text-[11px] text-foreground-secondary mt-0.5" numberOfLines={1}>{activity.description}</Text>
                 </View>
+                <Text className="text-[10px] text-foreground-secondary/60 ml-2 shrink-0">{getRelativeTime(activity.timestamp)}</Text>
               </View>
             );
           })

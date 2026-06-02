@@ -1,7 +1,8 @@
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { ArrowLeft, CheckCircle, Star } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Linking, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { IconCircle } from '@shared/ui/IconCircle';
@@ -10,6 +11,28 @@ import { useProfileStore } from '../store/profile.store';
 
 const RATING_LABELS = ['Poor', 'Fair', 'Good', 'Great', 'Excellent!'];
 
+function getStoreUrl(): string | null {
+  const config = Constants.expoConfig;
+  const iosBundleId = config?.ios?.bundleIdentifier ?? 'com.birthdaybuddy.app';
+  const androidPackage = config?.android?.package ?? iosBundleId;
+  const iosAppId = (config?.extra as { iosAppId?: string } | undefined)?.iosAppId;
+
+  if (Platform.OS === 'ios' && iosAppId) {
+    return `https://apps.apple.com/app/id${iosAppId}`;
+  }
+  if (Platform.OS === 'ios') {
+    return `https://apps.apple.com/app/${iosBundleId}`;
+  }
+  if (Platform.OS === 'android') {
+    return `https://play.google.com/store/apps/details?id=${androidPackage}`;
+  }
+
+  if (iosAppId) {
+    return `https://apps.apple.com/app/id${iosAppId}`;
+  }
+  return `https://play.google.com/store/apps/details?id=${androidPackage}`;
+}
+
 export const RateUsScreen = () => {
   const existingRating = useProfileStore((s) => s.appRating);
   const setAppRating = useProfileStore((s) => s.setAppRating);
@@ -17,10 +40,33 @@ export const RateUsScreen = () => {
   const [feedback, setFeedback] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
+  const openAppStore = async () => {
+    const url = getStoreUrl();
+    if (!url) return;
+    const canOpen = await Linking.canOpenURL(url);
+    if (canOpen) {
+      await Linking.openURL(url);
+    }
+  };
+
+  const handleSubmit = async () => {
     if (rating === 0) return;
     setAppRating(rating);
-    setSubmitted(true);
+
+    if (rating >= 4) {
+      await openAppStore();
+      setSubmitted(true);
+      return;
+    }
+
+    router.push({
+      pathname: '/send-feedback',
+      params: {
+        category: 'improvement',
+        subject: `App rating: ${rating} stars`,
+        message: feedback.trim() || `User rated the app ${rating} out of 5.`,
+      },
+    });
   };
 
   if (submitted) {
@@ -61,7 +107,6 @@ export const RateUsScreen = () => {
         <Text className="text-heading text-foreground font-bold text-center mt-4">How do you like BirthdayBuddy?</Text>
         <Text className="text-body text-foreground-secondary text-center mt-2">Tap a star to rate your experience</Text>
 
-        {/* Stars */}
         <View className="flex-row gap-3 mt-6">
           {[1, 2, 3, 4, 5].map((i) => (
             <Pressable key={i} onPress={() => setRating(i)} accessibilityRole="button" accessibilityLabel={`Rate ${i} stars`}>
@@ -80,12 +125,12 @@ export const RateUsScreen = () => {
           </Text>
         )}
 
-        {rating > 0 && (
+        {rating > 0 && rating <= 3 && (
           <View className="w-full mt-6">
             <TextInput
               value={feedback}
               onChangeText={setFeedback}
-              placeholder="Any additional feedback? (optional)"
+              placeholder="Tell us how we can improve (optional)"
               placeholderTextColor="#9CA3AF"
               multiline
               numberOfLines={3}
@@ -96,8 +141,10 @@ export const RateUsScreen = () => {
         )}
 
         {rating > 0 && (
-          <Pressable className="bg-primary rounded-2xl py-4 w-full mt-6 items-center" onPress={handleSubmit} accessibilityRole="button">
-            <Text className="text-[15px] font-bold text-white">Submit Rating</Text>
+          <Pressable className="bg-primary rounded-2xl py-4 w-full mt-6 items-center" onPress={() => void handleSubmit()} accessibilityRole="button">
+            <Text className="text-[15px] font-bold text-white">
+              {rating >= 4 ? 'Rate on App Store' : 'Send Feedback'}
+            </Text>
           </Pressable>
         )}
       </View>

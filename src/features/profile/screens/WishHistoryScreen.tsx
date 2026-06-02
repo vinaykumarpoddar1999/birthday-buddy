@@ -58,17 +58,17 @@ export const WishHistoryScreen = () => {
       </View>
 
       {/* Filter Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-5 mb-3" contentContainerClassName="gap-2">
+      <View className="flex-row flex-wrap gap-2 px-5 mb-3">
         {FILTERS.map((f) => (
           <Pressable
             key={f}
             onPress={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 border ${filter === f ? 'bg-primary border-primary' : 'bg-surface border-border'}`}
+            className={`rounded-full px-3.5 py-1 border ${filter === f ? 'bg-primary border-primary' : 'bg-surface border-border'}`}
             accessibilityRole="button">
-            <Text className={`text-[12px] font-semibold ${filter === f ? 'text-white' : 'text-foreground-secondary'}`}>{f}</Text>
+            <Text className={`text-[11px] font-semibold ${filter === f ? 'text-white' : 'text-foreground-secondary'}`}>{f}</Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         {filtered.length === 0 ? (
@@ -80,22 +80,22 @@ export const WishHistoryScreen = () => {
           />
         ) : (
           filtered.map((wish) => (
-            <View key={wish.id} className="bg-surface rounded-xl p-4 mb-2 border border-border/60">
+            <View key={wish.id} className="bg-surface rounded-xl px-3 py-2 mb-1 border border-border/60 min-h-[52px]">
               <View className="flex-row items-start">
-                <View className="flex-1">
-                  <Text className="text-[14px] text-foreground leading-5" numberOfLines={3}>{wish.text}</Text>
-                  <View className="flex-row items-center gap-2 mt-2">
+                <View className="flex-1 min-w-0">
+                  <Text className="text-[13px] text-foreground leading-5" numberOfLines={2}>{wish.text}</Text>
+                  <View className="flex-row items-center gap-2 mt-1.5 flex-wrap">
                     {wish.tone && (
                       <View className="bg-primary/10 rounded-full px-2 py-0.5">
                         <Text className="text-[10px] font-bold text-primary capitalize">{wish.tone}</Text>
                       </View>
                     )}
-                    {wish.personName && <Text className="text-[11px] text-foreground-secondary">for {wish.personName}</Text>}
+                    {wish.personName && <Text className="text-[10px] text-foreground-secondary">for {wish.personName}</Text>}
                     <Text className="text-[10px] text-foreground-secondary/60">{getRelativeTime(wish.createdAt)}</Text>
                   </View>
                 </View>
                 <Pressable onPress={() => toggleFavorite(wish.id, !wish.isFavorite)} className="ml-2 p-1" accessibilityRole="button" accessibilityLabel="Toggle favorite">
-                  <Heart size={18} color={wish.isFavorite ? '#EF4444' : '#9CA3AF'} fill={wish.isFavorite ? '#EF4444' : 'transparent'} />
+                  <Heart size={16} color={wish.isFavorite ? '#EF4444' : '#9CA3AF'} fill={wish.isFavorite ? '#EF4444' : 'transparent'} />
                 </Pressable>
               </View>
             </View>

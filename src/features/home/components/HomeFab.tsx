@@ -1,16 +1,38 @@
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { Pressable } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+/** Visible tab bar row height (excluding center button overhang). */
+const TAB_BAR_ROW_HEIGHT = 52;
 
 export function HomeFab() {
   const insets = useSafeAreaInsets();
-  const bottom = Math.max(insets.bottom, 10) + 76;
+  const bottom = Math.max(insets.bottom, 6) + TAB_BAR_ROW_HEIGHT + 10;
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
-    <View className="absolute right-5 z-50" style={{ bottom }} pointerEvents="box-none">
+    <Animated.View
+      className="absolute right-5 z-50"
+      style={[{ bottom }, animatedStyle]}
+      pointerEvents="box-none">
       <Pressable
         onPress={() => router.push('/add-person')}
+        onPressIn={() => {
+          scale.value = withSpring(0.92, { damping: 15 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 12 });
+        }}
         accessibilityRole="button"
         accessibilityLabel="Add person"
         style={{
@@ -20,16 +42,15 @@ export function HomeFab() {
           backgroundColor: '#7C3AED',
           alignItems: 'center',
           justifyContent: 'center',
-          borderWidth: 4,
-          borderColor: '#F9FAFB',
-          shadowColor: '#7C3AED',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.45,
+          borderWidth: 0,
+          shadowColor: '#5B21B6',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.4,
           shadowRadius: 14,
-          elevation: 12,
+          elevation: 10,
         }}>
         <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }

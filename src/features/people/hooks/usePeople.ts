@@ -11,6 +11,7 @@ export const peopleQueryKeys = {
   detail: (id: string) => [...peopleQueryKeys.all, 'detail', id] as const,
   upcoming: (limit?: number) => [...peopleQueryKeys.all, 'upcoming', limit] as const,
   stats: () => [...peopleQueryKeys.all, 'stats'] as const,
+  homeInsights: () => [...peopleQueryKeys.all, 'home-insights'] as const,
 };
 
 export function usePeople() {
@@ -39,6 +40,13 @@ export function useBirthdayStats() {
   return useQuery({
     queryKey: peopleQueryKeys.stats(),
     queryFn: () => birthdayService.getStats(),
+  });
+}
+
+export function useHomeInsights() {
+  return useQuery({
+    queryKey: peopleQueryKeys.homeInsights(),
+    queryFn: () => birthdayService.getHomeInsights(),
   });
 }
 

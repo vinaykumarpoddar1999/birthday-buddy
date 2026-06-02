@@ -1,13 +1,13 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, Palette, Eye, Share2, LayoutTemplate } from 'lucide-react-native';
+import { Check, Download, Eye, LayoutTemplate, Palette } from 'lucide-react-native';
 
 const STEPS = [
   { num: 1, label: 'Template', Icon: LayoutTemplate },
-  { num: 2, label: 'Customize', Icon: Palette },
+  { num: 2, label: 'Design', Icon: Palette },
   { num: 3, label: 'Preview', Icon: Eye },
-  { num: 4, label: 'Share', Icon: Share2 },
+  { num: 4, label: 'Share', Icon: Download },
 ] as const;
 
 type Props = { currentStep: 1 | 2 | 3 | 4 };

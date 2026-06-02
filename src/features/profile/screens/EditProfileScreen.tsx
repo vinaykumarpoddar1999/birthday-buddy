@@ -8,7 +8,10 @@ import { useFeedback } from '@/shared/hooks/useFeedback';
 import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
 import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 
+import { z } from 'zod';
+
 import { useProfileStore } from '../store/profile.store';
+import { COUNTRY_OPTIONS, profileSchema, RELATIONSHIP_TYPE_OPTIONS, TIMEZONE_OPTIONS } from '../validation/profile.schema';
 
 const GENDERS = ['male', 'female', 'other'] as const;
 const RELATIONSHIP_OPTIONS = ['Single', 'In a relationship', 'Married', 'Prefer not to say'];
@@ -17,7 +20,7 @@ export const EditProfileScreen = () => {
   const profile = useProfileStore((s) => s.profile);
   const updateProfile = useProfileStore((s) => s.updateProfile);
   const profileCompletion = useProfileStore((s) => s.profileCompletion);
-  const { toast } = useFeedback();
+  const { toast, showError } = useFeedback();
 
   const [name, setName] = useState(profile.fullName);
   const [email, setEmail] = useState(profile.email);
@@ -27,26 +30,40 @@ export const EditProfileScreen = () => {
   const [location, setLocation] = useState(profile.location);
   const [bio, setBio] = useState(profile.bio);
   const [relationshipStatus, setRelationshipStatus] = useState(profile.relationshipStatus);
+  const [relationship, setRelationship] = useState(profile.relationship);
+  const [timezone, setTimezone] = useState(profile.timezone);
+  const [country, setCountry] = useState(profile.country);
   const [preferences, setPreferences] = useState(profile.preferences);
   const [profileImage, setProfileImage] = useState(profile.profileImage);
 
   const { showImagePicker } = useProfileImagePicker((uri) => setProfileImage(uri));
 
   const handleSave = () => {
-    updateProfile({
-      fullName: name,
-      email,
-      phone,
-      gender,
-      birthday,
-      location,
-      bio,
-      relationshipStatus,
-      preferences,
-      profileImage,
-    });
-    toast('Profile updated successfully', 'success');
-    router.back();
+    try {
+      const validated = profileSchema.parse({
+        fullName: name,
+        email,
+        phone,
+        gender,
+        birthday,
+        location,
+        bio,
+        relationshipStatus,
+        relationship,
+        timezone,
+        country,
+        preferences,
+      });
+      updateProfile({ ...validated, profileImage });
+      toast('Profile updated successfully', 'success');
+      router.back();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        showError('Validation Error', error.issues[0]?.message ?? 'Please check your input.');
+      } else {
+        showError('Save Failed', 'Could not save profile. Please try again.');
+      }
+    }
   };
 
   return (
@@ -111,6 +128,55 @@ export const EditProfileScreen = () => {
 
           <FieldInput label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
           <FieldInput label="Address / Location" value={location} onChangeText={setLocation} placeholder="City, Country" />
+
+          <View>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Country</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-1">
+              <View className="flex-row gap-2">
+                {COUNTRY_OPTIONS.map((c) => (
+                  <Pressable
+                    key={c}
+                    onPress={() => setCountry(c)}
+                    className={`px-3 py-2 rounded-xl border ${country === c ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
+                    accessibilityRole="button">
+                    <Text className={`text-[12px] font-semibold ${country === c ? 'text-primary' : 'text-foreground-secondary'}`}>{c}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+
+          <View>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Timezone</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-1">
+              <View className="flex-row gap-2">
+                {TIMEZONE_OPTIONS.slice(0, 12).map((tz) => (
+                  <Pressable
+                    key={tz}
+                    onPress={() => setTimezone(tz)}
+                    className={`px-3 py-2 rounded-xl border ${timezone === tz ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
+                    accessibilityRole="button">
+                    <Text className={`text-[11px] font-semibold ${timezone === tz ? 'text-primary' : 'text-foreground-secondary'}`}>{tz.replace(/_/g, ' ')}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+
+          <View>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Relationship</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {RELATIONSHIP_TYPE_OPTIONS.map((opt) => (
+                <Pressable
+                  key={opt}
+                  onPress={() => setRelationship(opt)}
+                  className={`px-3 py-2 rounded-xl border ${relationship === opt ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
+                  accessibilityRole="button">
+                  <Text className={`text-[12px] font-semibold ${relationship === opt ? 'text-primary' : 'text-foreground-secondary'}`}>{opt}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
 
           <View>
             <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Relationship Status</Text>

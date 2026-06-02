@@ -76,7 +76,7 @@ export function DecorationPicker() {
       }}>
       {/* Header */}
       <View className="flex-row items-center px-4 py-3 border-b border-gray-50">
-        <View className="h-7 w-7 rounded-lg bg-primary/8 items-center justify-center mr-2.5">
+        <View className="h-7 w-7 rounded-lg bg-primary/10 items-center justify-center mr-2.5">
           <Sticker size={14} color="#7C3AED" />
         </View>
         <View className="flex-1">
@@ -89,7 +89,7 @@ export function DecorationPicker() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerClassName="px-3 py-2.5 gap-1.5"
+        contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 10, gap: 6 }}
         className="border-b border-gray-50">
         {STICKER_CATEGORIES.map((cat) => {
           const isActive = activeCategory === cat.id;
