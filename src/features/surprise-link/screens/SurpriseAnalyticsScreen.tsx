@@ -97,14 +97,14 @@ export function SurpriseAnalyticsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       {/* Header */}
       <Animated.View entering={FadeIn.duration(300)} className="flex-row items-center px-5 py-3">
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
           accessibilityLabel="Go back"
-          className="h-10 w-10 rounded-xl bg-white border border-gray-100 items-center justify-center mr-3"
+          className="h-11 w-11 rounded-xl bg-white border border-gray-100 items-center justify-center mr-3"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },

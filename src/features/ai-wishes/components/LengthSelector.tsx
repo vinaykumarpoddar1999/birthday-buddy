@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import type { WishLength } from '../types';
 import { WishSectionHeader } from './WishSectionHeader';
+import { WishColors, WishShadows } from '../constants/design-tokens';
 
 type LengthItem = {
   id: WishLength;
@@ -40,22 +41,16 @@ export function LengthSelector() {
               style={[
                 isActive
                   ? {
-                      borderColor: '#7C3AED',
-                      backgroundColor: '#F5F3FF',
-                      shadowColor: '#7C3AED',
-                      shadowOffset: { width: 0, height: 2 },
+                      borderColor: WishColors.primary,
+                      backgroundColor: WishColors.primaryLight,
+                      ...WishShadows.sm,
+                      shadowColor: WishColors.primary,
                       shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                      elevation: 3,
                     }
                   : {
-                      borderColor: '#F3F4F6',
-                      backgroundColor: '#FFFFFF',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.04,
-                      shadowRadius: 3,
-                      elevation: 1,
+                      borderColor: WishColors.borderLight,
+                      backgroundColor: WishColors.surface,
+                      ...WishShadows.sm,
                     },
               ]}
               accessibilityRole="button"

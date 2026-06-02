@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import { useCardStudioStore } from '@features/card-studio/store/card-studio.store';
 import { templateRegistry } from '@features/card-studio/templates';
+import { WishColors, WishShadows } from '../constants/design-tokens';
 
 type Props = {
   personName: string;
@@ -35,21 +36,20 @@ export function WishCardPreview({ personName }: Props) {
   return (
     <Animated.View entering={FadeInDown.delay(100).duration(400)} className="px-5 mb-5">
       <View className="flex-row items-center gap-2 mb-3">
-        <Palette size={16} color="#7C3AED" />
-        <Text className="text-[14px] font-bold text-foreground">Card Preview</Text>
+        <View className="h-7 w-7 rounded-lg bg-primary/10 items-center justify-center">
+          <Palette size={14} color={WishColors.primary} />
+        </View>
+        <View>
+          <Text className="text-[14px] font-extrabold text-foreground">Card Preview</Text>
+          <Text className="text-[11px] text-foreground-muted">See how your wish looks on a card</Text>
+        </View>
       </View>
 
       <View
-        className="overflow-hidden rounded-2xl border border-gray-100"
-        style={{
-          shadowColor: '#7C3AED',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 12,
-          elevation: 3,
-        }}>
+        className="overflow-hidden rounded-2xl border border-border/80"
+        style={WishShadows.md}>
         <View className="flex-row">
-          <View className="flex-1 p-4 bg-white">
+          <View className="flex-1 p-4 bg-surface">
             <View className="flex-row items-center gap-1.5 mb-2">
               <Heart size={12} color="#EC4899" fill="#EC4899" strokeWidth={1.75} />
               <Text className="text-[12px] font-bold text-foreground">

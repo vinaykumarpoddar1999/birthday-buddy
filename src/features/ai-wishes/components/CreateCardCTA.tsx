@@ -6,6 +6,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import { useCardStudioStore } from '@features/card-studio/store/card-studio.store';
+import { WishColors, WishShadows } from '../constants/design-tokens';
 
 export function CreateCardCTA() {
   const currentWish = useAIWishesStore((s) => s.currentWish);
@@ -29,11 +30,7 @@ export function CreateCardCTA() {
         className="overflow-hidden rounded-2xl"
         style={({ pressed }) => ({
           transform: [{ scale: pressed ? 0.98 : 1 }],
-          shadowColor: '#7C3AED',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.12,
-          shadowRadius: 12,
-          elevation: 5,
+          ...WishShadows.md,
         })}
         accessibilityRole="button"
         accessibilityLabel="Create a birthday card">
@@ -43,7 +40,7 @@ export function CreateCardCTA() {
           end={{ x: 1, y: 1 }}>
           <View className="flex-row items-center p-4">
             <View className="h-12 w-12 rounded-2xl bg-primary/15 items-center justify-center mr-3">
-              <Gift size={22} color="#7C3AED" />
+              <Gift size={22} color={WishColors.primary} />
             </View>
             <View className="flex-1">
               <View className="flex-row items-center gap-1.5">

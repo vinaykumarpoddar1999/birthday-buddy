@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
+import { WishColors } from '../constants/design-tokens';
 
 interface WishSectionHeaderProps {
   step: number;
@@ -11,58 +12,22 @@ interface WishSectionHeaderProps {
 
 export function WishSectionHeader({ step, title, subtitle, Icon }: WishSectionHeaderProps) {
   return (
-    <View style={styles.wrap}>
-      <View style={styles.row}>
-        <View style={styles.badge}>
-          {Icon ? <Icon size={14} color="#7C3AED" strokeWidth={2.5} /> : (
-            <Text style={styles.badgeNum}>{step}</Text>
+    <View className="px-5 mb-3">
+      <View className="flex-row items-center gap-3">
+        <View className="h-9 w-9 rounded-xl bg-primary/12 items-center justify-center">
+          {Icon ? (
+            <Icon size={16} color={WishColors.primary} strokeWidth={2.5} />
+          ) : (
+            <Text className="text-[14px] font-extrabold text-primary">{step}</Text>
           )}
         </View>
-        <View style={styles.textCol}>
-          <Text style={styles.title}>{title}</Text>
-          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        <View className="flex-1">
+          <Text className="text-[16px] font-extrabold text-foreground tracking-tight">{title}</Text>
+          {subtitle ? (
+            <Text className="text-[12px] font-medium text-foreground-secondary mt-0.5">{subtitle}</Text>
+          ) : null}
         </View>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: {
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  badge: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(124,58,237,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeNum: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#7C3AED',
-  },
-  textCol: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#111827',
-    letterSpacing: -0.2,
-  },
-  subtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#6B7280',
-    marginTop: 2,
-  },
-});

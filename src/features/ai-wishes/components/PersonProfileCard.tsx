@@ -19,6 +19,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import type { Person } from '@/types/entities';
+import { WishColors, WishShadows } from '../constants/design-tokens';
 
 type Props = {
   person: Person;
@@ -61,18 +62,12 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
   return (
     <Animated.View
       entering={FadeInDown.duration(400)}
-      className="mx-5 my-4 bg-white rounded-2xl overflow-hidden border border-gray-100"
-      style={{
-        shadowColor: '#7C3AED',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-        elevation: 4,
-      }}>
+      className="mx-5 my-4 bg-surface rounded-2xl overflow-hidden border border-border/80"
+      style={WishShadows.md}>
       <View className="flex-row items-center p-4">
         <View
           className="h-14 w-14 rounded-2xl overflow-hidden mr-3"
-          style={{ backgroundColor: '#F3F0FF' }}>
+          style={{ backgroundColor: WishColors.primaryLight }}>
           {person.avatarUri ? (
             <Image
               source={{ uri: person.avatarUri }}
@@ -81,7 +76,7 @@ export function PersonProfileCard({ person, onEditProfile }: Props) {
             />
           ) : (
             <View className="flex-1 items-center justify-center">
-              <User size={28} color="#7C3AED" strokeWidth={1.75} />
+              <User size={28} color={WishColors.primary} strokeWidth={1.75} />
             </View>
           )}
         </View>

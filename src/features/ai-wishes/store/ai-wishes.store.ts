@@ -37,6 +37,7 @@ interface AIWishesState {
   setPersonalContext: (context: string) => void;
 
   setCurrentWish: (wish: GeneratedWish | null) => void;
+  incrementGenerationCount: () => void;
   updateCurrentWishText: (text: string) => void;
   setIsGenerating: (v: boolean) => void;
 
@@ -72,11 +73,10 @@ export const useAIWishesStore = create<AIWishesState>()((set, get) => ({
   setLanguage: (language) => set({ selectedLanguage: language }),
   setPersonalContext: (context) => set({ personalContext: context }),
 
-  setCurrentWish: (wish) =>
-    set((s) => ({
-      currentWish: wish,
-      generationCount: wish ? s.generationCount + 1 : s.generationCount,
-    })),
+  setCurrentWish: (wish) => set({ currentWish: wish }),
+
+  incrementGenerationCount: () =>
+    set((s) => ({ generationCount: s.generationCount + 1 })),
 
   updateCurrentWishText: (text) =>
     set((s) => {

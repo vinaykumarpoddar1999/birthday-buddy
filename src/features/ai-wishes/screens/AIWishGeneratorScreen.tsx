@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { feedback } from '@/shared/feedback';
-import { UserPlus } from 'lucide-react-native';
+import { PartyPopper, UserPlus, Wand2 } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { EmptyState, ErrorState, ListSkeleton } from '@shared/ui';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -28,6 +29,7 @@ import { ConvertToSurpriseCTA } from '../components/ConvertToSurpriseCTA';
 import { WishBottomTabs } from '../components/WishBottomTabs';
 import { WishHistoryTab } from '../components/WishHistoryTab';
 import { MyTemplatesTab } from '../components/MyTemplatesTab';
+import { WishGradients, WishShadows } from '../constants/design-tokens';
 
 let dataRegistered = false;
 
@@ -65,6 +67,7 @@ export function AIWishGeneratorScreen() {
   const isGenerating = useAIWishesStore((s) => s.isGenerating);
   const generationCount = useAIWishesStore((s) => s.generationCount);
   const setCurrentWish = useAIWishesStore((s) => s.setCurrentWish);
+  const incrementGenerationCount = useAIWishesStore((s) => s.incrementGenerationCount);
   const setIsGenerating = useAIWishesStore((s) => s.setIsGenerating);
   const deductCredit = useAIWishesStore((s) => s.useCredit);
   const credits = useAIWishesStore((s) => s.credits);
@@ -115,6 +118,7 @@ export function AIWishGeneratorScreen() {
           return;
         }
         setCurrentWish(saved);
+        incrementGenerationCount();
         await queryClient.invalidateQueries({ queryKey: wishHistoryQueryKey });
       } catch {
         feedback.error('Generation failed', 'Please try again.');
@@ -123,7 +127,8 @@ export function AIWishGeneratorScreen() {
     }, 800 + Math.random() * 600);
   }, [
     person, credits, selectedTone, selectedLength, selectedLanguage,
-    personalContext, personAge, setIsGenerating, deductCredit, setCurrentWish, queryClient,
+    personalContext, personAge, setIsGenerating, deductCredit, setCurrentWish,
+    incrementGenerationCount, queryClient,
   ]);
 
   const handleBack = () => {
@@ -155,7 +160,7 @@ export function AIWishGeneratorScreen() {
         <EmptyState
           icon={UserPlus}
           title="No people yet"
-          subtitle="Add someone first to generate personalized AI wishes from your SQLite contacts."
+          subtitle="Add someone first to generate personalized AI wishes from your contacts."
           primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
           secondaryAction={{ label: 'Go Back', onPress: handleBack }}
         />
@@ -171,31 +176,47 @@ export function AIWishGeneratorScreen() {
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerClassName="pb-6"
+          contentContainerClassName="pb-8"
           keyboardShouldPersistTaps="handled">
           <PersonProfileCard person={person} />
 
-          <Animated.View entering={FadeInDown.delay(100).duration(400)} className="mx-5 mb-4">
+          <Animated.View entering={FadeInDown.delay(80).duration(400)} className="mx-5 mb-5">
             <View
               className="rounded-2xl overflow-hidden border border-primary/20"
-              style={{
-                shadowColor: '#7C3AED',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 12,
-                elevation: 3,
-              }}>
-              <View className="bg-primary/8 px-4 py-3.5">
-                <Text className="text-[10px] font-extrabold text-primary uppercase tracking-widest">
-                  Celebration context
-                </Text>
-                <Text className="text-[14px] font-semibold text-foreground mt-1.5 leading-5">
-                  {countdown?.isToday
-                    ? `🎉 It's ${person.fullName}'s birthday today — make it unforgettable!`
-                    : `${person.fullName}'s birthday is ${countdown?.primaryLabel.toLowerCase() ?? 'coming up'}.`}
-                </Text>
-              </View>
+              style={WishShadows.md}>
+              <LinearGradient
+                colors={[...WishGradients.celebration]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}>
+                <View className="px-4 py-4 flex-row items-start gap-3">
+                  <View className="h-10 w-10 rounded-xl bg-primary/15 items-center justify-center">
+                    <PartyPopper size={20} color="#7C3AED" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[10px] font-extrabold text-primary uppercase tracking-widest">
+                      Celebration context
+                    </Text>
+                    <Text className="text-[14px] font-bold text-foreground mt-1 leading-5">
+                      {countdown?.isToday
+                        ? `It's ${person.fullName}'s birthday today — make it unforgettable!`
+                        : `${person.fullName}'s birthday is ${countdown?.primaryLabel.toLowerCase() ?? 'coming up'}.`}
+                    </Text>
+                  </View>
+                </View>
+              </LinearGradient>
             </View>
+          </Animated.View>
+
+          <Animated.View entering={FadeInDown.delay(120).duration(400)} className="mx-5 mb-4">
+            <View className="flex-row items-center gap-2 mb-1">
+              <Wand2 size={16} color="#7C3AED" />
+              <Text className="text-[13px] font-extrabold text-foreground uppercase tracking-wide">
+                Customize your wish
+              </Text>
+            </View>
+            <Text className="text-[12px] text-foreground-muted ml-6">
+              Four quick steps to a message they'll love
+            </Text>
           </Animated.View>
 
           <ToneSelector />
@@ -212,27 +233,34 @@ export function AIWishGeneratorScreen() {
 
           {credits <= 0 && (
             <Animated.View entering={FadeInDown.duration(300)} className="px-5 mb-4">
-              <View className="rounded-xl bg-error/10 border border-error/20 p-3">
-                <Text className="text-[12px] font-semibold text-error">
-                  No AI credits left. Keep your existing wishes in history or try card templates.
+              <View className="rounded-2xl bg-error/10 border border-error/20 p-4">
+                <Text className="text-[13px] font-bold text-error">No AI credits left</Text>
+                <Text className="text-[12px] text-error/80 mt-1 leading-5">
+                  Browse your History tab for past wishes, or create a card from saved templates.
                 </Text>
               </View>
             </Animated.View>
           )}
 
           {currentWish && (
-            <>
+            <Animated.View entering={FadeInDown.duration(400)}>
+              <View className="mx-5 mb-4 pt-2 border-t border-border/60">
+                <Text className="text-[13px] font-extrabold text-foreground">Your result</Text>
+                <Text className="text-[12px] text-foreground-muted mt-0.5">
+                  Copy, edit, save, share, or turn it into something special
+                </Text>
+              </View>
+
               <GeneratedWishCard
                 wish={currentWish}
-                wishIndex={credits}
-                totalWishes={credits}
                 onRegenerate={handleGenerate}
+                isGenerating={isGenerating}
               />
               <WishCardPreview personName={person.fullName} />
-              <ShareSection />
+              <ShareSection personName={person.fullName} />
               <CreateCardCTA />
               <ConvertToSurpriseCTA />
-            </>
+            </Animated.View>
           )}
         </ScrollView>
       ) : activeTab === 'history' ? (

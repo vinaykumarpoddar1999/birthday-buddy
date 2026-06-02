@@ -1,9 +1,17 @@
-import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles, Star, WandSparkles } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useAIWishesStore } from '../store/ai-wishes.store';
+import { WishGradients, WishShadows } from '../constants/design-tokens';
 
 type Props = {
   onGenerate: () => void;
@@ -12,8 +20,43 @@ type Props = {
   disabled?: boolean;
 };
 
+function GeneratingDots() {
+  const opacity = useSharedValue(0.4);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(withTiming(1, { duration: 400 }), withTiming(0.3, { duration: 400 })),
+      -1,
+      true,
+    );
+  }, [opacity]);
+
+  const dotStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <View className="flex-row items-center gap-1 mr-1">
+      {[0, 1, 2].map((i) => (
+        <Animated.View
+          key={i}
+          style={[
+            dotStyle,
+            {
+              width: 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: '#FFFFFF',
+              marginLeft: i > 0 ? 2 : 0,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 export function GenerateButton({ onGenerate, isGenerating, generationCount, disabled = false }: Props) {
   const credits = useAIWishesStore((s) => s.credits);
+  const label = generationCount > 0 ? 'Regenerate Wish' : 'Generate Wish';
 
   return (
     <Animated.View entering={FadeInDown.delay(350).duration(400)} className="px-5 mb-5">
@@ -22,34 +65,27 @@ export function GenerateButton({ onGenerate, isGenerating, generationCount, disa
         disabled={isGenerating || disabled}
         className="overflow-hidden rounded-2xl"
         style={({ pressed }) => ({
-          transform: [{ scale: pressed ? 0.97 : 1 }],
-          opacity: disabled ? 0.5 : 1,
-          shadowColor: disabled ? '#6B7280' : '#7C3AED',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.35,
-          shadowRadius: 16,
-          elevation: 10,
+          transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
+          opacity: disabled ? 0.55 : 1,
+          ...(disabled ? {} : WishShadows.glow),
         })}
         accessibilityRole="button"
-        accessibilityLabel="Generate wish">
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: isGenerating || disabled }}>
         <LinearGradient
-          colors={disabled ? ['#9CA3AF', '#6B7280'] : ['#7C3AED', '#9333EA', '#EC4899']}
+          colors={disabled ? ['#9CA3AF', '#6B7280'] : [...WishGradients.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}>
           <View className="flex-row items-center justify-center py-4 gap-2.5">
             {isGenerating ? (
               <>
-                <ActivityIndicator size="small" color="#FFF" />
-                <Text className="text-[16px] font-bold text-white">
-                  Writing magic...
-                </Text>
+                <GeneratingDots />
+                <Text className="text-[16px] font-bold text-white">Crafting your wish...</Text>
               </>
             ) : (
               <>
                 <WandSparkles size={20} color="#FFF" />
-                <Text className="text-[16px] font-bold text-white">
-                  {generationCount > 0 ? 'Regenerate Wish' : 'Generate Wish'}
-                </Text>
+                <Text className="text-[16px] font-bold text-white">{label}</Text>
                 <Sparkles size={16} color="#FCD34D" />
               </>
             )}
@@ -58,7 +94,7 @@ export function GenerateButton({ onGenerate, isGenerating, generationCount, disa
       </Pressable>
 
       {!disabled && (
-        <View className="flex-row items-center justify-center gap-1.5 mt-2">
+        <View className="flex-row items-center justify-center gap-1.5 mt-2.5">
           <Star size={10} color="#7C3AED" fill="#7C3AED" />
           <Text className="text-[11px] text-foreground-muted">
             <Text className="font-bold text-primary">{credits}</Text> credits remaining

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { usePerson } from '@features/people/hooks/usePeople';
+import { SURPRISE_STUDIO } from '../constants/surprise-studio.tokens';
 
 import { StepIndicator } from '../components/common/StepIndicator';
 import { StudioHeader } from '../components/common/StudioHeader';
@@ -109,7 +110,7 @@ export function SurpriseLinkStudioScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <LinearGradient
-        colors={['#FAFAFF', '#F5F3FF', '#FFFFFF']}
+        colors={[...SURPRISE_STUDIO.gradient.screen]}
         style={{ flex: 1 }}>
         <StudioHeader onBack={handleBack} title={TITLES[step]} />
         <StepIndicator currentStep={step} />

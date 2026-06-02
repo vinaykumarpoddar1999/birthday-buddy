@@ -7,6 +7,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 import { EmptyState } from '@shared/ui/EmptyState';
+import { StudioHistorySkeleton } from '../components/common/StudioHistorySkeleton';
+import { SURPRISE_STUDIO } from '../constants/surprise-studio.tokens';
 import { useSurpriseExperiences } from '../hooks/useSurpriseLinks';
 
 const FILTERS = ['All', 'Published', 'Drafts'] as const;
@@ -41,13 +43,14 @@ export function SurpriseHistoryScreen() {
   }, [experiences, filter, query]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       {/* Header */}
       <Animated.View entering={FadeIn.duration(300)} className="flex-row items-center px-5 py-3">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 rounded-xl bg-white border border-gray-100 items-center justify-center mr-3"
+          className="h-11 w-11 rounded-xl bg-white border border-gray-100 items-center justify-center mr-3"
           accessibilityRole="button"
+          accessibilityLabel="Go back"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
@@ -55,7 +58,7 @@ export function SurpriseHistoryScreen() {
             shadowRadius: 6,
             elevation: 2,
           }}>
-          <ArrowLeft size={20} color="#7C3AED" />
+          <ArrowLeft size={20} color={SURPRISE_STUDIO.color.primary} />
         </Pressable>
         <View className="flex-1">
           <View className="flex-row items-center">
@@ -99,6 +102,9 @@ export function SurpriseHistoryScreen() {
             placeholder="Search by name or link..."
             placeholderTextColor="#9CA3AF"
             className="flex-1 ml-3 py-3 text-[15px] text-foreground"
+            accessibilityLabel="Search surprises"
+            returnKeyType="search"
+            clearButtonMode="while-editing"
           />
         </View>
       </Animated.View>
@@ -139,20 +145,19 @@ export function SurpriseHistoryScreen() {
       {/* Content */}
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         {isLoading ? (
-          <View className="items-center py-16">
-            <View className="h-16 w-16 rounded-2xl bg-primary/10 items-center justify-center mb-4">
-              <Sparkles size={28} color="#7C3AED" />
-            </View>
-            <Text className="text-[15px] text-foreground-secondary font-medium">Loading experiences...</Text>
-          </View>
+          <StudioHistorySkeleton />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Sparkles}
-            title="No surprises yet"
-            subtitle="Create your first interactive experience in Surprise Link Studio"
+            title={query.trim() ? 'No matches' : 'No surprises yet'}
+            subtitle={
+              query.trim()
+                ? 'Try a different name or clear your search.'
+                : 'Create your first interactive experience in Surprise Link Studio.'
+            }
             primaryAction={{
-              label: 'Create Surprise',
-              onPress: () => router.push('/surprise-link-studio'),
+              label: query.trim() ? 'Clear search' : 'Create Surprise',
+              onPress: () => (query.trim() ? setQuery('') : router.push('/surprise-link-studio')),
             }}
             className="pt-12"
           />

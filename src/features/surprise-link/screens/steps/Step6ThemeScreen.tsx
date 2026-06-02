@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 import {
@@ -85,6 +85,11 @@ export function Step6ThemeScreen() {
 
   const [musicExpanded, setMusicExpanded] = useState(false);
   const [interactiveExpanded, setInteractiveExpanded] = useState(false);
+  const [volumeTrackWidth, setVolumeTrackWidth] = useState(0);
+
+  const handleVolumeTrackLayout = (e: LayoutChangeEvent) => {
+    setVolumeTrackWidth(e.nativeEvent.layout.width);
+  };
 
   const pickAudio = async () => {
     const result = await DocumentPicker.getDocumentAsync({ type: 'audio/*', copyToCacheDirectory: true });
@@ -272,20 +277,35 @@ export function Step6ThemeScreen() {
                     {Math.round(music.volume * 100)}%
                   </Text>
                 </View>
-                <View className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                <View
+                  className="h-3 rounded-full bg-gray-100 overflow-hidden"
+                  onLayout={handleVolumeTrackLayout}
+                  accessibilityRole="adjustable"
+                  accessibilityLabel="Music volume"
+                  accessibilityValue={{
+                    min: 0,
+                    max: 100,
+                    now: Math.round(music.volume * 100),
+                    text: `${Math.round(music.volume * 100)} percent`,
+                  }}>
                   <Pressable
                     onPress={(e) => {
+                      if (volumeTrackWidth <= 0) return;
                       const { locationX } = e.nativeEvent;
-                      const width = 300;
-                      const vol = Math.min(1, Math.max(0, locationX / width));
+                      const vol = Math.min(1, Math.max(0, locationX / volumeTrackWidth));
                       updateMusic({ volume: Math.round(vol * 100) / 100 });
                     }}
-                    className="flex-1">
+                    className="flex-1 h-full justify-center">
                     <LinearGradient
                       colors={['#7C3AED', '#EC4899']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
-                      style={{ width: `${music.volume * 100}%`, height: '100%', borderRadius: 99 }}
+                      style={{
+                        width: `${music.volume * 100}%`,
+                        height: '100%',
+                        borderRadius: 99,
+                        minWidth: music.volume > 0 ? 8 : 0,
+                      }}
                     />
                   </Pressable>
                 </View>

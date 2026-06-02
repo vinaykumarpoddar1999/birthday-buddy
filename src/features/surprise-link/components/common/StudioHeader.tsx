@@ -1,7 +1,9 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { ChevronLeft, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+import { SURPRISE_STUDIO } from '../../constants/surprise-studio.tokens';
 
 interface StudioHeaderProps {
   title: string;
@@ -11,25 +13,34 @@ interface StudioHeaderProps {
 
 export function StudioHeader({ title, onBack, rightAction }: StudioHeaderProps) {
   return (
-    <View style={styles.headerWrap}>
-      <View style={styles.headerRow}>
+    <View className="px-5 py-3">
+      <View className="flex-row items-center justify-between">
         <Pressable
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel="Go back"
-          style={styles.backBtn}>
-          <ChevronLeft size={20} color="#7C3AED" />
+          className="h-11 w-11 rounded-xl bg-white border border-gray-100 items-center justify-center"
+          style={{
+            shadowColor: SURPRISE_STUDIO.color.primary,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 6,
+            elevation: 2,
+          }}>
+          <ChevronLeft size={22} color={SURPRISE_STUDIO.color.primary} />
         </Pressable>
-        <View style={styles.titleCol}>
-          <View style={styles.badgeRow}>
-            <Sparkles size={12} color="#7C3AED" />
-            <Text style={styles.badge}>Surprise Link Studio</Text>
+        <View className="flex-1 items-center mx-2">
+          <View className="flex-row items-center gap-1 mb-0.5">
+            <Sparkles size={12} color={SURPRISE_STUDIO.color.primary} />
+            <Text className="text-[10px] font-extrabold text-primary uppercase tracking-widest">
+              Surprise Link Studio
+            </Text>
           </View>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text className="text-[16px] font-black text-foreground text-center" numberOfLines={1}>
             {title}
           </Text>
         </View>
-        <View style={styles.rightSlot}>{rightAction}</View>
+        <View className="min-w-[44px] items-end justify-center">{rightAction}</View>
       </View>
     </View>
   );
@@ -39,109 +50,47 @@ interface ContinueButtonProps {
   label?: string;
   onPress: () => void;
   disabled?: boolean;
+  loading?: boolean;
 }
 
-export function ContinueButton({ label = 'Continue', onPress, disabled }: ContinueButtonProps) {
+export function ContinueButton({
+  label = 'Continue',
+  onPress,
+  disabled,
+  loading,
+}: ContinueButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
-    <View style={styles.continueWrap}>
+    <View
+      className="px-5 pt-2 pb-5 border-t border-border/30"
+      style={{ backgroundColor: SURPRISE_STUDIO.color.footerBg }}>
       <Pressable
         onPress={onPress}
-        disabled={disabled}
+        disabled={isDisabled}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={loading ? 'Please wait' : label}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
+        className="rounded-2xl overflow-hidden"
         style={({ pressed }) => [
-          styles.continuePress,
-          disabled && styles.continueDisabled,
-          pressed && !disabled && { transform: [{ scale: 0.98 }] },
+          { minHeight: SURPRISE_STUDIO.touch.min, opacity: isDisabled ? 0.55 : 1 },
+          pressed && !isDisabled && { transform: [{ scale: 0.98 }] },
         ]}>
         <LinearGradient
-          colors={disabled ? ['#9CA3AF', '#6B7280'] : ['#7C3AED', '#EC4899']}
+          colors={
+            isDisabled
+              ? (['#9CA3AF', '#6B7280'] as const)
+              : ([...SURPRISE_STUDIO.gradient.cta] as const)
+          }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={styles.continueGradient}>
-          <Text style={styles.continueLabel}>{label}</Text>
+          className="py-4 items-center justify-center flex-row gap-2">
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : null}
+          <Text className="text-[15px] font-extrabold text-white">{loading ? 'Working...' : label}</Text>
         </LinearGradient>
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  headerWrap: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  titleCol: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 2,
-  },
-  badge: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#7C3AED',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#111827',
-    textAlign: 'center',
-  },
-  rightSlot: {
-    minWidth: 40,
-    alignItems: 'flex-end',
-  },
-  continueWrap: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(229,231,235,0.5)',
-    backgroundColor: '#F8F6FC',
-  },
-  continuePress: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  continueDisabled: {
-    opacity: 0.5,
-  },
-  continueGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderRadius: 16,
-  },
-  continueLabel: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-  },
-});

@@ -18,6 +18,7 @@ import { templateRegistry } from '../../templates/template-registry';
 import { useSurpriseLinkStore } from '../../store/surprise-link.store';
 import type { ExperienceTemplate, TemplateCategory } from '../../types';
 import { ContinueButton } from '../../components/common/StudioHeader';
+import { StudioEmptyState } from '../../components/common/StudioEmptyState';
 import { StudioScreenIntro } from '../../components/common/StudioScreenIntro';
 import { StudioStepLayout } from '../../components/common/StudioStepLayout';
 
@@ -365,18 +366,22 @@ export function Step3TemplateScreen() {
     ],
   );
 
+  const resetFilters = useCallback(() => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+  }, [setSearchQuery, setSelectedCategory]);
+
   const ListEmpty = useMemo(
     () => (
-      <View className="px-5 py-10 items-center">
-        <Text className="text-[15px] font-bold text-foreground text-center">
-          No templates match your filters
-        </Text>
-        <Text className="text-[13px] text-foreground-secondary text-center mt-2">
-          Try another category or clear your search.
-        </Text>
-      </View>
+      <StudioEmptyState
+        Icon={Layers}
+        title="No templates found"
+        subtitle="Try a different category or clear your search to browse all experiences."
+        actionLabel="Reset filters"
+        onAction={resetFilters}
+      />
     ),
-    [],
+    [resetFilters],
   );
 
   return (

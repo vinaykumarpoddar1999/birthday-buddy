@@ -6,6 +6,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import { useSurpriseLinkStore } from '@features/surprise-link/store/surprise-link.store';
+import { WishColors, WishShadows } from '../constants/design-tokens';
 
 export function ConvertToSurpriseCTA() {
   const currentWish = useAIWishesStore((s) => s.currentWish);
@@ -47,11 +48,8 @@ export function ConvertToSurpriseCTA() {
         className="overflow-hidden rounded-2xl"
         style={({ pressed }) => ({
           transform: [{ scale: pressed ? 0.98 : 1 }],
-          shadowColor: '#EC4899',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.12,
-          shadowRadius: 12,
-          elevation: 5,
+          ...WishShadows.md,
+          shadowColor: WishColors.secondary,
         })}
         accessibilityRole="button"
         accessibilityLabel="Convert to surprise experience">
@@ -61,7 +59,7 @@ export function ConvertToSurpriseCTA() {
           end={{ x: 1, y: 1 }}>
           <View className="flex-row items-center p-4">
             <View className="h-12 w-12 rounded-2xl bg-secondary/15 items-center justify-center mr-3">
-              <Link2 size={22} color="#EC4899" />
+              <Link2 size={22} color={WishColors.secondary} />
             </View>
             <View className="flex-1">
               <View className="flex-row items-center gap-1.5">

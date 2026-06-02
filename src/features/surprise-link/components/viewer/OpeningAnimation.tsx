@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -11,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Gift, Mail, Sparkles } from 'lucide-react-native';
+import { Gift, Mail, Sparkles, X } from 'lucide-react-native';
 
 interface OpeningAnimationProps {
   type: 'gift_box' | 'envelope';
@@ -162,9 +163,10 @@ interface LandingScreenProps {
   senderName?: string;
   welcomeMessage?: string;
   onOpen: () => void;
+  onClose?: () => void;
 }
 
-export function LandingScreen({ senderName, welcomeMessage, onOpen }: LandingScreenProps) {
+export function LandingScreen({ senderName, welcomeMessage, onOpen, onClose }: LandingScreenProps) {
   const pulse = useSharedValue(1);
   const floatY = useSharedValue(0);
   const iconScale = useSharedValue(0);
@@ -200,10 +202,21 @@ export function LandingScreen({ senderName, welcomeMessage, onOpen }: LandingScr
   }));
 
   return (
+    <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
     <LinearGradient
       colors={['#0F0A2E', '#1E1B4B', '#7C3AED', '#EC4899']}
       locations={[0, 0.3, 0.7, 1]}
       className="flex-1 items-center justify-center px-8">
+      {onClose ? (
+        <Pressable
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          className="absolute top-4 right-5 z-10 h-11 w-11 rounded-full items-center justify-center"
+          style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
+          <X size={20} color="#FFF" />
+        </Pressable>
+      ) : null}
       <Animated.View style={iconStyle} className="mb-6">
         <View
           className="h-28 w-28 rounded-[32px] items-center justify-center"
@@ -246,5 +259,6 @@ export function LandingScreen({ senderName, welcomeMessage, onOpen }: LandingScr
 
       <Text className="text-white/30 text-[12px] mt-8">Tap to unwrap the magic</Text>
     </LinearGradient>
+    </SafeAreaView>
   );
 }

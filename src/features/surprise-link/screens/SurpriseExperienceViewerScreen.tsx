@@ -4,10 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Send, X } from 'lucide-react-native';
+import { Send, X, ChevronLeft } from 'lucide-react-native';
 import { feedback } from '@/shared/feedback';
 
-import { EmptyState, ErrorState, PageSkeleton } from '@shared/ui';
+import { ErrorState, PageSkeleton } from '@shared/ui';
 
 import { ExperiencePreview } from '../components/viewer/ExperiencePreview';
 import { LandingScreen, OpeningAnimation } from '../components/viewer/OpeningAnimation';
@@ -112,6 +112,7 @@ export function SurpriseExperienceViewerScreen() {
         senderName={safeExperience.personalization.senderName}
         welcomeMessage={safeExperience.personalization.hero.welcomeMessage}
         onOpen={handleOpen}
+        onClose={() => router.back()}
       />
     );
   }
@@ -126,7 +127,16 @@ export function SurpriseExperienceViewerScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1" edges={['bottom']}>
+    <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
+      <View className="absolute top-2 left-4 z-20">
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Close experience"
+          className="h-11 w-11 rounded-full bg-black/30 items-center justify-center">
+          <ChevronLeft size={22} color="#FFF" />
+        </Pressable>
+      </View>
       <ExperiencePreview
         experience={safeExperience}
         interactive

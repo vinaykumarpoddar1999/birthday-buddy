@@ -15,6 +15,7 @@ import {
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import type { ToneOption, WishTone } from '../types';
 import { WishSectionHeader } from './WishSectionHeader';
+import { WishShadows } from '../constants/design-tokens';
 
 type ToneWithIcon = ToneOption & {
   Icon: LucideIcon;
@@ -88,12 +89,10 @@ export function ToneSelector() {
                 <View
                   className="rounded-2xl overflow-hidden"
                   style={{
-                    width: 88,
+                    width: 92,
+                    ...WishShadows.md,
                     shadowColor: tone.color,
-                    shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.35,
-                    shadowRadius: 10,
-                    elevation: 6,
                   }}>
                   <LinearGradient
                     colors={tone.gradient}
@@ -114,15 +113,8 @@ export function ToneSelector() {
                 </View>
               ) : (
                 <View
-                  className="items-center py-3 px-2 rounded-2xl bg-white border border-gray-100"
-                  style={{
-                    width: 88,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 4,
-                    elevation: 1,
-                  }}>
+                  className="items-center py-3 px-2 rounded-2xl bg-surface border border-border/80"
+                  style={{ width: 92, ...WishShadows.sm }}>
                   <View
                     className="h-10 w-10 rounded-xl items-center justify-center mb-1.5"
                     style={{ backgroundColor: `${tone.color}12` }}>

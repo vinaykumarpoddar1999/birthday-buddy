@@ -579,7 +579,7 @@ export function Step5ModulesScreen() {
   );
 
   return (
-    <View style={{ flex: 1, minHeight: 0 }}>
+    <>
       <StudioStepLayout footer={<ContinueButton onPress={nextStep} />}>
         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         <StudioScreenIntro
@@ -648,7 +648,6 @@ export function Step5ModulesScreen() {
         </ScrollView>
       </StudioStepLayout>
 
-      {/* Add Module Modal */}
       <Modal
         visible={showAddModal}
         animationType="slide"
@@ -720,6 +719,6 @@ export function Step5ModulesScreen() {
           </Animated.View>
         </View>
       </Modal>
-    </View>
+    </>
   );
 }

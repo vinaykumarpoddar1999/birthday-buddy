@@ -121,7 +121,7 @@ export function Step9ShareScreen() {
   }, [reset]);
 
   return (
-    <View style={{ flex: 1, minHeight: 0 }}>
+    <>
       {showConfetti && <ConfettiOverlay />}
       <StudioStepLayout>
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
@@ -139,14 +139,17 @@ export function Step9ShareScreen() {
               disabled={publishMutation.isPending}
               accessibilityRole="button"
               accessibilityLabel="Share surprise link"
+              accessibilityState={{ busy: publishMutation.isPending }}
               className="rounded-2xl overflow-hidden mb-5"
-              style={{
+              style={({ pressed }) => ({
+                opacity: publishMutation.isPending ? 0.7 : 1,
+                transform: [{ scale: pressed && !publishMutation.isPending ? 0.98 : 1 }],
                 shadowColor: '#7C3AED',
                 shadowOffset: { width: 0, height: 6 },
                 shadowOpacity: 0.3,
                 shadowRadius: 16,
                 elevation: 8,
-              }}>
+              })}>
               <LinearGradient
                 colors={['#7C3AED', '#9333EA', '#EC4899']}
                 start={{ x: 0, y: 0 }}
@@ -291,6 +294,6 @@ export function Step9ShareScreen() {
         </View>
         </ScrollView>
       </StudioStepLayout>
-    </View>
+    </>
   );
 }

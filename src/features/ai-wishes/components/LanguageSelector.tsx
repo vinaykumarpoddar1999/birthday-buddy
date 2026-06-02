@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import type { LanguageOption } from '../types';
 import { WishSectionHeader } from './WishSectionHeader';
+import { WishColors, WishShadows } from '../constants/design-tokens';
 
 const LANGUAGES: LanguageOption[] = [
   { id: 'english', label: 'English', nativeLabel: 'English' },
@@ -31,18 +32,12 @@ export function LanguageSelector() {
 
       <Pressable
         onPress={() => setOpen(!open)}
-        className="flex-row items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 active:bg-gray-50"
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.04,
-          shadowRadius: 3,
-          elevation: 1,
-        }}
+        className="flex-row items-center justify-between bg-surface border border-border/80 rounded-xl px-4 py-3 active:bg-primary/5"
+        style={WishShadows.sm}
         accessibilityRole="button">
         <View className="flex-row items-center gap-2.5">
           <View className="h-8 w-8 rounded-lg bg-primary/10 items-center justify-center">
-            <Globe size={16} color="#7C3AED" />
+            <Globe size={16} color={WishColors.primary} />
           </View>
           <View>
             <Text className="text-[13px] font-semibold text-foreground">
@@ -64,18 +59,14 @@ export function LanguageSelector() {
 
       {open && (
         <View
-          className="mt-1.5 bg-white rounded-xl border border-gray-100 overflow-hidden"
+          className="mt-1.5 bg-surface rounded-xl border border-border/80 overflow-hidden"
           style={{
             position: 'absolute',
             left: 20,
             right: 20,
             top: 90,
-            shadowColor: '#7C3AED',
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.12,
-            shadowRadius: 20,
-            elevation: 12,
             zIndex: 100,
+            ...WishShadows.lg,
           }}>
           {LANGUAGES.map((lang, idx) => {
             const isSelected = selectedLanguage === lang.id;

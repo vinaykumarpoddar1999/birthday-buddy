@@ -262,9 +262,11 @@ export const useSurpriseLinkStore = create<SurpriseLinkState>((set, get) => ({
         status: 'draft' as const,
       };
       await surpriseLinkService.saveExperience(draft);
-    } finally {
+    } catch (err) {
       set({ isGenerating: false });
+      throw err;
     }
+    set({ isGenerating: false });
   },
 
   publishExperience: async () => {

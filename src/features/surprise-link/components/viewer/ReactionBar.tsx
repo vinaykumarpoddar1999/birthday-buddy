@@ -42,7 +42,7 @@ function ReactionButton({ reaction, onPress }: { reaction: typeof REACTIONS[numb
         onPress={handlePress}
         accessibilityRole="button"
         accessibilityLabel={reaction.label}
-        className={`items-center px-3.5 py-2.5 rounded-2xl mx-0.5 ${reacted ? 'bg-primary/15' : 'bg-gray-50'}`}
+        className={`items-center px-3.5 py-3 rounded-2xl mx-0.5 min-h-[52px] min-w-[52px] justify-center ${reacted ? 'bg-primary/15' : 'bg-gray-50'}`}
         style={reacted ? { borderWidth: 1.5, borderColor: '#7C3AED40' } : undefined}>
         <Text className="text-[26px] leading-[32px]">{reaction.emoji}</Text>
         <Text className={`text-[9px] font-bold mt-1 ${reacted ? 'text-primary' : 'text-foreground-secondary'}`}>
