@@ -1,12 +1,26 @@
 import '../global.css';
+import 'react-native-reanimated';
 
+import '@/services/background-tasks';
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
 
-import '@/services/backup/backup-scheduler.service';
-import '@/services/notifications/notification-scheduler.service';
 import { AppProviders } from '@shared/providers/AppProviders';
 
+function registerGlobalErrorHandlers(): void {
+  const errorUtils = (globalThis as { ErrorUtils?: { setGlobalHandler?: (handler: (error: Error, isFatal?: boolean) => void) => void } }).ErrorUtils;
+  errorUtils?.setGlobalHandler?.((error, isFatal) => {
+    if (__DEV__) {
+      console.error('[global]', isFatal ? 'fatal' : 'non-fatal', error);
+    }
+  });
+}
+
 export default function RootLayout() {
+  useEffect(() => {
+    registerGlobalErrorHandlers();
+  }, []);
+
   return (
     <AppProviders>
       <Stack screenOptions={{ headerShown: false }}>

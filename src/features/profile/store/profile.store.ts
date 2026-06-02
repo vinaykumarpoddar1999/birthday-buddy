@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 
-import { accountService } from '@/services/account/account.service';
 import {
   DEFAULT_APPEARANCE_SETTINGS,
   DEFAULT_BACKUP_SETTINGS,
@@ -230,6 +229,7 @@ export const useProfileStore = create<ProfileStoreState>()((set, get) => ({
   },
 
   deleteAccount: async () => {
+    const { accountService } = await import('@/services/account/account.service');
     await accountService.wipeLocalData();
   },
 

@@ -3,7 +3,6 @@ import { useAIWishesStore } from '@features/ai-wishes/store/ai-wishes.store';
 import { hydrateProfileDomains } from '@features/profile/store/profile.store';
 import { useCardStudioStore } from '@features/card-studio/store/card-studio.store';
 import { useThemeStore } from '@/stores/theme.store';
-import { useAuthStore } from '@/stores/auth.store';
 import { useNotificationStore } from '@/stores/notification.store';
 import { useBirthdayStore } from '@/stores/birthday.store';
 
@@ -16,20 +15,76 @@ import { profileService } from '@/services/profile/profile.service';
 import { birthdayService } from '@/services/birthday/birthday.service';
 import { feedbackService } from '@/services/feedback/feedback.service';
 
-export async function hydrateAppStores(): Promise<void> {
-  await appNotificationService.seedWelcomeIfEmpty();
+async function hydrateAuthStoreSafely(): Promise<void> {
+  try {
+    const { useAuthStore } = await import('@/stores/auth.store');
+    await useAuthStore.getState().hydrate();
+  } catch {
+    const { useAuthStore } = await import('@/stores/auth.store');
+    useAuthStore.setState({
+      authState: 'setup_required',
+      isHydrated: true,
+      isLocked: false,
+      hasAccount: false,
+      onboardingComplete: false,
+    });
+  }
+}
 
-  const [profileBundle, notifications, activities, recentSearches, cardPrefs, aiTemplates, feedbacks, homeInsights] =
-    await Promise.all([
-      profileService.load(),
-      appNotificationService.list(),
-      activityDisplayService.getActivityFeed(),
-      profileService.getRecentSearches(),
-      cardStudioPrefsService.load(),
-      cardStudioPrefsService.loadAiTemplates(),
-      feedbackService.list(),
-      birthdayService.getHomeInsights(),
-    ]);
+async function loadStoreData() {
+  return Promise.all([
+    profileService.load(),
+    appNotificationService.list(),
+    activityDisplayService.getActivityFeed(),
+    profileService.getRecentSearches(),
+    cardStudioPrefsService.load(),
+    cardStudioPrefsService.loadAiTemplates(),
+    feedbackService.list(),
+    birthdayService.getHomeInsights(),
+  ]);
+}
+
+export async function hydrateAppStores(): Promise<void> {
+  try {
+    await appNotificationService.seedWelcomeIfEmpty();
+  } catch {
+    // Non-blocking welcome seed.
+  }
+
+  let profileBundle: Awaited<ReturnType<typeof profileService.load>>;
+  let notifications: Awaited<ReturnType<typeof appNotificationService.list>>;
+  let activities: Awaited<ReturnType<typeof activityDisplayService.getActivityFeed>>;
+  let recentSearches: string[];
+  let cardPrefs: Awaited<ReturnType<typeof cardStudioPrefsService.load>>;
+  let aiTemplates: Awaited<ReturnType<typeof cardStudioPrefsService.loadAiTemplates>>;
+  let feedbacks: Awaited<ReturnType<typeof feedbackService.list>>;
+  let homeInsights: Awaited<ReturnType<typeof birthdayService.getHomeInsights>>;
+
+  try {
+    [
+      profileBundle,
+      notifications,
+      activities,
+      recentSearches,
+      cardPrefs,
+      aiTemplates,
+      feedbacks,
+      homeInsights,
+    ] = await loadStoreData();
+  } catch {
+    const fallback = await profileService.load().catch(async () => ({
+      ...(await import('@/services/profile/profile.service')).DEFAULT_PROFILE_BUNDLE,
+      profileCompletion: 0,
+    }));
+    profileBundle = fallback;
+    notifications = [];
+    activities = [];
+    recentSearches = [];
+    cardPrefs = { favoriteTemplateIds: [], recentTemplateIds: [], drafts: [] };
+    aiTemplates = [];
+    feedbacks = [];
+    homeInsights = { remindersToday: 0, streakDays: 0, upcomingThisWeek: 0 };
+  }
 
   hydrateProfileDomains(profileBundle);
 
@@ -79,9 +134,13 @@ export async function hydrateAppStores(): Promise<void> {
     /* background backup registration is optional */
   }
 
-  const refreshedNotifications = await appNotificationService.list();
-  useNotificationStore.getState().hydrateNotifications(refreshedNotifications);
-  useActivityStore.setState({ notifications: refreshedNotifications });
+  try {
+    const refreshedNotifications = await appNotificationService.list();
+    useNotificationStore.getState().hydrateNotifications(refreshedNotifications);
+    useActivityStore.setState({ notifications: refreshedNotifications });
+  } catch {
+    // Keep previously loaded notifications.
+  }
 
-  await useAuthStore.getState().hydrate();
+  await hydrateAuthStoreSafely();
 }
