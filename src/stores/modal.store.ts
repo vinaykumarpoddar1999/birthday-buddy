@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type ModalId = 'premium' | 'referral' | 'share' | 'confirm-delete' | null;
+type ModalId = 'premium' | 'rate' | 'update' | 'referral' | 'share' | 'confirm-delete' | null;
 
 type ModalState = {
   activeModal: ModalId;

@@ -14,6 +14,7 @@ import {
   Zap,
 } from 'lucide-react-native';
 
+import { usePremiumGate } from '@features/premium/hooks/usePremiumGate';
 import { templateRegistry } from '../../templates/template-registry';
 import { useSurpriseLinkStore } from '../../store/surprise-link.store';
 import type { ExperienceTemplate, TemplateCategory } from '../../types';
@@ -180,9 +181,22 @@ export function Step3TemplateScreen() {
   const favoriteTemplateIds = useSurpriseLinkStore((s) => s.favoriteTemplateIds);
   const setSearchQuery = useSurpriseLinkStore((s) => s.setSearchQuery);
   const setSelectedCategory = useSurpriseLinkStore((s) => s.setSelectedCategory);
-  const selectTemplate = useSurpriseLinkStore((s) => s.selectTemplate);
+  const selectTemplateStore = useSurpriseLinkStore((s) => s.selectTemplate);
   const toggleFavoriteTemplate = useSurpriseLinkStore((s) => s.toggleFavoriteTemplate);
   const nextStep = useSurpriseLinkStore((s) => s.nextStep);
+  const { requirePremium } = usePremiumGate('surprise_templates');
+
+  const selectTemplate = useCallback(
+    (template: ExperienceTemplate) => {
+      const proceed = () => selectTemplateStore(template);
+      if (template.isPremium) {
+        requirePremium(proceed);
+      } else {
+        proceed();
+      }
+    },
+    [requirePremium, selectTemplateStore],
+  );
 
   const results = useMemo(() => {
     let list =

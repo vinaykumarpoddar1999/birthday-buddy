@@ -1,5 +1,14 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Dimensions, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  InteractionManager,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { feedback } from '@/shared/feedback';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -9,8 +18,6 @@ import {
   Link2,
   MessageCircle,
   Plus,
-  Save,
-  PartyPopper,
 } from 'lucide-react-native';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
@@ -24,17 +31,14 @@ import { useCardStudioStore } from '../store/card-studio.store';
 import { CardRenderer } from '../components/preview/CardRenderer';
 import { getCanvasDimensions } from '../utils/canvas-dimensions';
 
-const SCREEN_W = Dimensions.get('window').width;
-
 export function Step4ShareScreen() {
+  const { width: screenW } = useWindowDimensions();
   const template = useCardStudioStore((s) => s.selectedTemplate);
   const personalization = useCardStudioStore((s) => s.personalization);
   const elements = useCardStudioStore((s) => s.elements);
   const customBackground = useCardStudioStore((s) => s.customBackground);
   const canvasFormat = useCardStudioStore((s) => s.canvasFormat);
   const preFilledPersonId = useCardStudioStore((s) => s.preFilledPersonId);
-  const uploadedPhotoUri = useCardStudioStore((s) => s.uploadedPhotoUri);
-  const saveDraft = useCardStudioStore((s) => s.saveDraft);
   const reset = useCardStudioStore((s) => s.reset);
   const updateSurprisePersonalization = useSurpriseLinkStore((s) => s.updatePersonalization);
   const updateSurpriseHero = useSurpriseLinkStore((s) => s.updateHero);
@@ -50,7 +54,7 @@ export function Step4ShareScreen() {
     updateSurpriseHero({
       welcomeMessage: `A surprise card for ${personalization.recipientName || 'you'} ❤️`,
       heroImageUri: personalization.photoUri,
-      coverImageUri: uploadedPhotoUri ?? undefined,
+      coverImageUri: personalization.photoUri ?? undefined,
     });
     setSurpriseOccasion(personalization.eventType === 'anniversary' ? 'anniversary' : 'birthday');
     setSurpriseStep(4);
@@ -60,7 +64,6 @@ export function Step4ShareScreen() {
     });
   }, [
     personalization,
-    uploadedPhotoUri,
     preFilledPersonId,
     updateSurprisePersonalization,
     updateSurpriseHero,
@@ -75,6 +78,10 @@ export function Step4ShareScreen() {
 
   const capture = useCallback(async () => {
     if (!cardRef.current) return null;
+    await new Promise<void>((resolve) => {
+      InteractionManager.runAfterInteractions(() => resolve());
+    });
+    await new Promise((r) => setTimeout(r, 120));
     try {
       return await captureRef(cardRef, { format: 'png', quality: 1, result: 'tmpfile' });
     } catch {
@@ -148,9 +155,11 @@ export function Step4ShareScreen() {
     setSharing(false);
   }, [capture, personalization.recipientName, persistCard]);
 
-  const handleCopy = useCallback(async () => {
+  const handleShareMessage = useCallback(async () => {
+    const eventLabel =
+      personalization.eventType === 'anniversary' ? 'Happy Anniversary' : 'Happy Birthday';
     const msg = [
-      `Happy Birthday, ${personalization.recipientName}!`,
+      `${eventLabel}, ${personalization.recipientName}!`,
       personalization.message ? `\n${personalization.message}` : '',
       personalization.senderName ? `\n\n— ${personalization.senderName}` : '',
     ].join('');
@@ -158,21 +167,20 @@ export function Step4ShareScreen() {
     try {
       if (Platform.OS === 'web') {
         await navigator.clipboard?.writeText(msg);
+        feedback.success('Copied!', 'Message copied to clipboard.');
       } else {
         const { Share } = await import('react-native');
         await Share.share({ message: msg });
-        return;
       }
-      feedback.success('Copied!', 'Birthday message copied to clipboard.');
     } catch {
-      feedback.error('Error', 'Could not copy message.');
+      feedback.error('Error', 'Could not share message.');
     }
   }, [personalization]);
 
   if (!template) return null;
 
   const { w: cardW, h: cardH } = getCanvasDimensions(canvasFormat);
-  const cardScale = Math.min((SCREEN_W - 80) / cardW, 0.72);
+  const cardScale = Math.min((screenW - 80) / cardW, 0.78);
 
   return (
     <View className="flex-1 bg-background">
@@ -181,36 +189,26 @@ export function Step4ShareScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 48 }}>
         {/* Success Banner */}
-        <View className="mx-5 mt-3 mb-5">
-          <View
-            className="rounded-2xl overflow-hidden"
-            style={{
-              shadowColor: '#22C55E',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              elevation: 4,
-            }}>
+        <Animated.View entering={FadeInDown.duration(400)} className="mx-5 mt-3 mb-5">
+          <View className="rounded-2xl overflow-hidden">
             <LinearGradient
-              colors={['#ECFDF5', '#D1FAE5', '#ECFDF5']}
+              colors={['#EDE9FE', '#FCE7F3', '#EDE9FE']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}>
               <View className="flex-row items-center px-5 py-4 gap-4">
-                <View className="h-12 w-12 rounded-2xl bg-green-500 items-center justify-center">
-                  <PartyPopper size={22} color="#FFF" />
-                </View>
+                <Animated.View entering={ZoomIn.duration(500)} className="h-12 w-12 rounded-2xl bg-primary items-center justify-center">
+                  <Check size={22} color="#FFF" strokeWidth={3} />
+                </Animated.View>
                 <View className="flex-1">
-                  <Text className="text-[16px] font-bold text-green-800">
-                    Card Ready!
-                  </Text>
-                  <Text className="text-[12px] text-green-700 mt-0.5">
-                    Save it or share with {personalization.recipientName || 'your loved one'}
+                  <Text className="text-[16px] font-bold text-foreground">Your card is ready!</Text>
+                  <Text className="text-[12px] text-foreground-muted mt-0.5">
+                    Share with {personalization.recipientName || 'someone special'}
                   </Text>
                 </View>
               </View>
             </LinearGradient>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Hidden full-resolution capture target */}
         <View
@@ -308,7 +306,7 @@ export function Step4ShareScreen() {
               </Text>
             </Pressable>
             <Pressable
-              onPress={handleCopy}
+              onPress={handleShareMessage}
               className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2"
               style={({ pressed }) => ({
                 transform: [{ scale: pressed ? 0.97 : 1 }],
@@ -319,39 +317,25 @@ export function Step4ShareScreen() {
                 shadowRadius: 8,
                 elevation: 4,
               })}
-              accessibilityRole="button">
+              accessibilityRole="button"
+              accessibilityLabel="Share birthday message">
               <ClipboardCopy size={16} color="#FFF" />
-              <Text className="text-[14px] font-bold text-white">Copy Text</Text>
+              <Text className="text-[14px] font-bold text-white">Share Message</Text>
             </Pressable>
           </View>
 
-          {/* Secondary actions */}
-          <View className="flex-row gap-3">
+          <View className="flex-row gap-3 mt-3">
             <Pressable
               onPress={() => {
-                saveDraft();
-                feedback.success('Saved!', 'Draft has been saved.');
+                reset();
+                useCardStudioStore.getState().setStep(1);
               }}
-              className="flex-1 flex-row items-center justify-center bg-white rounded-2xl py-3.5 gap-2 border border-gray-100"
-              style={({ pressed }) => ({
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.04,
-                shadowRadius: 4,
-                elevation: 1,
-              })}
-              accessibilityRole="button">
-              <Save size={15} color="#6B7280" />
-              <Text className="text-[13px] font-semibold text-foreground">Save Draft</Text>
-            </Pressable>
-            <Pressable
-              onPress={reset}
               className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2 bg-primary/10 border border-primary/20"
               style={({ pressed }) => ({
                 transform: [{ scale: pressed ? 0.97 : 1 }],
               })}
-              accessibilityRole="button">
+              accessibilityRole="button"
+              accessibilityLabel="Create new card">
               <Plus size={15} color="#7C3AED" />
               <Text className="text-[13px] font-semibold text-primary">New Card</Text>
             </Pressable>

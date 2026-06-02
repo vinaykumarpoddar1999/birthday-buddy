@@ -1,10 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Bell, Hand, Search, Sparkles } from 'lucide-react-native';
+import { Bell, Crown, Hand, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 
 import { Colors, Shadows, scale } from '../constants/design-tokens';
 import { useNotificationStore } from '@/stores/notification.store';
+import { usePremiumEntitlement } from '@features/premium/hooks/usePremiumEntitlement';
 import { useProfileStore } from '@features/profile/store/profile.store';
 import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
 import { getAvatarSource } from '@/shared/utils/avatar';
@@ -12,6 +13,7 @@ import { getAvatarSource } from '@/shared/utils/avatar';
 export function HomeHeader() {
   const unreadCount = useNotificationStore((s) => s.notifications.filter((n) => !n.isRead).length);
   const profile = useProfileStore((s) => s.profile);
+  const { isActive: isPremium } = usePremiumEntitlement();
   const { maskName } = usePrivacyDisplay();
   const displayName = maskName(profile.fullName || 'there');
   const firstName = displayName.split(' ')[0] || 'there';
@@ -55,11 +57,11 @@ export function HomeHeader() {
 
         <View style={styles.actionsRow}>
           <Pressable
-            style={styles.actionButton}
-            onPress={() => router.push('/search')}
+            style={[styles.actionButton, styles.premiumButton]}
+            onPress={() => router.push('/premium-upgrade')}
             accessibilityRole="button"
-            accessibilityLabel="Search">
-            <Search size={scale(18)} color="#374151" strokeWidth={2} />
+            accessibilityLabel={isPremium ? 'Premium active' : 'Upgrade to Premium'}>
+            <Crown size={scale(18)} color={isPremium ? '#D97706' : '#7C3AED'} fill={isPremium ? '#FBBF24' : 'transparent'} />
           </Pressable>
           <View>
             <Pressable
@@ -151,6 +153,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.button,
+  },
+  premiumButton: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
   },
   badge: {
     position: 'absolute',

@@ -87,12 +87,6 @@ export async function hydrateAppStores(): Promise<void> {
 
   hydrateProfileDomains(profileBundle);
 
-  useCardStudioStore.setState({
-    favoriteTemplateIds: cardPrefs.favoriteTemplateIds,
-    recentTemplateIds: cardPrefs.recentTemplateIds,
-    drafts: cardPrefs.drafts,
-  });
-
   useThemeStore.setState({ mode: profileBundle.theme });
 
   useNotificationStore.getState().hydrateNotifications(notifications);
@@ -143,5 +137,28 @@ export async function hydrateAppStores(): Promise<void> {
     // Keep previously loaded notifications.
   }
 
+  try {
+    const { usePremiumStore } = await import('@/stores/premium.store');
+    const { useReferralStore } = await import('@/stores/referral.store');
+    await Promise.all([usePremiumStore.getState().hydrate(), useReferralStore.getState().hydrate()]);
+  } catch {
+    /* monetization hydrate is optional */
+  }
+
   await hydrateAuthStoreSafely();
+
+  try {
+    const { runWeeklyForegroundBackupIfDue } = await import(
+      '@/services/backup/weekly-foreground-backup.service'
+    );
+    void runWeeklyForegroundBackupIfDue();
+  } catch {
+    /* optional */
+  }
+
+  setTimeout(() => {
+    void import('@/services/engagement/engagement-prompts.service').then(({ evaluateEngagementPrompts }) =>
+      evaluateEngagementPrompts(),
+    );
+  }, 2500);
 }

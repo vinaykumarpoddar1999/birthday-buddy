@@ -1,16 +1,14 @@
 import React, { useRef } from 'react';
-import { Dimensions, Pressable, Text, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import ViewShot from 'react-native-view-shot';
-import { Move, Sparkles } from 'lucide-react-native';
+import { Move } from 'lucide-react-native';
 
 import { useCardStudioStore } from '../../store/card-studio.store';
 import { getCanvasDimensions, getCanvasScale } from '../../utils/canvas-dimensions';
 import { resolveElements } from '../../utils/placeholder';
 import { CardRenderer } from '../preview/CardRenderer';
 import { DraggableElement } from './DraggableElement';
-
-const SCREEN_W = Dimensions.get('window').width;
+import { SelectionActions } from './SelectionActions';
 
 type Props = {
   viewShotRef?: React.RefObject<React.ComponentRef<typeof ViewShot> | null>;
@@ -29,13 +27,12 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
   const canvasFormat = useCardStudioStore((s) => s.canvasFormat);
   const selectedElementId = useCardStudioStore((s) => s.selectedElementId);
   const selectElement = useCardStudioStore((s) => s.selectElement);
-  const lastSavedAt = useCardStudioStore((s) => s.lastSavedAt);
-
   const internalRef = useRef<View>(null);
+  const { width: screenW } = useWindowDimensions();
 
   if (!template) return null;
 
-  const canvasScale = getCanvasScale(SCREEN_W, canvasFormat);
+  const canvasScale = getCanvasScale(screenW, canvasFormat, editable ? 'editor' : 'preview');
   const resolved = resolveElements(elements, personalization);
   const safeResolved = resolved.filter(isRenderableElement);
   const { w, h } = getCanvasDimensions(canvasFormat);
@@ -58,7 +55,7 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
           shadowRadius: 28,
           elevation: 12,
         }}>
-        <GestureHandlerRootView
+        <View
           style={{
             width: w * canvasScale,
             height: h * canvasScale,
@@ -93,23 +90,18 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
                   />
                 ))
             : null}
-        </GestureHandlerRootView>
+          {editable ? <SelectionActions /> : null}
+        </View>
       </Pressable>
 
       <View className="flex-row items-center mt-2.5 gap-2">
         <View className="flex-row items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-gray-100">
           <View className="h-2 w-2 rounded-full bg-green-400" />
           <Text className="text-[10px] font-semibold text-foreground-muted">
-            {editable ? 'Live Preview' : 'Preview'}
+            {editable ? 'Drag to move · Pinch to resize' : 'Preview'}
           </Text>
           <Move size={10} color="#9CA3AF" />
         </View>
-        {lastSavedAt ? (
-          <View className="flex-row items-center gap-1 bg-green-50 px-2.5 py-1.5 rounded-full border border-green-100">
-            <Sparkles size={9} color="#16A34A" />
-            <Text className="text-[9px] font-semibold text-green-700">Auto-saved</Text>
-          </View>
-        ) : null}
       </View>
     </View>
   );

@@ -58,8 +58,26 @@ function mapDbResult(
   return { id: r.entityUuid, type: 'person', title: r.title, subtitle: r.body };
 }
 
+type SearchCategory = 'all' | 'person' | 'wish' | 'card' | 'setting';
+
+const CATEGORY_CHIPS: { id: SearchCategory; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'person', label: 'People' },
+  { id: 'wish', label: 'Wishes' },
+  { id: 'card', label: 'Cards' },
+  { id: 'setting', label: 'Settings' },
+];
+
+const CATEGORY_LABELS: Record<Exclude<SearchCategory, 'all'>, string> = {
+  person: 'People',
+  wish: 'Wishes',
+  card: 'Cards',
+  setting: 'Settings',
+};
+
 export const SearchScreen = () => {
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<SearchCategory>('all');
   const debouncedQuery = useDebouncedSearch(query);
   const { data: dbResults = [], isLoading, isFetching } = useSearch(debouncedQuery);
   const isSearching = debouncedQuery.length > 0 && (isLoading || isFetching);
@@ -83,6 +101,28 @@ export const SearchScreen = () => {
     return mapped;
   }, [debouncedQuery, dbResults]);
 
+  const filteredResults = useMemo(() => {
+    if (category === 'all') return results;
+    if (category === 'card') {
+      return results.filter((r) => r.type === 'card' || r.type === 'event');
+    }
+    return results.filter((r) => r.type === category);
+  }, [results, category]);
+
+  const groupedResults = useMemo(() => {
+    if (category !== 'all') return null;
+    const groups: Partial<Record<Exclude<SearchCategory, 'all'>, SearchResult[]>> = {};
+    for (const result of filteredResults) {
+      const key =
+        result.type === 'event'
+          ? 'card'
+          : (result.type as Exclude<SearchCategory, 'all'>);
+      if (!groups[key]) groups[key] = [];
+      groups[key]!.push(result);
+    }
+    return groups;
+  }, [filteredResults, category]);
+
   const handleResultPress = (result: SearchResult) => {
     addRecentSearch(query.trim());
     if (result.type === 'setting') {
@@ -91,7 +131,7 @@ export const SearchScreen = () => {
       return;
     }
     if (result.type === 'person') {
-      router.push({ pathname: '/add-person', params: { personId: result.id } });
+      router.push({ pathname: '/person-details', params: { personId: result.id } });
       return;
     }
     if (result.type === 'wish') {
@@ -150,6 +190,31 @@ export const SearchScreen = () => {
         </View>
       </View>
 
+      <View className="px-5 pb-2">
+        <Text className="text-[11px] font-bold text-foreground-secondary uppercase tracking-wide mb-2">
+          Search by category
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
+          {CATEGORY_CHIPS.map((chip) => (
+            <Pressable
+              key={chip.id}
+              onPress={() => setCategory(chip.id)}
+              className={`px-3.5 py-2 rounded-full border ${
+                category === chip.id ? 'bg-primary border-primary' : 'bg-surface border-border'
+              }`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: category === chip.id }}>
+              <Text
+                className={`text-[12px] font-semibold ${
+                  category === chip.id ? 'text-white' : 'text-foreground-secondary'
+                }`}>
+                {chip.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+
       <ScrollView className="flex-1 px-5" keyboardShouldPersistTaps="handled">
         {query.trim() === '' && recentSearches.length > 0 && (
           <View className="mb-4">
@@ -187,29 +252,64 @@ export const SearchScreen = () => {
           </View>
         )}
 
-        {debouncedQuery !== '' && !isSearching && results.length === 0 && (
+        {debouncedQuery !== '' && !isSearching && filteredResults.length === 0 && (
           <EmptyState icon={SearchX} title="No results" subtitle={`Nothing found for "${debouncedQuery}"`} />
         )}
 
-        {debouncedQuery !== '' && !isSearching && results.map((result) => {
-          const Icon = resultIcon(result.type);
-          return (
-            <Pressable
-              key={`${result.type}-${result.id}`}
-              onPress={() => handleResultPress(result)}
-              className="flex-row items-center py-3.5 border-b border-border/40">
-              <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center mr-3">
-                <Icon size={18} color="#7C3AED" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-[15px] font-semibold text-foreground">{result.title}</Text>
-                <Text className="text-[12px] text-foreground-secondary mt-0.5" numberOfLines={2}>
-                  {result.subtitle}
-                </Text>
-              </View>
-            </Pressable>
-          );
-        })}
+        {debouncedQuery !== '' && !isSearching && category === 'all' && groupedResults
+          ? (Object.keys(groupedResults) as Exclude<SearchCategory, 'all'>[]).map((groupKey) => {
+              const items = groupedResults[groupKey];
+              if (!items?.length) return null;
+              return (
+                <View key={groupKey} className="mb-4">
+                  <Text className="text-[13px] font-bold text-foreground mb-2">
+                    {CATEGORY_LABELS[groupKey]}
+                  </Text>
+                  {items.map((result) => {
+                    const Icon = resultIcon(result.type);
+                    return (
+                      <Pressable
+                        key={`${result.type}-${result.id}`}
+                        onPress={() => handleResultPress(result)}
+                        className="flex-row items-center py-3.5 border-b border-border/40">
+                        <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center mr-3">
+                          <Icon size={18} color="#7C3AED" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-[15px] font-semibold text-foreground">{result.title}</Text>
+                          <Text className="text-[12px] text-foreground-secondary mt-0.5" numberOfLines={2}>
+                            {result.subtitle}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              );
+            })
+          : null}
+
+        {debouncedQuery !== '' && !isSearching && category !== 'all'
+          ? filteredResults.map((result) => {
+              const Icon = resultIcon(result.type);
+              return (
+                <Pressable
+                  key={`${result.type}-${result.id}`}
+                  onPress={() => handleResultPress(result)}
+                  className="flex-row items-center py-3.5 border-b border-border/40">
+                  <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center mr-3">
+                    <Icon size={18} color="#7C3AED" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[15px] font-semibold text-foreground">{result.title}</Text>
+                    <Text className="text-[12px] text-foreground-secondary mt-0.5" numberOfLines={2}>
+                      {result.subtitle}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })
+          : null}
       </ScrollView>
     </SafeAreaView>
   );

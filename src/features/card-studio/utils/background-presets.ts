@@ -71,11 +71,22 @@ export const GRADIENT_PRESETS: (CardBackground & { name: string })[] = [
     gradientStart: { x: 0, y: 0 },
     gradientEnd: { x: 1, y: 1 },
   },
+  {
+    name: 'Emerald Dawn',
+    type: 'gradient',
+    value: ['#064E3B', '#059669', '#6EE7B7'],
+    gradientType: 'linear',
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
 ];
 
-export const GRADIENT_DIRECTIONS = [
-  { label: '↘', start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-  { label: '→', start: { x: 0, y: 0.5 }, end: { x: 1, y: 0.5 } },
-  { label: '↓', start: { x: 0.5, y: 0 }, end: { x: 0.5, y: 1 } },
-  { label: '↗', start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
+export const TEXT_COLORS = [
+  '#FFFFFF', '#111827', '#7C3AED', '#EC4899', '#0EA5E9',
+  '#F59E0B', '#10B981', '#BE185D', '#FDE68A', '#1F2937',
+];
+
+export const EMOJI_PRESETS = [
+  '🎉', '🎂', '🎈', '🎁', '💖', '✨', '🌟', '💐', '🥳', '😊',
+  '❤️', '💕', '🙏', '👏', '🌸', '🦋', '🌈', '☀️', '🎊', '💫',
 ];

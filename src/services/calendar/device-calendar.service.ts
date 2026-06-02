@@ -14,9 +14,14 @@ const BIRTHDAY_CALENDAR_TITLE = 'BirthdayBuddy';
 
 type EventMap = Record<string, string>;
 
+export type CalendarSyncOptions = {
+  force?: boolean;
+};
+
 export type CalendarSyncResult = {
   synced: number;
   skipped: number;
+  failed: number;
   error?: 'permission_denied' | 'no_calendar' | 'no_birthdays';
 };
 
@@ -145,8 +150,8 @@ export class DeviceCalendarService {
     return status === 'granted';
   }
 
-  async addBirthdayEvent(person: Person): Promise<string | null> {
-    if (!(await isCalendarSyncEnabled())) return null;
+  async addBirthdayEvent(person: Person, options?: CalendarSyncOptions): Promise<string | null> {
+    if (!options?.force && !(await isCalendarSyncEnabled())) return null;
 
     const granted = await this.requestPermissions();
     if (!granted) return null;
@@ -178,9 +183,9 @@ export class DeviceCalendarService {
     return eventId;
   }
 
-  async updateBirthdayEvent(person: Person): Promise<string | null> {
+  async updateBirthdayEvent(person: Person, options?: CalendarSyncOptions): Promise<string | null> {
     await this.deleteBirthdayEvent(person.id);
-    return this.addBirthdayEvent(person);
+    return this.addBirthdayEvent(person, options);
   }
 
   async deleteBirthdayEvent(personId: string): Promise<void> {
@@ -198,23 +203,26 @@ export class DeviceCalendarService {
     await saveEventMap(map);
   }
 
-  async syncAllBirthdays(): Promise<CalendarSyncResult> {
+  async syncAllBirthdays(options?: CalendarSyncOptions): Promise<CalendarSyncResult> {
+    const force = options?.force ?? false;
+
     if (Platform.OS === 'web') {
-      return { synced: 0, skipped: 0, error: 'no_calendar' };
+      return { synced: 0, skipped: 0, failed: 0, error: 'no_calendar' };
     }
 
     const granted = await this.requestPermissions();
     if (!granted) {
-      return { synced: 0, skipped: 0, error: 'permission_denied' };
+      return { synced: 0, skipped: 0, failed: 0, error: 'permission_denied' };
     }
 
     const people = await birthdayService.getAllPeople();
     if (people.length === 0) {
-      return { synced: 0, skipped: 0, error: 'no_birthdays' };
+      return { synced: 0, skipped: 0, failed: 0, error: 'no_birthdays' };
     }
 
     let synced = 0;
     let skipped = 0;
+    let failed = 0;
 
     for (const person of people) {
       if (!parseBirthMonthDay(person.birthDate)) {
@@ -222,15 +230,15 @@ export class DeviceCalendarService {
         continue;
       }
       try {
-        const id = await this.updateBirthdayEvent(person);
+        const id = await this.updateBirthdayEvent(person, { force });
         if (id) synced += 1;
-        else skipped += 1;
+        else failed += 1;
       } catch {
-        skipped += 1;
+        failed += 1;
       }
     }
 
-    return { synced, skipped };
+    return { synced, skipped, failed };
   }
 }
 

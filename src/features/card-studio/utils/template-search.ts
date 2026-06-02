@@ -1,4 +1,4 @@
-import type { CardTemplate, FilterState } from '../types';
+import type { CardTemplate, TemplateCategoryFilter } from '../types';
 
 function fuzzyMatch(haystack: string, needle: string): boolean {
   if (haystack.includes(needle)) return true;
@@ -9,19 +9,14 @@ function fuzzyMatch(haystack: string, needle: string): boolean {
 export function searchCardTemplates(
   templates: CardTemplate[],
   query: string,
-  filters?: FilterState,
   selectedCategory?: string,
 ): CardTemplate[] {
   let results = [...templates];
 
   if (selectedCategory && selectedCategory !== 'all') {
-    if (selectedCategory === 'trending') {
-      results = results.filter((t) => t.isTrending);
-    } else {
-      results = results.filter(
-        (t) => t.category === selectedCategory || t.tags.includes(selectedCategory),
-      );
-    }
+    results = results.filter(
+      (t) => t.category === selectedCategory || t.tags.includes(selectedCategory),
+    );
   }
 
   if (query.trim()) {
@@ -32,28 +27,5 @@ export function searchCardTemplates(
     });
   }
 
-  if (filters) {
-    if (filters.occasion.length > 0) {
-      results = results.filter((t) =>
-        filters.occasion.some((occ) => t.category === occ || t.tags.includes(occ)),
-      );
-    }
-    if (filters.style.length > 0) {
-      results = results.filter((t) =>
-        filters.style.some((s) => t.category === s || t.tags.includes(s)),
-      );
-    }
-    if (filters.isPremiumOnly) {
-      results = results.filter((t) => t.isPremium);
-    }
-    if (filters.isFreeOnly) {
-      results = results.filter((t) => !t.isPremium);
-    }
-  }
-
   return results;
-}
-
-export function getTrendingTemplates(templates: CardTemplate[]): CardTemplate[] {
-  return templates.filter((t) => t.isTrending);
 }

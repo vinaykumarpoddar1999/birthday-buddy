@@ -22,12 +22,12 @@ import { EmptyState, PageSkeleton } from '@shared/ui';
 import { getAvatarSource } from '@/shared/utils/avatar';
 import { usePerson } from '@features/people/hooks/usePeople';
 import {
-  formatBirthdayLong,
   formatBirthdayShort,
   formatRelationship,
   getAge,
   getAgeAtNextBirthday,
   getDaysUntilBirthday,
+  safeFormatBirthdayLong,
 } from '@features/people/utils/birthday-utils';
 import {
   birthdayCardStyles,
@@ -62,7 +62,8 @@ function DetailRow({
 }
 
 export function PersonDetailsScreen() {
-  const { personId } = useLocalSearchParams<{ personId: string }>();
+  const { personId: personIdParam } = useLocalSearchParams<{ personId: string | string[] }>();
+  const personId = Array.isArray(personIdParam) ? personIdParam[0] : personIdParam;
   const { data: person, isLoading, isError } = usePerson(personId);
 
   if (isLoading) {
@@ -207,7 +208,7 @@ export function PersonDetailsScreen() {
 
         <View className="bg-surface rounded-2xl border border-border/60 p-4 mb-4">
           <Text className="text-[13px] font-bold text-foreground mb-2">Profile</Text>
-          <DetailRow icon={Cake} label="Birthday" value={formatBirthdayLong(person.birthDate)} />
+          <DetailRow icon={Cake} label="Birthday" value={safeFormatBirthdayLong(person.birthDate)} />
           <DetailRow icon={User} label="Age" value={`${age} years old · Turns ${nextAge} next`} />
           <DetailRow icon={Bell} label="Event" value={eventLabel} />
           <DetailRow
@@ -229,12 +230,12 @@ export function PersonDetailsScreen() {
           </View>
         )}
 
-        {(person.favoriteColor || person.favoriteCake || person.hobbies.length > 0) && (
+        {(person.favoriteColor || person.favoriteCake || (person.hobbies?.length ?? 0) > 0) && (
           <View className="bg-surface rounded-2xl border border-border/60 p-4 mb-4">
             <Text className="text-[13px] font-bold text-foreground mb-2">Preferences</Text>
             <DetailRow icon={MapPin} label="Favorite Color" value={person.favoriteColor ?? ''} />
             <DetailRow icon={Cake} label="Favorite Cake" value={person.favoriteCake ?? ''} />
-            {person.hobbies.length > 0 && (
+            {person.hobbies && person.hobbies.length > 0 && (
               <View className="pt-2">
                 <Text className="text-[11px] text-foreground-secondary font-semibold uppercase tracking-wide mb-2">
                   Hobbies

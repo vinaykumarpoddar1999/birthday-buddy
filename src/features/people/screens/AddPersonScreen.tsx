@@ -42,6 +42,7 @@ import { z } from 'zod';
 import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
 import { usePerson, usePersonMutations } from '@features/people/hooks/usePeople';
 import type { EventType, Gender, Person, RelationshipType } from '@/types/entities';
+import { isPlaceholderBirthDate } from '@/services/contacts/contacts-import.service';
 import { getAge } from '../utils/birthday-utils';
 
 const schema = z.object({
@@ -351,20 +352,28 @@ function OptionPickerModal({
 
 export function AddPersonScreen() {
   const {
-    personId,
+    personId: personIdParam,
     prefillName,
     prefillPhone,
     prefillEmail,
     prefillBirthDate,
     prefillAvatarUri,
+    queueIds,
+    queueIndex: queueIndexParam,
   } = useLocalSearchParams<{
-    personId?: string;
+    personId?: string | string[];
     prefillName?: string;
     prefillPhone?: string;
     prefillEmail?: string;
     prefillBirthDate?: string;
     prefillAvatarUri?: string;
+    queueIds?: string;
+    queueIndex?: string;
   }>();
+  const personId = Array.isArray(personIdParam) ? personIdParam[0] : personIdParam;
+  const queueIdList = (queueIds ?? '').split(',').filter(Boolean);
+  const queueIndex = Number.parseInt(queueIndexParam ?? '0', 10) || 0;
+  const isQueueFlow = queueIdList.length > 0;
   const isEditing = Boolean(personId);
   const { data: existingPerson } = usePerson(personId);
   const { addPerson, updatePerson } = usePersonMutations();
@@ -411,7 +420,11 @@ export function AddPersonScreen() {
 
   useEffect(() => {
     if (!existingPerson) return;
-    reset(personToFormValues(existingPerson));
+    const values = personToFormValues(existingPerson);
+    if (isPlaceholderBirthDate(values.birthDate)) {
+      values.birthDate = '';
+    }
+    reset(values);
     setEventType(eventTypeFromPerson(existingPerson.eventType));
     if (existingPerson.avatarUri) setProfileImage(existingPerson.avatarUri);
   }, [existingPerson, reset]);
@@ -496,6 +509,25 @@ export function AddPersonScreen() {
       if (isEditing && personId) {
         await updatePerson({ id: personId, ...payload });
         feedback.success('Person Updated', `${data.fullName} has been saved.`);
+
+        const nextIndex = queueIndex + 1;
+        if (isQueueFlow && nextIndex < queueIdList.length) {
+          router.replace({
+            pathname: '/add-person',
+            params: {
+              personId: queueIdList[nextIndex],
+              queueIds,
+              queueIndex: String(nextIndex),
+            },
+          });
+          return;
+        }
+
+        if (isQueueFlow) {
+          router.replace('/(tabs)/contacts');
+          return;
+        }
+
         router.back();
         return;
       }
@@ -504,7 +536,18 @@ export function AddPersonScreen() {
       feedback.success('Person Added', `${data.fullName} has been added.`);
       router.back();
     },
-    [addPerson, updatePerson, profileImage, eventType, isEditing, personId],
+    [
+      addPerson,
+      updatePerson,
+      profileImage,
+      eventType,
+      isEditing,
+      personId,
+      isQueueFlow,
+      queueIdList,
+      queueIndex,
+      queueIds,
+    ],
   );
 
   const relLabel = RELATIONSHIPS.find((r) => r.value === watch('relationship'))?.label ?? 'Select';
@@ -521,10 +564,18 @@ export function AddPersonScreen() {
         </Pressable>
         <View className="flex-1 items-center px-3">
           <Text className="text-[17px] font-bold text-foreground">
-            {isEditing ? 'Edit Person' : 'Add Person'}
+            {isQueueFlow
+              ? `Complete Details (${queueIndex + 1}/${queueIdList.length})`
+              : isEditing
+                ? 'Edit Person'
+                : 'Add Person'}
           </Text>
           <Text className="text-[12px] text-foreground-secondary mt-0.5">
-            {isEditing ? 'Update details & reminders' : 'Birthday or special day'}
+            {isQueueFlow
+              ? 'Add birthday and preferences for this contact'
+              : isEditing
+                ? 'Update details & reminders'
+                : 'Birthday or special day'}
           </Text>
         </View>
         <View className="h-10 w-10" />

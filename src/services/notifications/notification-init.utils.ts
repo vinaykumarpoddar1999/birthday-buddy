@@ -1,18 +1,18 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { settingsRepository } from '@/repositories/settings.repository';
-import {
-  DEFAULT_REMINDER_SETTINGS,
-} from '@/services/profile/profile.service';
+import { DEFAULT_REMINDER_SETTINGS } from '@/services/profile/profile.service';
 import type { ReminderSettings } from '@features/profile/types';
 
 import { isNotificationPermissionGranted } from './permission-utils';
+import { getNotificationsModule } from './notifications-api';
 
 let handlerRegistered = false;
 
-export function ensureNotificationHandler(): void {
+export async function ensureNotificationHandler(): Promise<void> {
   if (handlerRegistered) return;
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
   handlerRegistered = true;
 
   Notifications.setNotificationHandler({
@@ -28,6 +28,8 @@ export function ensureNotificationHandler(): void {
 
 async function setupAndroidNotificationChannels(): Promise<void> {
   if (Platform.OS !== 'android') return;
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
 
   const ext = await settingsRepository.getJson<Partial<ReminderSettings>>('reminder_settings_ext');
   const settings: ReminderSettings = { ...DEFAULT_REMINDER_SETTINGS, ...ext };
@@ -54,7 +56,10 @@ async function setupAndroidNotificationChannels(): Promise<void> {
 }
 
 export async function registerForNotifications(): Promise<boolean> {
-  ensureNotificationHandler();
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return false;
+
+  await ensureNotificationHandler();
 
   const existing = await Notifications.getPermissionsAsync();
   if (isNotificationPermissionGranted(existing)) {

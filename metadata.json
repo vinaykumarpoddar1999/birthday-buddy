@@ -1,0 +1,11 @@
+{
+  "appName": "BirthdayBuddy",
+  "packageName": "com.birthdaybuddy.app",
+  "bundleId": "com.birthdaybuddy.app",
+  "tagline": "Never forget a birthday again",
+  "supportEmail": "support@birthdaybuddy.app",
+  "website": "https://birthdaybuddy.app",
+  "privacyUrl": "https://birthdaybuddy.app/privacy",
+  "termsUrl": "https://birthdaybuddy.app/terms",
+  "keywords": "birthday,reminder,wishes,cards,surprise,anniversary,celebration,gifts"
+}

@@ -10,7 +10,6 @@ import {
   DEFAULT_USER_PROFILE,
   profileService,
 } from '@/services/profile/profile.service';
-import { reminderService } from '@/services/reminder/reminder.service';
 import { useBirthdayStore } from '@/stores/birthday.store';
 import { useCalendarStore } from '@/stores/calendar.store';
 import { useSettingsStore } from '@/stores/settings.store';
@@ -106,7 +105,9 @@ let rescheduleTimer: ReturnType<typeof setTimeout> | null = null;
 function queueReminderReschedule(): void {
   if (rescheduleTimer) clearTimeout(rescheduleTimer);
   rescheduleTimer = setTimeout(() => {
-    void reminderService.rescheduleAll();
+    void import('@/services/reminder/reminder.service').then(({ reminderService }) =>
+      reminderService.rescheduleAll(),
+    );
   }, 400);
 }
 

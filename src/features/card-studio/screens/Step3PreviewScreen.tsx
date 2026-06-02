@@ -1,13 +1,19 @@
-import React from 'react';
-import { Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Share2, Check, FileText, User, Send } from 'lucide-react-native';
+import { ChevronLeft, Share2 } from 'lucide-react-native';
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardRenderer } from '../components/preview/CardRenderer';
-import { getCanvasDimensions } from '../utils/canvas-dimensions';
-
-const SCREEN_W = Dimensions.get('window').width;
+import { getCanvasDimensions, getCanvasScale } from '../utils/canvas-dimensions';
 
 export function Step3PreviewScreen() {
   const template = useCardStudioStore((s) => s.selectedTemplate);
@@ -18,116 +24,94 @@ export function Step3PreviewScreen() {
   const nextStep = useCardStudioStore((s) => s.nextStep);
   const prevStep = useCardStudioStore((s) => s.prevStep);
 
+  const { width: screenW } = useWindowDimensions();
+  const baseScale = getCanvasScale(screenW, canvasFormat, 'preview');
+  const [displayScale, setDisplayScale] = React.useState(baseScale);
+  const previewScale = useSharedValue(baseScale);
+  const pinchBase = useSharedValue(baseScale);
+
+  useEffect(() => {
+    previewScale.value = baseScale;
+    pinchBase.value = baseScale;
+    setDisplayScale(baseScale);
+  }, [baseScale, previewScale, pinchBase]);
+
   if (!template) return null;
 
   const { w: cardW, h: cardH } = getCanvasDimensions(canvasFormat);
-  const previewScale = Math.min((SCREEN_W - 48) / cardW, 0.88);
+
+  const applyPreviewScale = React.useCallback(
+    (scale: number) => {
+      previewScale.value = scale;
+      setDisplayScale(scale);
+    },
+    [previewScale],
+  );
+
+  const pinch = Gesture.Pinch()
+    .onBegin(() => {
+      pinchBase.value = previewScale.value;
+    })
+    .onUpdate((e) => {
+      const next = Math.max(
+        baseScale * 0.75,
+        Math.min(baseScale * 1.35, pinchBase.value * e.scale),
+      );
+      previewScale.value = next;
+      runOnJS(applyPreviewScale)(next);
+    });
+
+  const animatedFrameStyle = useAnimatedStyle(() => ({
+    width: cardW * previewScale.value + 8,
+    height: cardH * previewScale.value + 8,
+  }));
+
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    width: cardW * previewScale.value,
+    height: cardH * previewScale.value,
+  }));
 
   return (
     <View className="flex-1 bg-background">
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 112 }}>
-        {/* Card Preview */}
-        <View className="items-center py-6">
-          <View
-            className="rounded-3xl overflow-hidden"
-            style={{
-              width: cardW * previewScale + 8,
-              height: cardH * previewScale + 8,
-              padding: 4,
-              backgroundColor: '#F3F0FF',
-              shadowColor: '#7C3AED',
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.15,
-              shadowRadius: 30,
-              elevation: 10,
-            }}>
-            <View
-              style={{
-                width: cardW * previewScale,
-                height: cardH * previewScale,
-                borderRadius: 20,
-                overflow: 'hidden',
-              }}>
-              <CardRenderer
-                template={template}
-                personalization={personalization}
-                elements={elements}
-                scale={previewScale}
-                customBackground={customBackground}
-                canvasFormat={canvasFormat}
-              />
-            </View>
-          </View>
-        </View>
+      <Animated.View entering={FadeInDown.duration(350)} className="px-6 pt-4 pb-2 items-center">
+        <Text className="text-[22px] font-bold text-foreground">Preview</Text>
+        <Text className="text-[13px] text-foreground-muted mt-1 text-center">
+          {template.name} · Pinch to zoom
+        </Text>
+      </Animated.View>
 
-        {/* Ready message */}
-        <View className="px-6 py-2">
-          <View className="items-center mb-5">
-            <View className="h-12 w-12 rounded-2xl bg-green-50 items-center justify-center mb-3">
-              <Check size={22} color="#22C55E" strokeWidth={3} />
-            </View>
-            <Text className="text-[20px] font-bold text-foreground text-center">
-              Looking great!
-            </Text>
-            <Text className="text-[13px] text-foreground-muted text-center mt-1.5 leading-5">
-              Your card is ready to share with{' '}
-              {personalization.recipientName || 'your loved one'}
-            </Text>
-          </View>
+      <View className="flex-1 items-center justify-center px-6">
+        <GestureDetector gesture={pinch}>
+          <Animated.View entering={FadeInUp.duration(400).delay(80)}>
+            <Animated.View
+              className="rounded-3xl overflow-hidden"
+              style={[
+                animatedFrameStyle,
+                { padding: 4, backgroundColor: '#F3F0FF' },
+              ]}>
+              <Animated.View
+                style={[animatedCardStyle, { borderRadius: 20, overflow: 'hidden' }]}>
+                <CardRenderer
+                  template={template}
+                  personalization={personalization}
+                  elements={elements}
+                  scale={displayScale}
+                  customBackground={customBackground}
+                  canvasFormat={canvasFormat}
+                />
+              </Animated.View>
+            </Animated.View>
+          </Animated.View>
+        </GestureDetector>
+      </View>
 
-          {/* Card details */}
-          <View
-            className="bg-white rounded-2xl overflow-hidden border border-gray-100"
-            style={{
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.04,
-              shadowRadius: 8,
-              elevation: 2,
-            }}>
-            <DetailRow
-              icon={<FileText size={14} color="#7C3AED" />}
-              label="Template"
-              value={template.name}
-            />
-            <DetailRow
-              icon={<User size={14} color="#EC4899" />}
-              label="To"
-              value={personalization.recipientName || '—'}
-            />
-            <DetailRow
-              icon={<Send size={14} color="#22C55E" />}
-              label="From"
-              value={personalization.senderName || '—'}
-            />
-            <DetailRow
-              icon={<View className="h-3.5 w-3.5 rounded-sm bg-primary/20" />}
-              label="Quality"
-              value="PNG · High Quality"
-              isLast
-            />
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Bottom actions */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-3 bg-background/95">
+      <View className="px-5 pb-5 pt-3">
         <View className="flex-row gap-3">
           <Pressable
             onPress={prevStep}
-            className="flex-row items-center justify-center bg-white rounded-2xl px-5 py-4 gap-1.5 border border-gray-100"
-            style={({ pressed }) => ({
-              transform: [{ scale: pressed ? 0.97 : 1 }],
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.04,
-              shadowRadius: 4,
-              elevation: 1,
-            })}
-            accessibilityRole="button">
+            className="flex-row items-center justify-center bg-surface rounded-2xl px-5 py-4 gap-1.5 border border-border"
+            accessibilityRole="button"
+            accessibilityLabel="Edit card">
             <ChevronLeft size={16} color="#374151" />
             <Text className="text-[14px] font-semibold text-foreground">Edit</Text>
           </Pressable>
@@ -135,15 +119,8 @@ export function Step3PreviewScreen() {
           <Pressable
             onPress={nextStep}
             className="flex-1 overflow-hidden rounded-2xl"
-            style={({ pressed }) => ({
-              transform: [{ scale: pressed ? 0.98 : 1 }],
-              shadowColor: '#7C3AED',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              elevation: 8,
-            })}
-            accessibilityRole="button">
+            accessibilityRole="button"
+            accessibilityLabel="Continue to share">
             <LinearGradient colors={['#7C3AED', '#5B21B6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               <View className="flex-row items-center justify-center py-4 gap-2">
                 <Share2 size={17} color="#FFF" />
@@ -153,28 +130,6 @@ export function Step3PreviewScreen() {
           </Pressable>
         </View>
       </View>
-    </View>
-  );
-}
-
-function DetailRow({
-  icon,
-  label,
-  value,
-  isLast,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  isLast?: boolean;
-}) {
-  return (
-    <View className={`flex-row items-center px-4 py-3.5 ${!isLast ? 'border-b border-gray-50' : ''}`}>
-      <View className="h-8 w-8 rounded-lg bg-gray-50 items-center justify-center mr-3">
-        {icon}
-      </View>
-      <Text className="text-[12px] text-foreground-muted flex-1">{label}</Text>
-      <Text className="text-[13px] font-semibold text-foreground">{value}</Text>
     </View>
   );
 }

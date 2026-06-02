@@ -10,10 +10,19 @@ export function getCanvasDimensions(format: CanvasFormat) {
   return CANVAS_DIMENSIONS[format];
 }
 
-export function getCanvasScale(screenWidth: number, format: CanvasFormat, padding = 48) {
+export type CanvasScaleMode = 'editor' | 'preview' | 'export';
+
+export function getCanvasScale(
+  screenWidth: number,
+  format: CanvasFormat,
+  mode: CanvasScaleMode = 'editor',
+) {
   const { w, h } = getCanvasDimensions(format);
+  const padding = mode === 'editor' ? 32 : 48;
   const maxW = screenWidth - padding;
   const scaleByW = maxW / w;
-  const scaleByH = 0.42; // keep canvas prominent but leave room for controls
-  return Math.min(scaleByW, scaleByH, 0.92);
+
+  if (mode === 'export') return 1;
+  if (mode === 'preview') return Math.min(scaleByW, 0.92);
+  return Math.min(scaleByW, 0.88);
 }

@@ -19,7 +19,22 @@ TaskManager.defineTask(BACKGROUND_BACKUP_TASK, async () => {
       return BackgroundFetch.BackgroundFetchResult.NoData;
     }
 
-    await backupService.exportJson();
+    const json = await backupService.exportJson();
+    try {
+      const FileSystem = await import('expo-file-system/legacy');
+      const dir = `${FileSystem.documentDirectory}auto-backups/`;
+      const info = await FileSystem.getInfoAsync(dir);
+      if (!info.exists) {
+        await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+      }
+      await FileSystem.writeAsStringAsync(
+        `${dir}birthday-buddy-auto-${Date.now()}.json`,
+        json,
+        { encoding: FileSystem.EncodingType.UTF8 },
+      );
+    } catch {
+      /* silent save is best-effort in background */
+    }
     return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch {
     return BackgroundFetch.BackgroundFetchResult.Failed;

@@ -295,6 +295,10 @@ export class ProfileService {
     await settingsRepository.setJson(KEYS.recentSearches, searches.slice(0, 10));
   }
 
+  async saveCalendarSync(calendarSync: CalendarSyncSettings): Promise<void> {
+    await settingsRepository.setJson(KEYS.calendarSync, calendarSync);
+  }
+
   async resetToDefaults(): Promise<void> {
     await this.saveBundle(DEFAULT_PROFILE_BUNDLE);
     await settingsService.update({

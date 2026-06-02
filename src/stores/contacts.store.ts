@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 export type DeviceContactPreview = {
   id: string;
+  deviceContactId?: string;
   fullName: string;
   birthDate: string | null;
   phone?: string;
@@ -40,7 +41,7 @@ export const useContactsStore = create<ContactsStoreState>()((set) => ({
   selectAll: () =>
     set((s) => ({
       deviceContacts: s.deviceContacts.map((c) =>
-        c.birthDate && !c.isDuplicate ? { ...c, selected: true } : c,
+        !c.isDuplicate ? { ...c, selected: true } : c,
       ),
     })),
   deselectAll: () =>

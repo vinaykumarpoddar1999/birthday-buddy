@@ -4,9 +4,9 @@ import { ArrowLeft, Contact, Search } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   Linking,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
@@ -15,10 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { EmptyState, ErrorState } from '@shared/ui';
-import {
-  listDeviceContacts,
-  preparePickedContact,
-} from '@/services/contacts/contacts-import.service';
+import { listDeviceContacts, preparePickedContact } from '@/services/contacts/contacts-import.service';
+import { openContactDetailsFlow } from '@/shared/navigation/quick-add-actions';
 import type { DeviceContactPreview } from '@/stores/contacts.store';
 
 function formatBirthdayLabel(birthDate: string | null): string {
@@ -28,19 +26,6 @@ function formatBirthdayLabel(birthDate: string | null): string {
   } catch {
     return birthDate;
   }
-}
-
-function navigateWithContact(picked: Awaited<ReturnType<typeof preparePickedContact>>) {
-  router.replace({
-    pathname: '/add-person',
-    params: {
-      prefillName: picked.fullName,
-      prefillPhone: picked.phone ?? '',
-      prefillEmail: picked.email ?? '',
-      prefillBirthDate: picked.birthDate ?? '',
-      prefillAvatarUri: picked.avatarUri ?? '',
-    },
-  });
 }
 
 export function ContactPickerScreen() {
@@ -89,7 +74,7 @@ export function ContactPickerScreen() {
     setSelectingId(contact.id);
     try {
       const picked = await preparePickedContact(contact);
-      navigateWithContact(picked);
+      await openContactDetailsFlow(picked);
     } finally {
       setSelectingId(null);
     }
@@ -154,10 +139,16 @@ export function ContactPickerScreen() {
           className="mx-5"
         />
       ) : (
-        <ScrollView className="flex-1 px-5" contentContainerClassName="pb-8">
-          {filtered.map((contact) => (
+        <FlatList
+          className="flex-1 px-5"
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          contentContainerClassName="pb-8"
+          initialNumToRender={20}
+          maxToRenderPerBatch={25}
+          windowSize={10}
+          renderItem={({ item: contact }) => (
             <Pressable
-              key={contact.id}
               onPress={() => void handleSelect(contact)}
               disabled={selectingId !== null}
               className="flex-row items-center bg-surface border border-border/60 rounded-xl p-3 mb-2 active:bg-primary/5"
@@ -182,8 +173,8 @@ export function ContactPickerScreen() {
                 <ActivityIndicator size="small" color="#7C3AED" />
               ) : null}
             </Pressable>
-          ))}
-        </ScrollView>
+          )}
+        />
       )}
     </SafeAreaView>
   );

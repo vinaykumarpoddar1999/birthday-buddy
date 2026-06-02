@@ -46,18 +46,6 @@ function EffectOverlay({ effect, cardW, cardH }: { effect: BackgroundEffect; car
     );
   }
 
-  if (effect.type === 'vignette') {
-    return (
-      <LinearGradient
-        colors={['transparent', `rgba(0,0,0,${intensity * 0.7})`]}
-        start={{ x: 0.5, y: 0.5 }}
-        end={{ x: 1, y: 1 }}
-        style={{ position: 'absolute', inset: 0, width: cardW, height: cardH }}
-        pointerEvents="none"
-      />
-    );
-  }
-
   if (effect.type === 'glass') {
     return (
       <View

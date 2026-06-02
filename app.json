@@ -1,15 +1,22 @@
 {
   "expo": {
-    "name": "birthday-buddy",
+    "name": "BirthdayBuddy",
     "slug": "birthday-buddy",
     "version": "1.0.0",
+    "description": "Never forget a birthday. AI wishes, premium cards, reminders, and surprise links.",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "birthdaybuddy",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.birthdaybuddy.app"
+      "bundleIdentifier": "com.birthdaybuddy.app",
+      "infoPlist": {
+        "NSContactsUsageDescription": "BirthdayBuddy uses your contacts to import birthdays and phone numbers.",
+        "NSCalendarsUsageDescription": "BirthdayBuddy syncs birthdays to your device calendar.",
+        "NSPhotoLibraryUsageDescription": "BirthdayBuddy lets you add photos to birthday cards and profiles.",
+        "NSCameraUsageDescription": "BirthdayBuddy uses the camera for profile and card photos."
+      }
     },
     "android": {
       "package": "com.birthdaybuddy.app",
@@ -80,6 +87,13 @@
     },
     "extra": {
       "router": {},
+      "appMetadata": {
+        "appName": "BirthdayBuddy",
+        "tagline": "Never forget a birthday again",
+        "website": "https://birthdaybuddy.app",
+        "supportEmail": "support@birthdaybuddy.app",
+        "inviteUrlBase": "https://birthdaybuddy.app/invite"
+      },
       "eas": {
         "projectId": "e1c5520d-5e5e-4d9b-8315-3652331f1017"
       }

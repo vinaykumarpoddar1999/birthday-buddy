@@ -13,6 +13,8 @@ import {
   Moon,
   Share2,
   Shield,
+  Crown,
+  Gift,
   Star,
   Trash2,
   Upload,
@@ -216,6 +218,29 @@ export const ProfileSettingsScreen = () => {
                   thumbColor="#FFFFFF"
                 />
               }
+            />
+          </View>
+        </View>
+
+        <View className="px-5 mt-6">
+          <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-1">Premium</Text>
+          <View className="bg-surface rounded-2xl px-4 border border-border/60">
+            <SettingsRow
+              icon={Crown}
+              iconBg="#FEF3C7"
+              iconColor="#D97706"
+              title="Upgrade to Premium"
+              description="Yearly plan · ₹499"
+              onPress={() => router.push('/premium-upgrade')}
+            />
+            <View className="h-[0.5px] bg-border/60 ml-12" />
+            <SettingsRow
+              icon={Gift}
+              iconBg="#FCE7F3"
+              iconColor="#EC4899"
+              title="Refer & Earn"
+              description="Invite friends · Unlock Premium free"
+              onPress={() => router.push('/refer-earn')}
             />
           </View>
         </View>

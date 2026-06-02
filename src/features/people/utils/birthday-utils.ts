@@ -65,7 +65,33 @@ export function formatBirthdayShort(birthDate: string): string {
 
 export function formatBirthdayLong(birthDate: string): string {
   const { year, month, day } = parseBirthDateParts(birthDate);
-  return format(new Date(year, month - 1, day), 'd MMMM yyyy');
+  if (!month || !day || Number.isNaN(month) || Number.isNaN(day)) {
+    return birthDate || 'Unknown date';
+  }
+  const safeYear = year && !Number.isNaN(year) ? year : 2000;
+  try {
+    return format(new Date(safeYear, month - 1, day), 'd MMMM yyyy');
+  } catch {
+    return birthDate || 'Unknown date';
+  }
+}
+
+export function safeFormatBirthdayLong(birthDate: string | undefined | null): string {
+  if (!birthDate) return 'Not set';
+  try {
+    return formatBirthdayLong(birthDate);
+  } catch {
+    return birthDate;
+  }
+}
+
+export function safeFormatBirthdayShort(birthDate: string | undefined | null): string {
+  if (!birthDate) return 'Not set';
+  try {
+    return formatBirthdayShort(birthDate);
+  } catch {
+    return birthDate;
+  }
 }
 
 export function getCountdownLabel(days: number): string {
@@ -265,9 +291,47 @@ export function getPeopleForCalendarDay(
   day: number,
 ): Person[] {
   return people.filter((person) => {
-    const parts = parseBirthDateParts(person.birthDate);
-    return parts.month === month && parts.day === day;
+    try {
+      const parts = parseBirthDateParts(person.birthDate);
+      return parts.month === month && parts.day === day;
+    } catch {
+      return false;
+    }
   });
+}
+
+export function resolvePeopleForCalendarDay(
+  people: Person[],
+  month: number,
+  day: number,
+  dayEvents: CalendarDayEvent[] = [],
+): Person[] {
+  const fromBirthdays = getPeopleForCalendarDay(people, month, day);
+  if (fromBirthdays.length > 0) return fromBirthdays;
+
+  const eventPersonIds = [...new Set(dayEvents.map((e) => e.personId).filter(Boolean))] as string[];
+  if (eventPersonIds.length === 0) return [];
+
+  const fromEvents = eventPersonIds
+    .map((id) => people.find((p) => p.id === id))
+    .filter((p): p is Person => Boolean(p));
+
+  return fromEvents.length > 0 ? fromEvents : [];
+}
+
+export function getPrimaryPersonIdForCalendarDay(
+  people: Person[],
+  month: number,
+  day: number,
+  dayEvents: CalendarDayEvent[] = [],
+): string | null {
+  const resolved = resolvePeopleForCalendarDay(people, month, day, dayEvents);
+  if (resolved.length === 1) return resolved[0].id;
+
+  const eventIds = dayEvents.map((e) => e.personId).filter(Boolean) as string[];
+  if (eventIds.length === 1) return eventIds[0] ?? null;
+
+  return null;
 }
 
 const MONTH_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];

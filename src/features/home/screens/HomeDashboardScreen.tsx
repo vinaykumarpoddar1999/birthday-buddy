@@ -13,6 +13,7 @@ import { UpcomingBirthdaySection } from '../components/UpcomingBirthdaySection';
 import { StatsSection } from '../components/StatsSection';
 import { SpecialCardsBanner } from '../components/SpecialCardsBanner';
 import { QuickActionsGrid } from '../components/QuickActionsGrid';
+import { ShareAppSection } from '../components/ShareAppSection';
 import { Colors, scale } from '../constants/design-tokens';
 
 export function HomeDashboardScreen() {
@@ -101,6 +102,8 @@ export function HomeDashboardScreen() {
 
         {/* Quick Actions Grid */}
         <QuickActionsGrid />
+
+        <ShareAppSection />
 
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacer} />

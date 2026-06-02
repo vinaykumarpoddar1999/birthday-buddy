@@ -22,9 +22,10 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { peopleQueryKeys } from '@features/people/hooks/usePeople';
 import {
-  importSelectedContacts,
+  createMinimalPeopleFromContacts,
   listDeviceContacts,
 } from '@/services/contacts/contacts-import.service';
+import { navigateToContactDetailsQueue } from '@/shared/navigation/quick-add-actions';
 import { useContactsStore } from '@/stores/contacts.store';
 import { feedback } from '@/shared/feedback';
 import { EmptyState, ErrorState, ProfilePlaceholder } from '@shared/ui';
@@ -82,12 +83,12 @@ export function ContactImportScreen() {
   }, [loadContacts, reset]);
 
   const selectedCount = useMemo(
-    () => deviceContacts.filter((c) => c.selected && c.birthDate).length,
+    () => deviceContacts.filter((c) => c.selected && !c.isDuplicate).length,
     [deviceContacts],
   );
 
   const importableCount = useMemo(
-    () => deviceContacts.filter((c) => c.birthDate && !c.isDuplicate).length,
+    () => deviceContacts.filter((c) => !c.isDuplicate).length,
     [deviceContacts],
   );
 
@@ -97,25 +98,23 @@ export function ContactImportScreen() {
   );
 
   const handleImport = useCallback(
-    async (ids: string[]) => {
-      if (importing || ids.length === 0) return;
+    async (selected: typeof deviceContacts) => {
+      if (importing || selected.length === 0) return;
       setImporting(true);
       try {
-        const result = await importSelectedContacts(ids);
+        const personIds = await createMinimalPeopleFromContacts(selected);
         await queryClient.invalidateQueries({ queryKey: peopleQueryKeys.all });
-        if (result.imported === 0) {
+        if (personIds.length === 0) {
           feedback.warning(
             'No Contacts Imported',
-            result.skipped > 0
-              ? 'Selected contacts were skipped because they are duplicates or missing birthdays.'
-              : 'No contacts were imported.',
+            'Selected contacts were skipped because they are duplicates.',
           );
         } else {
           feedback.success(
-            'Contacts Imported',
-            `Added ${result.imported} people${result.skipped > 0 ? ` · ${result.skipped} skipped` : ''}.`,
+            'Contacts Added',
+            `Imported ${personIds.length} contact${personIds.length === 1 ? '' : 's'}. Add birthday details next.`,
           );
-          router.back();
+          navigateToContactDetailsQueue(personIds);
         }
       } catch (error) {
         feedback.error(
@@ -130,14 +129,14 @@ export function ContactImportScreen() {
   );
 
   const handleImportSelected = () => {
-    const ids = deviceContacts.filter((c) => c.selected && c.birthDate).map((c) => c.id);
-    void handleImport(ids);
+    const selected = deviceContacts.filter((c) => c.selected && !c.isDuplicate);
+    void handleImport(selected);
   };
 
   const handleImportAll = () => {
     selectAll();
-    const ids = deviceContacts.filter((c) => c.birthDate && !c.isDuplicate).map((c) => c.id);
-    void handleImport(ids);
+    const selected = deviceContacts.filter((c) => !c.isDuplicate);
+    void handleImport(selected);
   };
 
   const openSettings = () => {
@@ -194,7 +193,7 @@ export function ContactImportScreen() {
         contentContainerClassName="pb-32"
         showsVerticalScrollIndicator={false}>
         <Text className="text-[13px] text-foreground-secondary mt-2 mb-4">
-          Select contacts with birthdays to add to your people list. Duplicates are marked and skipped by default.
+          Select contacts to add with name and phone. You will complete birthday and other details in the next step.
         </Text>
 
         <View className="flex-row gap-2 mb-4">
@@ -231,7 +230,7 @@ export function ContactImportScreen() {
         ) : (
           <View className="bg-surface rounded-2xl border border-border/60 overflow-hidden">
             {deviceContacts.map((contact, index) => {
-              const canSelect = Boolean(contact.birthDate);
+              const canSelect = !contact.isDuplicate;
               const checked = contact.selected && canSelect;
 
               return (

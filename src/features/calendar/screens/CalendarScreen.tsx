@@ -5,7 +5,6 @@ import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CalendarSkeleton, EmptyState, ErrorState } from '@shared/ui';
-import { feedback } from '@/shared/feedback';
 import { usePeople } from '@features/people/hooks/usePeople';
 import { getPeopleForCalendarDay } from '@features/people/utils/birthday-utils';
 import { useCalendarMonth } from '@features/calendar/hooks/useCalendar';
@@ -17,6 +16,7 @@ import {
   CalendarToolbar,
   CalendarTimelineView,
   EventLegend,
+  SelectedDateEvents,
   UpcomingSection,
 } from '../components';
 import type { CalendarViewMode } from '../types';
@@ -88,21 +88,6 @@ export function CalendarScreen() {
   const handleSelectDate = (date: number) => {
     const clamped = clampSelectedDate(year, month, date);
     setSelectedDate(clamped);
-    const dayPeople = getPeopleForCalendarDay(allPeople, month, clamped);
-    if (dayPeople.length === 1) {
-      router.push({ pathname: '/person-details', params: { personId: dayPeople[0].id } });
-      return;
-    }
-    if (dayPeople.length > 1) {
-      feedback.actionSheet({
-        title: `${dayPeople.length} birthdays on this day`,
-        options: dayPeople.map((person) => ({
-          label: person.fullName,
-          onPress: () =>
-            router.push({ pathname: '/person-details', params: { personId: person.id } }),
-        })),
-      });
-    }
   };
 
   const handleSelectOverflowDate = (direction: -1 | 1, date: number) => {
@@ -120,29 +105,12 @@ export function CalendarScreen() {
       setMonth((m) => m + 1);
     }
     setSelectedDate(date);
-    const nextMonth = direction < 0 ? (month === 1 ? 12 : month - 1) : month === 12 ? 1 : month + 1;
-    const nextYear =
-      direction < 0
-        ? month === 1
-          ? year - 1
-          : year
-        : month === 12
-          ? year + 1
-          : year;
-    const dayPeople = getPeopleForCalendarDay(allPeople, nextMonth, date);
-    if (dayPeople.length === 1) {
-      router.push({ pathname: '/person-details', params: { personId: dayPeople[0].id } });
-    } else if (dayPeople.length > 1) {
-      feedback.actionSheet({
-        title: `${dayPeople.length} birthdays on this day`,
-        options: dayPeople.map((person) => ({
-          label: person.fullName,
-          onPress: () =>
-            router.push({ pathname: '/person-details', params: { personId: person.id } }),
-        })),
-      });
-    }
   };
+
+  const selectedDayPeople = useMemo(
+    () => getPeopleForCalendarDay(allPeople, month, selectedDate),
+    [allPeople, month, selectedDate],
+  );
 
   const hasMonthEvents = upcomingEvents.length > 0 || Object.keys(calendarEvents).length > 0;
   const hasAnyPeople = allPeople.length > 0;
@@ -197,6 +165,12 @@ export function CalendarScreen() {
                 onSelectOverflowDate={handleSelectOverflowDate}
               />
               <EventLegend />
+              <SelectedDateEvents
+                year={year}
+                month={month}
+                day={selectedDate}
+                people={selectedDayPeople}
+              />
             </>
           ) : upcomingEvents.length > 0 ? (
             <CalendarTimelineView events={upcomingEvents} />

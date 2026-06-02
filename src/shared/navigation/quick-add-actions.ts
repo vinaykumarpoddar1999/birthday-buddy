@@ -2,22 +2,28 @@ import { router, type Href } from 'expo-router';
 import { Platform } from 'react-native';
 
 import {
+  createMinimalPersonFromContact,
   pickSingleContactNative,
   type PickedContact,
 } from '@/services/contacts/contacts-import.service';
 import { feedback } from '@/shared/feedback';
 
-export function navigateToAddPersonWithContact(picked: PickedContact) {
+export function navigateToContactDetailsQueue(personIds: string[]): void {
+  if (personIds.length === 0) return;
   router.push({
-    pathname: '/add-person',
-    params: {
-      prefillName: picked.fullName,
-      prefillPhone: picked.phone ?? '',
-      prefillEmail: picked.email ?? '',
-      prefillBirthDate: picked.birthDate ?? '',
-      prefillAvatarUri: picked.avatarUri ?? '',
-    },
+    pathname: '/contact-details-queue',
+    params: { personIds: personIds.join(',') },
   });
+}
+
+export async function openContactDetailsFlow(picked: PickedContact): Promise<void> {
+  try {
+    const personId = await createMinimalPersonFromContact(picked);
+    navigateToContactDetailsQueue([personId]);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not save contact.';
+    feedback.error('Import failed', message);
+  }
 }
 
 export async function openSelectFromContact(): Promise<void> {
@@ -25,7 +31,7 @@ export async function openSelectFromContact(): Promise<void> {
     if (Platform.OS === 'ios') {
       const picked = await pickSingleContactNative();
       if (picked) {
-        navigateToAddPersonWithContact(picked);
+        await openContactDetailsFlow(picked);
       }
       return;
     }

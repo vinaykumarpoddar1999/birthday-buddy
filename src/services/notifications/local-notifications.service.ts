@@ -1,4 +1,4 @@
-import * as Notifications from 'expo-notifications';
+import type { NotificationContentInput } from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { settingsRepository } from '@/repositories/settings.repository';
@@ -11,6 +11,7 @@ import {
 
 import { isNotificationPermissionGranted } from './permission-utils';
 import { ensureNotificationHandler } from './notification-init.utils';
+import { getNotificationsModule } from './notifications-api';
 
 export type ScheduleBirthdayRemindersInput = {
   contactId: string;
@@ -99,7 +100,8 @@ function buildAdvanceContent(
   contactName: string,
   daysBefore: number,
   settings: ReminderSettings,
-): Notifications.NotificationContentInput {
+  AndroidNotificationPriority: typeof import('expo-notifications').AndroidNotificationPriority,
+): NotificationContentInput {
   if (daysBefore === 0) {
     return {
       title: `🎉 Today is ${contactName}'s birthday!`,
@@ -108,8 +110,8 @@ function buildAdvanceContent(
         : "Don't forget to wish them!",
       sound: settings.notificationSound ? 'default' : undefined,
       priority: settings.birthdayAlarm
-        ? Notifications.AndroidNotificationPriority.MAX
-        : Notifications.AndroidNotificationPriority.HIGH,
+        ? AndroidNotificationPriority.MAX
+        : AndroidNotificationPriority.HIGH,
     };
   }
 
@@ -117,16 +119,20 @@ function buildAdvanceContent(
     title: `🎂 ${contactName}'s birthday is in ${daysBefore} day${daysBefore === 1 ? '' : 's'}!`,
     body: 'Open BirthdayBuddy to plan a wish or card.',
     sound: settings.notificationSound ? 'default' : undefined,
-    priority: Notifications.AndroidNotificationPriority.HIGH,
+    priority: AndroidNotificationPriority.HIGH,
   };
 }
 
-function buildAlarmContent(contactName: string, settings: ReminderSettings): Notifications.NotificationContentInput {
+function buildAlarmContent(
+  contactName: string,
+  settings: ReminderSettings,
+  AndroidNotificationPriority: typeof import('expo-notifications').AndroidNotificationPriority,
+): NotificationContentInput {
   return {
     title: `⏰ Birthday Alarm — ${contactName}`,
     body: "It's time to celebrate! Send your birthday wish now.",
     sound: settings.notificationSound ? 'default' : undefined,
-    priority: Notifications.AndroidNotificationPriority.MAX,
+    priority: AndroidNotificationPriority.MAX,
     categoryIdentifier: BIRTHDAY_ALARM_CATEGORY,
   };
 }
@@ -136,6 +142,8 @@ export const BIRTHDAY_ALARM_CATEGORY = 'birthday-alarm-snooze';
 const SNOOZE_ACTION_ID = 'snooze-1h';
 
 export async function ensureBirthdayAlarmNotificationCategory(): Promise<void> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
   await Notifications.setNotificationCategoryAsync(BIRTHDAY_ALARM_CATEGORY, [
     {
       identifier: SNOOZE_ACTION_ID,
@@ -149,6 +157,8 @@ export async function ensureBirthdayAlarmNotificationCategory(): Promise<void> {
 
 async function ensureAndroidChannels(settings: ReminderSettings): Promise<void> {
   if (Platform.OS !== 'android') return;
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
 
   await Notifications.setNotificationChannelAsync('birthday-reminders', {
     name: 'Birthday Reminders',
@@ -172,7 +182,10 @@ async function ensureAndroidChannels(settings: ReminderSettings): Promise<void> 
 }
 
 export async function registerForNotifications(): Promise<boolean> {
-  ensureNotificationHandler();
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return false;
+
+  await ensureNotificationHandler();
 
   const existing = await Notifications.getPermissionsAsync();
   if (isNotificationPermissionGranted(existing)) {
@@ -201,27 +214,26 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 }
 
 async function scheduleCalendarNotification(
-  content: Notifications.NotificationContentInput,
+  content: NotificationContentInput,
   monthDay: MonthDay,
   time: string,
   channelId: string,
   data: Record<string, unknown>,
 ): Promise<string> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return '';
+
   const { hours, minutes } = parseTime(time);
 
   return Notifications.scheduleNotificationAsync({
     content: {
       ...content,
-      ...(Platform.OS === 'android'
-        ? { android: { channelId } }
-        : {}),
+      ...(Platform.OS === 'android' ? { android: { channelId } } : {}),
       data,
     },
     trigger:
       Platform.OS === 'android'
         ? {
-            // Android expects YEARLY trigger for month/day repeats.
-            // Month is JS-indexed (0-11) for this trigger.
             type: Notifications.SchedulableTriggerInputTypes.YEARLY,
             month: monthDay.month - 1,
             day: monthDay.day,
@@ -243,6 +255,9 @@ async function scheduleCalendarNotification(
 export async function scheduleBirthdayReminders(
   input: ScheduleBirthdayRemindersInput,
 ): Promise<string[]> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return [];
+
   const [prefs, reminderSettings] = await Promise.all([
     loadNotificationPrefs(),
     loadReminderSettings(),
@@ -280,6 +295,7 @@ export async function scheduleBirthdayReminders(
       : [notifyTime];
   const scheduledIds: string[] = [];
   const scheduledKeys = new Set<string>();
+  const { AndroidNotificationPriority } = Notifications;
 
   try {
     for (const daysBefore of offsets) {
@@ -293,8 +309,14 @@ export async function scheduleBirthdayReminders(
         if (scheduledKeys.has(key)) continue;
         scheduledKeys.add(key);
 
-        const content = buildAdvanceContent(input.contactName, daysBefore, reminderSettings);
-        const channelId = daysBefore === 0 && reminderSettings.birthdayAlarm ? 'birthday-alarms' : 'birthday-reminders';
+        const content = buildAdvanceContent(
+          input.contactName,
+          daysBefore,
+          reminderSettings,
+          AndroidNotificationPriority,
+        );
+        const channelId =
+          daysBefore === 0 && reminderSettings.birthdayAlarm ? 'birthday-alarms' : 'birthday-reminders';
 
         const id = await scheduleCalendarNotification(
           content,
@@ -303,12 +325,13 @@ export async function scheduleBirthdayReminders(
           channelId,
           {
             contactId: input.contactId,
+            contactName: input.contactName,
             daysBefore,
             type: daysBefore === 0 ? 'day_of' : 'advance',
             alarm: reminderSettings.birthdayAlarm,
           },
         );
-        scheduledIds.push(id);
+        if (id) scheduledIds.push(id);
       }
     }
 
@@ -325,18 +348,19 @@ export async function scheduleBirthdayReminders(
         scheduledKeys.add(key);
 
         const id = await scheduleCalendarNotification(
-          buildAlarmContent(input.contactName, reminderSettings),
+          buildAlarmContent(input.contactName, reminderSettings, AndroidNotificationPriority),
           adjusted,
           alarmTime,
           'birthday-alarms',
           {
             contactId: input.contactId,
+            contactName: input.contactName,
             daysBefore: 0,
             type: 'alarm',
             alarm: true,
-          },
+          } as Record<string, unknown>,
         );
-        scheduledIds.push(id);
+        if (id) scheduledIds.push(id);
       }
     }
   } catch (error) {
@@ -347,16 +371,22 @@ export async function scheduleBirthdayReminders(
 }
 
 export async function cancelScheduledNotifications(ids: string[]): Promise<void> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
   await Promise.all(
     ids.filter(Boolean).map((id) => Notifications.cancelScheduledNotificationAsync(id)),
   );
 }
 
 export async function cancelAllScheduledBirthdayNotifications(): Promise<void> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
 export async function getAllScheduledNotificationIds(): Promise<string[]> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return [];
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   return scheduled.map((n) => n.identifier);
 }

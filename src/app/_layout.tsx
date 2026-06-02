@@ -57,7 +57,10 @@ export default function RootLayout() {
         <Stack.Screen name="import-data" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="contact-import" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="contact-picker" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="contact-details-queue" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="calendar-sync" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="premium-upgrade" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="refer-earn" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="reminder-settings" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="coming-soon" options={{ animation: 'slide_from_right' }} />
       </Stack>

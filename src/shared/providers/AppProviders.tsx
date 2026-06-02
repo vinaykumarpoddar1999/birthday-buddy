@@ -11,6 +11,8 @@ import { FontScaleProvider } from '@/shared/providers/FontScaleProvider';
 import { StartupGate } from '@/shared/providers/StartupGate';
 import { ThemeProvider } from '@/shared/providers/ThemeProvider';
 import { FeedbackHost } from '@/shared/ui/feedback/FeedbackHost';
+import { EngagementPromptHost } from '@/shared/ui/engagement/EngagementPromptHost';
+import { BirthdayAlarmHost } from '@/shared/ui/BirthdayAlarmHost';
 
 type AppProvidersProps = {
   children: ReactNode;
@@ -32,6 +34,8 @@ export function AppProviders({ children }: AppProvidersProps) {
                   </AuthGate>
                 </StartupGate>
                 <FeedbackHost />
+                <EngagementPromptHost />
+                <BirthdayAlarmHost />
               </FontScaleProvider>
             </ThemeProvider>
           </QueryClientProvider>

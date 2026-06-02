@@ -2,43 +2,20 @@ export type TemplateCategory =
   | 'birthday'
   | 'anniversary'
   | 'romantic'
-  | 'funny'
-  | 'luxury'
-  | 'minimal'
-  | 'photo'
-  | 'floral'
-  | 'neon'
-  | 'cute'
-  | 'kids'
+  | 'friend'
   | 'professional'
+  | 'thank-you'
   | 'festival'
   | 'modern'
-  | 'gradient'
-  | 'illustration';
-
-export type TemplateCategoryFilter =
-  | 'all'
-  | 'trending'
-  | TemplateCategory
-  | 'wedding-anniversary'
-  | 'friend'
   | 'family'
-  | 'partner';
+  | 'minimal';
+
+export type TemplateCategoryFilter = 'all' | TemplateCategory;
 
 export type CanvasFormat = 'portrait' | 'landscape' | 'square';
-export type EditorMode = 'quick' | 'advanced';
 export type GradientType = 'linear' | 'radial';
 
-export type BackgroundEffectType =
-  | 'blur'
-  | 'glass'
-  | 'glow'
-  | 'shadow'
-  | 'overlay'
-  | 'vignette'
-  | 'noise'
-  | 'texture'
-  | 'pattern';
+export type BackgroundEffectType = 'blur' | 'glass' | 'glow' | 'overlay';
 
 export interface BackgroundEffect {
   type: BackgroundEffectType;
@@ -161,52 +138,28 @@ export interface Draft {
   elements: CardElement[];
   customBackground?: CardBackground | null;
   canvasFormat?: CanvasFormat;
-  editorMode?: EditorMode;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FilterState {
-  occasion: string[];
-  style: string[];
-  isPremiumOnly: boolean;
-  isFreeOnly: boolean;
-}
-
-export type AITone =
-  | 'funny'
-  | 'emotional'
-  | 'romantic'
-  | 'formal'
-  | 'luxury'
-  | 'heartfelt';
-
-export type AIRelationship =
-  | 'friend'
-  | 'family'
-  | 'partner'
-  | 'colleague';
-
-export interface AIGeneratedContent {
-  headline: string;
-  wish: string;
-  closing: string;
-  signature: string;
-}
-
-export interface DecorationItem {
-  id: string;
-  iconKey: string;
-  label: string;
-  category: 'balloons' | 'cake' | 'flowers' | 'gifts' | 'confetti' | 'hearts' | 'stars' | 'party';
-}
-
 export type EditorPanel =
   | 'none'
-  | 'background'
-  | 'text'
-  | 'image'
-  | 'sticker'
-  | 'elements'
   | 'content'
-  | 'quick';
+  | 'background'
+  | 'effects'
+  | 'text'
+  | 'media';
+
+export const TEMPLATE_CATEGORIES: { id: TemplateCategoryFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'birthday', label: 'Birthday' },
+  { id: 'anniversary', label: 'Anniversary' },
+  { id: 'romantic', label: 'Love' },
+  { id: 'friend', label: 'Friendship' },
+  { id: 'professional', label: 'Congrats' },
+  { id: 'thank-you', label: 'Thank You' },
+  { id: 'festival', label: 'Festival' },
+  { id: 'modern', label: 'Motivation' },
+  { id: 'family', label: 'Family' },
+  { id: 'minimal', label: 'Minimal' },
+];

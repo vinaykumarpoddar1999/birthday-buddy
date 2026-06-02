@@ -11,6 +11,7 @@ import { migration010SearchFtsExtended } from './migrations/010_search_fts_exten
 import { migration011ProfileSettingsTables } from './migrations/011_profile_settings_tables';
 import { migration012AuthSecurityTables } from './migrations/012_auth_security_tables';
 import { migration013SurpriseExperiences } from './migrations/013_surprise_experiences';
+import { migration014Monetization } from './migrations/014_monetization';
 import type { Migration } from './types';
 
 export const MIGRATION_REGISTRY: Migration[] = [
@@ -27,6 +28,7 @@ export const MIGRATION_REGISTRY: Migration[] = [
   migration011ProfileSettingsTables,
   migration012AuthSecurityTables,
   migration013SurpriseExperiences,
+  migration014Monetization,
 ];
 
 export const CURRENT_SCHEMA_VERSION =

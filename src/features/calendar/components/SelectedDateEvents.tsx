@@ -32,7 +32,7 @@ export function SelectedDateEvents({ year, month, day, people }: SelectedDateEve
       {people.map((person) => (
         <View key={person.id} className="mb-2">
           <Pressable
-            onPress={() => router.push({ pathname: '/person-details', params: { personId: person.id } })}
+            onPress={() => router.push(`/person-details?personId=${person.id}`)}
             className="bg-surface rounded-xl border border-border/60 p-3 flex-row items-center"
             accessibilityRole="button">
             <ProfileAvatar

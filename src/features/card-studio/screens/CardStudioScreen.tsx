@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePerson } from '@features/people/hooks/usePeople';
 import { useCardStudioStore } from '../store/card-studio.store';
-import { useCardAutosave } from '../hooks/useCardAutosave';
 import { CardStudioHeader } from '../components/common/CardStudioHeader';
 import { StepIndicator } from '../components/common/StepIndicator';
 import { Step1TemplateScreen } from './Step1TemplateScreen';
@@ -28,38 +27,41 @@ export function CardStudioScreen() {
   const resetStore = useCardStudioStore((s) => s.reset);
   const updatePersonalization = useCardStudioStore((s) => s.updatePersonalization);
   const setPreFilledPersonId = useCardStudioStore((s) => s.setPreFilledPersonId);
+  const personPrefillApplied = useCardStudioStore((s) => s.personPrefillApplied);
   const undo = useCardStudioStore((s) => s.undo);
   const redo = useCardStudioStore((s) => s.redo);
   const historyIndex = useCardStudioStore((s) => s.historyIndex);
   const historyLength = useCardStudioStore((s) => s.history.length);
   const selectedTemplate = useCardStudioStore((s) => s.selectedTemplate);
 
-  useCardAutosave();
-
   const params = useLocalSearchParams<{ personId?: string }>();
   const { data: person } = usePerson(params.personId);
 
   useEffect(() => {
-    if (person && params.personId) {
+    if (params.personId) {
       setPreFilledPersonId(params.personId);
-      const birthYear = parseInt(person.birthDate.split('-')[0], 10);
-      const age = new Date().getFullYear() - birthYear;
-      updatePersonalization({
-        recipientName: person.fullName,
-        relationship: person.relationship,
-        age: age > 0 ? String(age) : '',
-        eventType: person.eventType,
-        photoUri: person.avatarUri || undefined,
-      });
     }
-  }, [person, params.personId, setPreFilledPersonId, updatePersonalization]);
+  }, [params.personId, setPreFilledPersonId]);
 
   useEffect(() => {
-    if (step === 2 && !selectedTemplate) {
-      resetStore();
-      router.replace('/card-studio');
+    if (!person || !params.personId || personPrefillApplied) return;
+    const birthYear = parseInt(person.birthDate.split('-')[0], 10);
+    const age = new Date().getFullYear() - birthYear;
+    updatePersonalization({
+      recipientName: person.fullName,
+      relationship: person.relationship,
+      age: age > 0 ? String(age) : '',
+      eventType: person.eventType,
+      photoUri: person.avatarUri || undefined,
+    });
+    useCardStudioStore.setState({ personPrefillApplied: true });
+  }, [person, params.personId, personPrefillApplied, updatePersonalization]);
+
+  useEffect(() => {
+    if (step >= 2 && step <= 4 && !selectedTemplate) {
+      prevStep();
     }
-  }, [step, selectedTemplate, resetStore]);
+  }, [step, selectedTemplate, prevStep]);
 
   const handleBack = () => {
     if (step > 1) {
@@ -72,11 +74,16 @@ export function CardStudioScreen() {
 
   const renderStep = () => {
     switch (step) {
-      case 1: return <Step1TemplateScreen />;
-      case 2: return <Step2CustomizeScreen />;
-      case 3: return <Step3PreviewScreen />;
-      case 4: return <Step4ShareScreen />;
-      default: return <Step1TemplateScreen />;
+      case 1:
+        return <Step1TemplateScreen />;
+      case 2:
+        return selectedTemplate ? <Step2CustomizeScreen /> : <Step1TemplateScreen />;
+      case 3:
+        return selectedTemplate ? <Step3PreviewScreen /> : <Step1TemplateScreen />;
+      case 4:
+        return selectedTemplate ? <Step4ShareScreen /> : <Step1TemplateScreen />;
+      default:
+        return <Step1TemplateScreen />;
     }
   };
 

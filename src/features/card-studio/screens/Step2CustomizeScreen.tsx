@@ -5,12 +5,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardCanvas } from '../components/editor/CardCanvas';
-import { ContextualToolbar } from '../components/editor/ContextualToolbar';
+import { MinimalEditorToolbar } from '../components/editor/MinimalEditorToolbar';
 
 export function Step2CustomizeScreen() {
   const nextStep = useCardStudioStore((s) => s.nextStep);
   const template = useCardStudioStore((s) => s.selectedTemplate);
-
   if (!template) {
     return (
       <View className="flex-1 items-center justify-center px-6">
@@ -26,26 +25,18 @@ export function Step2CustomizeScreen() {
       className="flex-1 bg-background"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
-      <View style={{ flexShrink: 0 }}>
+      <View style={{ flexShrink: 0, flex: 0.58, minHeight: 280 }}>
         <CardCanvas editable />
       </View>
 
-      <View style={{ flex: 1, minHeight: 140 }}>
-        <ContextualToolbar />
+      <View style={{ flex: 0.42, minHeight: 160 }}>
+        <MinimalEditorToolbar />
       </View>
 
-      <View className="px-5 pb-4 pt-2 bg-background border-t border-gray-50">
+      <View className="px-5 pb-4 pt-2 bg-background border-t border-border">
         <Pressable
           onPress={nextStep}
           className="overflow-hidden rounded-2xl"
-          style={({ pressed }) => ({
-            transform: [{ scale: pressed ? 0.98 : 1 }],
-            shadowColor: '#7C3AED',
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.3,
-            shadowRadius: 12,
-            elevation: 8,
-          })}
           accessibilityRole="button"
           accessibilityLabel="Preview card">
           <LinearGradient colors={['#7C3AED', '#5B21B6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>

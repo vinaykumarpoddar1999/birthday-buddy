@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { CalendarDayEvent, EventType } from '../types';
 import { EventDot, EventMarker } from './EventMarker';
@@ -13,6 +13,73 @@ export type CalendarCellProps = {
   onPress: () => void;
 };
 
+const styles = StyleSheet.create({
+  emptyCell: {
+    flex: 1,
+    aspectRatio: 1,
+    padding: 2,
+  },
+  pressable: {
+    flex: 1,
+    aspectRatio: 1,
+    padding: 2,
+    minHeight: 44,
+  },
+  inner: {
+    flex: 1,
+    borderRadius: 8,
+    alignItems: 'center',
+    paddingTop: 4,
+    paddingBottom: 2,
+    paddingHorizontal: 2,
+  },
+  innerSelected: {
+    backgroundColor: '#7C3AED',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  innerOtherMonth: {
+    backgroundColor: 'transparent',
+    opacity: 0.4,
+  },
+  innerDefault: {
+    backgroundColor: 'transparent',
+  },
+  dayText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  dayTextSelected: {
+    color: '#FFFFFF',
+  },
+  dayTextCurrent: {
+    color: '#111827',
+  },
+  dayTextMuted: {
+    color: '#9CA3AF',
+  },
+  markers: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 2,
+    minHeight: 22,
+  },
+  markerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  dotRow: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+});
+
 export function CalendarCell({
   date,
   isCurrentMonth,
@@ -22,11 +89,29 @@ export function CalendarCell({
   onPress,
 }: CalendarCellProps) {
   if (date == null) {
-    return <View className="flex-1 aspect-square p-0.5" />;
+    return <View style={styles.emptyCell} />;
   }
 
   const visibleEvents = events.slice(0, 2);
   const showDots = visibleEvents.length === 0 && dotTypes.length > 0;
+
+  const innerStyle = [
+    styles.inner,
+    isSelected
+      ? styles.innerSelected
+      : isCurrentMonth
+        ? styles.innerDefault
+        : styles.innerOtherMonth,
+  ];
+
+  const dayTextStyle = [
+    styles.dayText,
+    isSelected
+      ? styles.dayTextSelected
+      : isCurrentMonth
+        ? styles.dayTextCurrent
+        : styles.dayTextMuted,
+  ];
 
   return (
     <Pressable
@@ -34,26 +119,10 @@ export function CalendarCell({
       accessibilityLabel={`${date}${isSelected ? ', selected' : ''}`}
       accessibilityState={{ selected: isSelected }}
       onPress={onPress}
-      className="flex-1 aspect-square p-0.5 min-h-[44px]">
-      <View
-        className={`flex-1 rounded-lg items-center pt-1 pb-0.5 px-0.5 ${
-          isSelected
-            ? 'bg-primary shadow-md'
-            : isCurrentMonth
-              ? 'bg-transparent'
-              : 'bg-transparent opacity-40'
-        }`}>
-        <Text
-          className={`text-[12px] font-semibold ${
-            isSelected
-              ? 'text-white'
-              : isCurrentMonth
-                ? 'text-foreground'
-                : 'text-foreground-muted'
-          }`}>
-          {date}
-        </Text>
-        <View className="flex-1 items-center justify-end pb-0.5 min-h-[22px]">
+      style={styles.pressable}>
+      <View style={innerStyle}>
+        <Text style={dayTextStyle}>{date}</Text>
+        <View style={styles.markers}>
           {isSelected && visibleEvents[0] ? (
             <EventMarker
               type={visibleEvents[0].type}
@@ -64,7 +133,7 @@ export function CalendarCell({
             />
           ) : null}
           {!isSelected && visibleEvents.length > 0 ? (
-            <View className="flex-row items-end justify-center gap-0.5">
+            <View style={styles.markerRow}>
               {visibleEvents.map((event) => (
                 <EventMarker
                   key={event.id}
@@ -78,7 +147,7 @@ export function CalendarCell({
             </View>
           ) : null}
           {showDots ? (
-            <View className="flex-row gap-0.5">
+            <View style={styles.dotRow}>
               {dotTypes.map((type, index) => (
                 <EventDot key={`${date}-dot-${index}`} type={type} />
               ))}
