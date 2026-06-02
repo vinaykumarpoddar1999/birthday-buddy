@@ -380,8 +380,9 @@ export class AuthService {
     const valid = await cryptoService.verifySecret(currentPassword, security.passwordSalt, security.passwordHash);
     if (!valid) throw new AuthError('Current password is incorrect', 'INVALID_CREDENTIALS');
 
-    const strength = this.evaluatePasswordStrength(newPassword);
-    if (strength.score < 100) throw new AuthError('New password does not meet requirements', 'VALIDATION_ERROR');
+    if (newPassword.length < 8) {
+      throw new AuthError('New password must be at least 8 characters', 'VALIDATION_ERROR');
+    }
 
     const salt = await cryptoService.generateSalt();
     const hash = await cryptoService.hashSecret(newPassword, salt);
@@ -396,8 +397,9 @@ export class AuthService {
     const valid = await cryptoService.verifySecret(code, security.recoveryCodeSalt, security.recoveryCodeHash);
     if (!valid) throw new AuthError('Invalid recovery code', 'INVALID_CREDENTIALS');
 
-    const strength = this.evaluatePasswordStrength(newPassword);
-    if (strength.score < 100) throw new AuthError('Password does not meet requirements', 'VALIDATION_ERROR');
+    if (newPassword.length < 8) {
+      throw new AuthError('Password must be at least 8 characters', 'VALIDATION_ERROR');
+    }
 
     const salt = await cryptoService.generateSalt();
     const hash = await cryptoService.hashSecret(newPassword, salt);

@@ -26,7 +26,7 @@ const ACTIONS: ActionItem[] = [
   {
     id: 'create-card',
     icon: Sparkles,
-    iconColor: '#EC4899',
+    iconColor: '#3B82F6',
     title: 'Create Card',
     subtitle: 'Make it special',
     href: '/card-studio',
@@ -34,7 +34,7 @@ const ACTIONS: ActionItem[] = [
   {
     id: 'surprise-link',
     icon: Link2,
-    iconColor: '#3B82F6',
+    iconColor: '#7C3AED',
     title: 'Surprise Link',
     subtitle: 'Interactive',
     href: '/surprise-link-studio',
@@ -42,7 +42,7 @@ const ACTIONS: ActionItem[] = [
   {
     id: 'gift-ideas',
     icon: Gift,
-    iconColor: '#F59E0B',
+    iconColor: '#EC4899',
     title: 'Gift Ideas',
     subtitle: 'For them',
     href: { pathname: '/coming-soon', params: { feature: 'gift-ideas' } },
@@ -63,10 +63,14 @@ export function HeroActionPanel() {
               accessibilityRole="button"
               accessibilityLabel={action.title}>
               <View style={[styles.iconCircle, { backgroundColor: `${action.iconColor}12` }]}>
-                <Icon size={scale(24)} color={action.iconColor} strokeWidth={2} />
+                <Icon size={scale(20)} color={action.iconColor} strokeWidth={2} />
               </View>
-              <Text style={styles.actionTitle} numberOfLines={1}>{action.title}</Text>
-              <Text style={styles.actionSubtitle} numberOfLines={1}>{action.subtitle}</Text>
+              <Text style={styles.actionTitle} numberOfLines={1}>
+                {action.title}
+              </Text>
+              <Text style={styles.actionSubtitle} numberOfLines={1}>
+                {action.subtitle}
+              </Text>
             </Pressable>
           );
         })}
@@ -78,11 +82,11 @@ export function HeroActionPanel() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.surface,
-    borderRadius: scale(24),
-    paddingVertical: scale(18),
-    paddingHorizontal: scale(12),
-    marginTop: -scale(30),
-    marginHorizontal: scale(12),
+    borderRadius: scale(18),
+    paddingVertical: scale(12),
+    paddingHorizontal: scale(8),
+    marginTop: -scale(20),
+    marginHorizontal: scale(10),
     zIndex: 10,
   },
   row: {
@@ -95,22 +99,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconCircle: {
-    width: scale(52),
-    height: scale(52),
-    borderRadius: scale(26),
+    width: scale(42),
+    height: scale(42),
+    borderRadius: scale(21),
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: scale(8),
+    marginBottom: scale(6),
   },
   actionTitle: {
-    fontSize: scale(12),
+    fontSize: scale(10),
     fontWeight: '700',
     color: Colors.foreground,
     textAlign: 'center',
-    marginBottom: scale(2),
+    marginBottom: scale(1),
   },
   actionSubtitle: {
-    fontSize: scale(10),
+    fontSize: scale(9),
     fontWeight: '500',
     color: Colors.foregroundSecondary,
     textAlign: 'center',

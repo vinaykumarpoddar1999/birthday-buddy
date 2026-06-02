@@ -103,7 +103,16 @@ export const useSettingsStore = create<SettingsStoreState>()((set) => ({
     }),
   setAppRating: (appRating) => set({ appRating }),
 
-  hydrate: (partial) => set((s) => ({ ...s, ...partial })),
+  hydrate: (partial) =>
+    set((s) => {
+      if (partial.theme) {
+        useThemeStore.getState().setMode(partial.theme);
+      }
+      if (partial.appearanceSettings?.theme) {
+        useThemeStore.getState().setMode(partial.appearanceSettings.theme);
+      }
+      return { ...s, ...partial };
+    }),
   reset: () => {
     useThemeStore.getState().setMode('system');
     set({ ...DEFAULT_STATE, notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS }, reminderSettings: { ...DEFAULT_REMINDER_SETTINGS }, privacySettings: { ...DEFAULT_PRIVACY_SETTINGS }, backupSettings: { ...DEFAULT_BACKUP_SETTINGS }, appearanceSettings: { ...DEFAULT_APPEARANCE_SETTINGS } });

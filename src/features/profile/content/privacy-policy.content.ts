@@ -27,7 +27,7 @@ export const PRIVACY_POLICY_SECTIONS: LegalSection[] = [
   {
     title: 'Permissions',
     content:
-      'The app may request notifications (birthday reminders), contacts (import birthdays), calendar (sync events), camera and photo library (profile and card images), and biometric authentication (optional app lock). You can revoke permissions anytime in your device settings; some features may be limited without them.',
+      'The app may request notifications (birthday reminders), contacts (import birthdays), calendar (sync events), camera and photo library (profile and card images), and biometric authentication (optional unlock). You can revoke permissions anytime in your device settings; some features may be limited without them.',
   },
   {
     title: 'Third-Party Services',

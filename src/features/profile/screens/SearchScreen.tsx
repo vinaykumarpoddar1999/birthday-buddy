@@ -14,13 +14,16 @@ const SETTINGS_ITEMS = [
   { id: 'personal-info', title: 'Personal Information', subtitle: 'Update your details', route: '/personal-info' },
   { id: 'privacy-security', title: 'Privacy & Security', subtitle: 'Manage access and security', route: '/privacy-security' },
   { id: 'notification-prefs', title: 'Notification Preferences', subtitle: 'Manage notifications', route: '/notification-prefs' },
+  { id: 'reminder-settings', title: 'Reminder Settings', subtitle: 'Set reminder timing', route: '/reminder-settings' },
   { id: 'reminder-time', title: 'Reminder Time', subtitle: 'Set default reminder time', route: '/reminder-time' },
-  { id: 'theme-select', title: 'Theme', subtitle: 'Change app appearance', route: '/theme-select' },
-  { id: 'language-select', title: 'Language', subtitle: 'Change app language', route: '/language-select' },
   { id: 'backup-restore', title: 'Backup & Restore', subtitle: 'Manage backups', route: '/backup-restore' },
+  { id: 'export-data', title: 'Export Data', subtitle: 'Export JSON or CSV', route: '/export-data' },
+  { id: 'import-data', title: 'Import Data', subtitle: 'Import JSON backup', route: '/import-data' },
+  { id: 'contact-import', title: 'Import Contacts', subtitle: 'Import birthdays from phone', route: '/contact-import' },
+  { id: 'calendar-sync', title: 'Calendar Sync', subtitle: 'Sync birthdays to calendar', route: '/calendar-sync' },
+  { id: 'privacy-policy', title: 'Privacy Policy', subtitle: 'Data usage and permissions', route: '/privacy-policy' },
+  { id: 'terms-conditions', title: 'Terms & Conditions', subtitle: 'User agreement', route: '/terms-conditions' },
   { id: 'help-faq', title: 'Help & FAQ', subtitle: 'Get help', route: '/help-faq' },
-  { id: 'activity-history', title: 'Activity History', subtitle: 'View recent activity', route: '/activity-history' },
-  { id: 'wish-history', title: 'Wish History', subtitle: 'View generated wishes', route: '/wish-history' },
 ];
 
 const SETTINGS_ROUTE_MAP: Record<string, string> = Object.fromEntries(
@@ -92,7 +95,7 @@ export const SearchScreen = () => {
       return;
     }
     if (result.type === 'wish') {
-      router.push('/wish-history');
+      router.push('/ai-wish');
       return;
     }
     if (result.type === 'card') {

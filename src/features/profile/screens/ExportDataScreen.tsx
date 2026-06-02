@@ -14,6 +14,7 @@ import type { ExportModule } from '@/database/backup';
 import { cardService } from '@/services/card/card.service';
 import { wishService } from '@/services/wish/wish.service';
 import { useFeedback } from '@/shared/hooks/useFeedback';
+import { getSaveSuccessMessage } from '@/utils/file-download';
 
 type ExportCardProps = {
   icon: LucideIcon;
@@ -97,8 +98,8 @@ export const ExportDataScreen = () => {
       const key = `${module}-${format}`;
       setExporting(key);
       try {
-        await backupService.shareModuleExport(module, format);
-        showSuccess('Export Complete', `${titleForModule(module)} exported as ${format.toUpperCase()}.`);
+        const result = await backupService.downloadModuleExport(module, format);
+        showSuccess('Export Complete', getSaveSuccessMessage(result));
       } catch (error) {
         showError('Export Failed', error instanceof Error ? error.message : 'Could not export data.');
       } finally {
@@ -111,8 +112,8 @@ export const ExportDataScreen = () => {
   const handleExportAll = async () => {
     setExporting('all-json');
     try {
-      await backupService.shareJsonBackup();
-      showSuccess('Export All', 'All data has been exported successfully.');
+      const result = await backupService.downloadJsonBackup();
+      showSuccess('Export All', getSaveSuccessMessage(result));
     } catch (error) {
       showError('Export Failed', error instanceof Error ? error.message : 'Could not export data.');
     } finally {
@@ -131,7 +132,7 @@ export const ExportDataScreen = () => {
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         <Text className="text-[13px] text-foreground-secondary mt-2 mb-4">
-          Export your data in JSON or CSV format. Files are shared via your device.
+          Export your data in JSON or CSV format. Files are saved directly to your device.
         </Text>
 
         <ExportCard icon={Users} iconBg="#EDE9FE" iconColor="#7C3AED" title="People Data" count={peopleCount} description="All contacts and birthdays" module="people" exporting={exporting} onExport={handleExport} />
@@ -151,14 +152,3 @@ export const ExportDataScreen = () => {
     </SafeAreaView>
   );
 };
-
-function titleForModule(module: ExportModule): string {
-  const map: Record<string, string> = {
-    people: 'People Data',
-    wishes: 'Wish History',
-    settings: 'Settings',
-    cards: 'Cards',
-    all: 'All Data',
-  };
-  return map[module] ?? module;
-}

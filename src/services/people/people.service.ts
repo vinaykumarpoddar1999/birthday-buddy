@@ -3,6 +3,7 @@ import { peopleRepository } from '@/repositories/people.repository';
 import { eventRepository } from '@/repositories/event.repository';
 import { activityLogRepository } from '@/repositories/activity-log.repository';
 import { refreshActivityFeed } from '@/services/activity/activity-sync.service';
+import { syncPersonToDeviceCalendar, removePersonFromDeviceCalendar } from '@/services/calendar/device-calendar.service';
 import { reminderService } from '@/services/reminder/reminder.service';
 import type { CreatePersonInput, Person, UpdatePersonInput } from '@/types/entities';
 
@@ -28,6 +29,7 @@ export class PeopleService {
     const person = await peopleRepository.findByUuid(uuid);
     if (person) {
       await reminderService.scheduleForPerson(person);
+      await syncPersonToDeviceCalendar(person);
     }
     await refreshActivityFeed();
     return uuid;
@@ -46,12 +48,14 @@ export class PeopleService {
     const person = await peopleRepository.findByUuid(input.id);
     if (person) {
       await reminderService.scheduleForPerson(person);
+      await syncPersonToDeviceCalendar(person);
     }
     await refreshActivityFeed();
   }
 
   async delete(uuid: string): Promise<void> {
     await reminderService.cancelForPersonUuid(uuid);
+    await removePersonFromDeviceCalendar(uuid);
 
     await DatabaseManager.withTransaction(async () => {
       const personId = await peopleRepository.getInternalId(uuid);

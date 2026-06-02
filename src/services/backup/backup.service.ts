@@ -1,5 +1,5 @@
 import { pickDocumentAsync } from '@/utils/document-picker';
-import { saveToDevice } from '@/utils/file-download';
+import { downloadCsvFile, downloadJsonFile, type SaveToDeviceResult } from '@/utils/file-download';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
@@ -50,18 +50,32 @@ export class BackupService {
     return json;
   }
 
-  async shareJsonBackup(): Promise<void> {
+  async downloadJsonBackup(): Promise<SaveToDeviceResult> {
     const json = await this.exportJson();
-    await saveToDevice(json, `birthday-buddy-backup-${Date.now()}.json`, 'application/json');
+    const fileName = `birthday-buddy-backup-${Date.now()}.json`;
+    return downloadJsonFile(json, fileName);
   }
 
-  async shareModuleExport(module: ExportModule, format: 'json' | 'csv' = 'json'): Promise<void> {
+  /** @deprecated Use downloadJsonBackup */
+  async shareJsonBackup(): Promise<SaveToDeviceResult> {
+    return this.downloadJsonBackup();
+  }
+
+  async downloadModuleExport(
+    module: ExportModule,
+    format: 'json' | 'csv' = 'json',
+  ): Promise<SaveToDeviceResult> {
     const content = format === 'csv' ? await exportModuleCsv(module) : await exportModuleJson(module);
     const ext = format === 'csv' ? 'csv' : 'json';
-    const mime = format === 'csv' ? 'text/csv' : 'application/json';
     const fileName = `birthday-buddy-${module}-${Date.now()}.${ext}`;
-    await saveToDevice(content, fileName, mime);
+    const result =
+      format === 'csv' ? await downloadCsvFile(content, fileName) : await downloadJsonFile(content, fileName);
     await this.addExportHistory(module, fileName, content.length, format);
+    return result;
+  }
+
+  async shareModuleExport(module: ExportModule, format: 'json' | 'csv' = 'json'): Promise<SaveToDeviceResult> {
+    return this.downloadModuleExport(module, format);
   }
 
   async restoreFromPicker(): Promise<void> {
@@ -93,12 +107,26 @@ export class BackupService {
     } catch {
       throw new ImportError('Invalid JSON backup file.');
     }
-    const data = parsed as Record<string, unknown[]>;
+    const data = parsed as Record<string, unknown> & {
+      people?: unknown[];
+      wishes?: unknown[];
+      wishHistory?: unknown[];
+      cards?: unknown[];
+      settings?: unknown[];
+      module?: string;
+    };
+
+    if (data.module && data.module !== 'all') {
+      throw new ImportError(
+        'This is a partial module export. Use Import Data only with a full backup (Backup Now or Export All Data).',
+      );
+    }
+
     if (!Array.isArray(data.people)) {
-      throw new ImportError('Invalid backup file: missing people data.');
+      throw new ImportError('Invalid backup file: missing people data. Use a full BirthdayBuddy JSON backup.');
     }
     return {
-      people: data.people?.length ?? 0,
+      people: data.people.length,
       wishes: (data.wishes?.length ?? 0) + (data.wishHistory?.length ?? 0),
       cards: data.cards?.length ?? 0,
       settings: data.settings?.length ?? 0,

@@ -69,7 +69,7 @@ function BirthdayCard({ person, index }: { person: Person; index: number }) {
                 />
               </View>
               <View style={[styles.avatarDecor, { backgroundColor: theme.accent }]}>
-                <Sparkles size={scale(8)} color="#FFFFFF" />
+                <Cake size={scale(12)} color="#FFFFFF" />
               </View>
             </View>
 
@@ -87,39 +87,11 @@ function BirthdayCard({ person, index }: { person: Person; index: number }) {
                   <Calendar size={scale(11)} color={theme.accent} />
                   <Text style={[styles.chipText, { color: theme.accent }]}>{dateLabel}</Text>
                 </View>
-                <View style={[styles.chip, { backgroundColor: `${theme.accent}15` }]}>
-                  <MapPin size={scale(11)} color={theme.accent} />
-                  <Text style={[styles.chipText, { color: theme.accent }]}>Just You</Text>
-                </View>
-              </View>
-              <Text style={styles.cardMessage} numberOfLines={1}>{message}</Text>
-
-              {/* Quick Action Buttons */}
-              <View style={styles.quickActions}>
-                <Pressable
-                  style={styles.quickBtn}
-                  onPress={() => router.push({ pathname: '/ai-wish', params: { personId: person.id } })}
-                  accessibilityRole="button">
-                  <MessageCircle size={scale(14)} color={theme.accent} />
-                </Pressable>
-                <Pressable
-                  style={styles.quickBtn}
-                  onPress={() => router.push({ pathname: '/card-studio', params: { personId: person.id } })}
-                  accessibilityRole="button">
-                  <Gift size={scale(14)} color={theme.accent} />
-                </Pressable>
-                <Pressable
-                  style={styles.quickBtn}
-                  onPress={() => router.push({ pathname: '/surprise-link-studio', params: { personId: person.id } })}
-                  accessibilityRole="button">
-                  <Sparkles size={scale(14)} color={theme.accent} />
-                </Pressable>
               </View>
             </View>
 
             {/* Right Days Panel */}
             <View style={[styles.daysPanel, { backgroundColor: `${theme.accent}10` }]}>
-              <Cake size={scale(20)} color={theme.accent} strokeWidth={2} />
               <Text style={[styles.daysNumber, { color: theme.accent }]}>{daysLeft}</Text>
               <Text style={[styles.daysLabel, { color: theme.accent }]}>Days Left</Text>
               <ChevronRight size={scale(16)} color={theme.accent} style={{ marginTop: scale(4) }} />
@@ -202,7 +174,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cardGradient: {
-    padding: scale(14),
+    padding: scale(10),
   },
   cardRow: {
     flexDirection: 'row',

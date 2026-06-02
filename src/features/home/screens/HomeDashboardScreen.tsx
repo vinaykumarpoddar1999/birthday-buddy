@@ -6,8 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState, PageSkeleton } from '@shared/ui';
 import { useUpcomingPeople, useHomeInsights } from '@features/people/hooks/usePeople';
-import { useProfileStore } from '@features/profile/store/profile.store';
-
 import { HomeHeader } from '../components/HomeHeader';
 import { HeroBirthdayCard } from '../components/HeroBirthdayCard';
 import { HeroActionPanel } from '../components/HeroActionPanel';
@@ -25,9 +23,8 @@ export function HomeDashboardScreen() {
     refetch,
   } = useUpcomingPeople(8);
   const { data: homeInsights } = useHomeInsights();
-  const userName = useProfileStore((s) => s.profile.fullName) || 'there';
 
-  const listPeople = useMemo(() => upcomingPeople.slice(0, 6), [upcomingPeople]);
+  const listPeople = useMemo(() => upcomingPeople.slice(1, 5), [upcomingPeople]);
 
   if (isLoading) {
     return (
@@ -66,7 +63,7 @@ export function HomeDashboardScreen() {
 
         {/* Hero Birthday Card */}
         {upcomingPeople.length > 0 ? (
-          <View>
+          <View style={styles.heroWrapper}>
             <HeroBirthdayCard person={upcomingPeople[0]} />
             <HeroActionPanel />
           </View>
@@ -128,6 +125,9 @@ const styles = StyleSheet.create({
   errorContainer: {
     paddingHorizontal: scale(20),
     paddingTop: scale(8),
+  },
+  heroWrapper: {
+    marginBottom: scale(8),
   },
   emptyHero: {
     marginBottom: scale(16),

@@ -1,6 +1,6 @@
 import { DatabaseManager } from './database-manager';
 import { TransactionManager } from './transaction-manager';
-import { ImportError } from '@/shared/errors';
+import { BackupError, ImportError } from '@/shared/errors';
 
 export async function exportDatabaseBytes(): Promise<Uint8Array> {
   const db = DatabaseManager.getDb();
@@ -349,12 +349,14 @@ export async function exportModuleJson(module: ExportModule): Promise<string> {
 export async function exportModuleCsv(module: ExportModule): Promise<string> {
   const json = await exportModuleJson(module);
   const data = JSON.parse(json) as Record<string, unknown>;
-  const rows = (data.people ?? data.events ?? data.wishes ?? data.cards ?? []) as Record<
-    string,
-    unknown
-  >[];
+  const rows = (data.people ??
+    data.events ??
+    data.wishes ??
+    data.cards ??
+    data.wishHistory ??
+    []) as Record<string, unknown>[];
   if (!Array.isArray(rows) || rows.length === 0) {
-    return 'No data';
+    throw new BackupError(`No ${module} data available to export as CSV.`);
   }
   const headers = Object.keys(rows[0]);
   const lines = [

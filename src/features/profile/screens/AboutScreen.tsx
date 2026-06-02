@@ -75,6 +75,16 @@ export const AboutScreen = () => {
           <View className="h-[0.5px] bg-border/60 mx-4" />
           <Pressable
             className="flex-row items-center py-3.5 px-4"
+            onPress={() => router.push('/open-source-licenses')}
+            accessibilityRole="button">
+            <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#FCE7F3]">
+              <FileText size={18} color="#EC4899" />
+            </View>
+            <Text className="text-[15px] font-medium text-foreground flex-1">Open Source Licenses</Text>
+          </Pressable>
+          <View className="h-[0.5px] bg-border/60 mx-4" />
+          <Pressable
+            className="flex-row items-center py-3.5 px-4"
             onPress={() => router.push('/help-center')}
             accessibilityRole="button">
             <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#FEF3C7]">

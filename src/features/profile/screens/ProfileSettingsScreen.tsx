@@ -1,6 +1,26 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Bell, ChevronRight, Clock, Cloud, DollarSign, Download, Globe, HelpCircle, Info, Link2, LogOut, MessageSquare, Moon, Monitor, Palette, Share2, Shield, Smartphone, Star, Sun, Trash2, Upload, User, Vibrate, Wand2, type LucideIcon } from 'lucide-react-native';
-import { useMemo } from 'react';
+import {
+  Bell,
+  ChevronRight,
+  Clock,
+  Cloud,
+  Download,
+  FileText,
+  HelpCircle,
+  Info,
+  LogOut,
+  MessageSquare,
+  Moon,
+  Share2,
+  Shield,
+  Star,
+  Trash2,
+  Upload,
+  User,
+  Users,
+  Vibrate,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { Pressable, ScrollView, Share, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,10 +29,6 @@ import { useAuth } from '@features/auth';
 
 import { ProfileSummaryCard } from '../components/ProfileSummaryCard';
 import { useProfileStore } from '../store/profile.store';
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  INR: '₹', USD: '$', EUR: '€', GBP: '£', CAD: 'C$', AUD: 'A$',
-};
 
 type SettingsRowProps = {
   icon: LucideIcon;
@@ -83,15 +99,12 @@ const QuickAction = ({ icon: Icon, label, color, bg, onPress }: QuickActionProps
 );
 
 export const ProfileSettingsScreen = () => {
-  const language = useProfileStore((s) => s.language);
-  const currency = useProfileStore((s) => s.currency);
-  const theme = useProfileStore((s) => s.theme);
   const hapticFeedback = useProfileStore((s) => s.hapticFeedback);
   const reminderSettings = useProfileStore((s) => s.reminderSettings);
   const setHapticFeedback = useProfileStore((s) => s.setHapticFeedback);
   const updateReminderSettings = useProfileStore((s) => s.updateReminderSettings);
 
-  const { signOut, isAuthenticated, isGuest } = useAuth();
+  const { signOut, isAuthenticated } = useAuth();
   const { showConfirm } = useFeedback();
 
   const handleLogout = () => {
@@ -112,19 +125,10 @@ export const ProfileSettingsScreen = () => {
     return `${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
   };
 
-  const languageLabel = useMemo(() => {
-    const map: Record<string, string> = {
-      english: 'English', hindi: 'Hindi', bengali: 'Bengali', spanish: 'Spanish',
-      french: 'French', german: 'German', arabic: 'Arabic', japanese: 'Japanese',
-    };
-    return map[language] || 'English';
-  }, [language]);
-
-  const themeIcons = [
-    { key: 'light', Icon: Sun },
-    { key: 'dark', Icon: Moon },
-    { key: 'system', Icon: Monitor },
-  ];
+  const reminderValue =
+    reminderSettings.timingMode === 'flexible'
+      ? `${reminderSettings.multipleReminderTimes.length} times`
+      : formatTime(reminderSettings.defaultTime);
 
   const handleShare = async () => {
     try {
@@ -153,7 +157,6 @@ export const ProfileSettingsScreen = () => {
             <QuickAction icon={Clock} label="Reminders" color="#F59E0B" bg="#FEF3C7" onPress={() => router.push('/reminder-settings')} />
             <QuickAction icon={Cloud} label="Calendar Sync" color="#3B82F6" bg="#DBEAFE" onPress={() => router.push('/calendar-sync')} />
             <QuickAction icon={Download} label="Backup" color="#22C55E" bg="#DCFCE7" onPress={() => router.push('/backup-restore')} />
-            <QuickAction icon={Palette} label="Appearance" color="#EC4899" bg="#FCE7F3" onPress={() => router.push('/appearance-settings')} />
           </ScrollView>
         </View>
 
@@ -162,7 +165,7 @@ export const ProfileSettingsScreen = () => {
           <View className="bg-surface rounded-2xl px-4 border border-border/60">
             <SettingsRow icon={User} iconBg="#EDE9FE" iconColor="#7C3AED" title="Personal Information" description="Update name, email, mobile number" onPress={() => router.push('/personal-info')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Shield} iconBg="#DBEAFE" iconColor="#3B82F6" title="Privacy & Security" description="Manage privacy, PIN, Face ID" onPress={() => router.push('/privacy-security')} />
+            <SettingsRow icon={Shield} iconBg="#DBEAFE" iconColor="#3B82F6" title="Privacy & Security" description="Manage biometrics and password" onPress={() => router.push('/privacy-security')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Cloud} iconBg="#DCFCE7" iconColor="#22C55E" title="Backup & Restore" description="Backup/restore data" onPress={() => router.push('/backup-restore')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
@@ -170,13 +173,7 @@ export const ProfileSettingsScreen = () => {
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Upload} iconBg="#CFFAFE" iconColor="#06B6D4" title="Import Data" description="Import JSON backup with preview" onPress={() => router.push('/import-data')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Clock} iconBg="#EDE9FE" iconColor="#7C3AED" title="Activity History" description="View your recent app activity" onPress={() => router.push('/activity-history')} />
-            <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Wand2} iconBg="#FCE7F3" iconColor="#EC4899" title="Wish History" description="Browse generated wishes" onPress={() => router.push('/wish-history')} />
-            <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Palette} iconBg="#EDE9FE" iconColor="#7C3AED" title="Card History" description="Created, shared, and favorite cards" onPress={() => router.push('/card-history')} />
-            <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Link2} iconBg="#F5F3FF" iconColor="#7C3AED" title="Surprise History" description="Interactive experiences you created" onPress={() => router.push('/surprise-history')} />
+            <SettingsRow icon={Users} iconBg="#FCE7F3" iconColor="#EC4899" title="Import Contacts" description="Import birthdays from your phone contacts" onPress={() => router.push('/contact-import')} />
             {isAuthenticated ? (
               <>
                 <View className="h-[0.5px] bg-border/60 ml-12" />
@@ -200,7 +197,7 @@ export const ProfileSettingsScreen = () => {
           <View className="bg-surface rounded-2xl px-4 border border-border/60">
             <SettingsRow icon={Bell} iconBg="#EDE9FE" iconColor="#7C3AED" title="Notification Preferences" description="Choose what and when to be notified" onPress={() => router.push('/notification-prefs')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Clock} iconBg="#DBEAFE" iconColor="#3B82F6" title="Reminder Settings" value={formatTime(reminderSettings.defaultTime)} onPress={() => router.push('/reminder-settings')} />
+            <SettingsRow icon={Clock} iconBg="#DBEAFE" iconColor="#3B82F6" title="Reminder Settings" value={reminderValue} onPress={() => router.push('/reminder-settings')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Moon} iconBg="#F3E8FF" iconColor="#8B5CF6" title="Quiet Hours" value={`${formatTime(reminderSettings.quietHoursStart)} – ${formatTime(reminderSettings.quietHoursEnd)}`} onPress={() => router.push('/quiet-hours')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
@@ -226,32 +223,6 @@ export const ProfileSettingsScreen = () => {
         <View className="px-5 mt-6">
           <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-1">App & Preferences</Text>
           <View className="bg-surface rounded-2xl px-4 border border-border/60">
-            <SettingsRow icon={Globe} iconBg="#DBEAFE" iconColor="#3B82F6" title="Language" value={languageLabel} onPress={() => router.push('/language-select')} />
-            <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={DollarSign} iconBg="#DCFCE7" iconColor="#22C55E" title="Currency" value={`${currency} (${CURRENCY_SYMBOLS[currency]})`} onPress={() => router.push('/currency-select')} />
-            <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow
-              icon={Sun}
-              iconBg="#FEF3C7"
-              iconColor="#F59E0B"
-              title="Theme"
-              showChevron={false}
-              onPress={() => router.push('/appearance-settings')}
-              rightElement={
-                <View className="flex-row items-center gap-1 shrink-0">
-                  {themeIcons.map((t) => (
-                    <View
-                      key={t.key}
-                      className={`h-8 w-8 rounded-lg items-center justify-center ${theme === t.key ? 'bg-primary/15 border border-primary/30' : 'bg-border/30'}`}>
-                      <t.Icon size={15} color={theme === t.key ? '#7C3AED' : '#9CA3AF'} />
-                    </View>
-                  ))}
-                </View>
-              }
-            />
-            <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Smartphone} iconBg="#FCE7F3" iconColor="#EC4899" title="App Icon" description="Change your app icon" onPress={() => router.push('/app-icon-select')} />
-            <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow
               icon={Vibrate}
               iconBg="#EDE9FE"
@@ -283,6 +254,10 @@ export const ProfileSettingsScreen = () => {
             <SettingsRow icon={Star} iconBg="#FEF3C7" iconColor="#F59E0B" title="Rate Us" description="If you love the app, please rate us" onPress={() => router.push('/rate-us')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Share2} iconBg="#FCE7F3" iconColor="#EC4899" title="Share BirthdayBuddy" description="Share this app with friends and family" onPress={handleShare} showChevron={false} />
+            <View className="h-[0.5px] bg-border/60 ml-12" />
+            <SettingsRow icon={Shield} iconBg="#DCFCE7" iconColor="#22C55E" title="Privacy Policy" description="How we handle your data" onPress={() => router.push('/privacy-policy')} />
+            <View className="h-[0.5px] bg-border/60 ml-12" />
+            <SettingsRow icon={FileText} iconBg="#DBEAFE" iconColor="#3B82F6" title="Terms & Conditions" description="User agreement and app usage terms" onPress={() => router.push('/terms-conditions')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Info} iconBg="#EDE9FE" iconColor="#7C3AED" title="About BirthdayBuddy" value="Version 1.0.0" onPress={() => router.push('/about')} />
           </View>

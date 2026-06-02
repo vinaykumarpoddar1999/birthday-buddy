@@ -1,6 +1,6 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import { router } from 'expo-router';
-import { ArrowLeft, Eye, Fingerprint, Lock, Shield, Smartphone, Timer } from 'lucide-react-native';
+import { ArrowLeft, FileText, Fingerprint, Lock, Shield, Smartphone } from 'lucide-react-native';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,7 +13,7 @@ import { useProfileStore } from '../store/profile.store';
 export const PrivacySecurityScreen = () => {
   const privacy = useProfileStore((s) => s.privacySettings);
   const update = useProfileStore((s) => s.updatePrivacySettings);
-  const { changePassword, updateSecurityPreferences, securityPreferences } = useAuth();
+  const { user, changePassword, updateSecurityPreferences, securityPreferences } = useAuth();
   const { showSuccess, showError, toast } = useFeedback();
   const [passwordModal, setPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -22,9 +22,6 @@ export const PrivacySecurityScreen = () => {
   const toggles = [
     { key: 'faceId' as const, title: 'Face ID', desc: 'Unlock with Face ID', icon: Fingerprint, color: '#7C3AED', bg: '#EDE9FE' },
     { key: 'biometricLock' as const, title: 'Biometric Lock', desc: 'Require biometric to open app', icon: Fingerprint, color: '#3B82F6', bg: '#DBEAFE' },
-    { key: 'appLock' as const, title: 'App Lock', desc: 'Lock app when in background', icon: Lock, color: '#F59E0B', bg: '#FEF3C7' },
-    { key: 'hidePersonalData' as const, title: 'Hide Sensitive Data', desc: 'Mask sensitive info on screen', icon: Eye, color: '#EF4444', bg: '#FEE2E2' },
-    { key: 'privateMode' as const, title: 'Private Mode', desc: 'Hide profile details from previews', icon: Eye, color: '#8B5CF6', bg: '#EDE9FE' },
   ];
 
   const handleBiometricToggle = async (key: 'faceId' | 'biometricLock', value: boolean) => {
@@ -44,12 +41,20 @@ export const PrivacySecurityScreen = () => {
       }
     }
     update({ [key]: value });
+    void updateSecurityPreferences({
+      biometricEnabled: key === 'biometricLock' ? value : securityPreferences?.biometricEnabled,
+      faceIdEnabled: key === 'faceId' ? value : securityPreferences?.faceIdEnabled,
+    });
     toast(`${key === 'faceId' ? 'Face ID' : 'Biometric lock'} ${value ? 'enabled' : 'disabled'}`, 'success');
   };
 
   const handlePasswordChange = async () => {
+    if (!user) {
+      showError('Sign In Required', 'Create an account or sign in to change your password.');
+      return;
+    }
     if (newPassword.length < 8) {
-      showError('Invalid Password', 'Password must meet all security requirements.');
+      showError('Invalid Password', 'Password must be at least 8 characters.');
       return;
     }
     try {
@@ -62,14 +67,6 @@ export const PrivacySecurityScreen = () => {
       showError('Update Failed', 'Current password is incorrect or new password is too weak.');
     }
   };
-
-  const handleAppLockToggle = async (value: boolean) => {
-    update({ appLock: value });
-    await updateSecurityPreferences({ appLockEnabled: value });
-    toast(`App lock ${value ? 'enabled' : 'disabled'}`, 'success');
-  };
-
-  const lockTimers = [1, 5, 15, 30];
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -95,19 +92,7 @@ export const PrivacySecurityScreen = () => {
                 </View>
                 <Switch
                   value={privacy[item.key]}
-                  onValueChange={(v) => {
-                    if (item.key === 'faceId' || item.key === 'biometricLock') {
-                      void handleBiometricToggle(item.key, v);
-                      void updateSecurityPreferences({
-                        biometricEnabled: v,
-                        faceIdEnabled: item.key === 'faceId' ? v : securityPreferences?.faceIdEnabled,
-                      });
-                    } else if (item.key === 'appLock') {
-                      void handleAppLockToggle(v);
-                    } else {
-                      update({ [item.key]: v });
-                    }
-                  }}
+                  onValueChange={(v) => void handleBiometricToggle(item.key, v)}
                   trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
                   thumbColor="#FFFFFF"
                 />
@@ -115,36 +100,6 @@ export const PrivacySecurityScreen = () => {
             </View>
           ))}
         </View>
-
-        <View className="mt-4">
-          <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2">Auto Lock Timer</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {lockTimers.map((mins) => (
-              <Pressable
-                key={mins}
-                onPress={() => update({ autoLockMinutes: mins })}
-                className={`px-4 py-2 rounded-xl border ${privacy.autoLockMinutes === mins ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
-                accessibilityRole="button">
-                <Text className={`text-[13px] font-semibold ${privacy.autoLockMinutes === mins ? 'text-primary' : 'text-foreground-secondary'}`}>
-                  {mins} min
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        <Pressable
-          className="bg-surface rounded-2xl px-4 py-4 border border-border/60 mt-4 flex-row items-center"
-          onPress={() => router.push('/security-center')}
-          accessibilityRole="button">
-          <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#EDE9FE]">
-            <Shield size={18} color="#7C3AED" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-[15px] font-medium text-foreground">Security Center</Text>
-            <Text className="text-[12px] text-foreground-secondary mt-0.5">View score, sessions, and login history</Text>
-          </View>
-        </Pressable>
 
         <Pressable
           className="bg-surface rounded-2xl px-4 py-4 border border-border/60 mt-4 flex-row items-center"
@@ -158,6 +113,31 @@ export const PrivacySecurityScreen = () => {
             <Text className="text-[12px] text-foreground-secondary mt-0.5">Update your account password</Text>
           </View>
         </Pressable>
+
+        <View className="mt-6">
+          <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2">Legal</Text>
+          <View className="bg-surface rounded-2xl border border-border/60">
+            <Pressable
+              className="flex-row items-center py-3.5 px-4"
+              onPress={() => router.push('/privacy-policy')}
+              accessibilityRole="button">
+              <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#DCFCE7]">
+                <Shield size={18} color="#22C55E" />
+              </View>
+              <Text className="text-[15px] font-medium text-foreground flex-1">Privacy Policy</Text>
+            </Pressable>
+            <View className="h-[0.5px] bg-border/60 mx-4" />
+            <Pressable
+              className="flex-row items-center py-3.5 px-4"
+              onPress={() => router.push('/terms-conditions')}
+              accessibilityRole="button">
+              <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#DBEAFE]">
+                <FileText size={18} color="#3B82F6" />
+              </View>
+              <Text className="text-[15px] font-medium text-foreground flex-1">Terms & Conditions</Text>
+            </Pressable>
+          </View>
+        </View>
 
         <View className="mt-6">
           <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2">Active Sessions</Text>
@@ -182,7 +162,7 @@ export const PrivacySecurityScreen = () => {
         <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setPasswordModal(false)}>
           <Pressable className="bg-surface rounded-t-3xl p-6" onPress={(e) => e.stopPropagation()}>
             <View className="flex-row items-center gap-2 mb-4">
-              <Timer size={20} color="#7C3AED" />
+              <Lock size={20} color="#7C3AED" />
               <Text className="text-[18px] font-bold text-foreground">Change Password</Text>
             </View>
             <TextInput
@@ -196,7 +176,7 @@ export const PrivacySecurityScreen = () => {
             <TextInput
               value={newPassword}
               onChangeText={setNewPassword}
-              placeholder="New password (min 6 chars)"
+              placeholder="New password (min 8 chars)"
               secureTextEntry
               placeholderTextColor="#9CA3AF"
               className="bg-background border border-border rounded-xl px-4 py-3 mb-4 text-[15px] text-foreground"

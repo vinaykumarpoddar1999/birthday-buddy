@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 
-const HASH_ITERATIONS = 100_000;
+const HASH_ITERATIONS = 10_000;
 const SALT_BYTES = 32;
 
 export class CryptoService {

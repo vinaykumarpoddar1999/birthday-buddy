@@ -6,13 +6,15 @@ import { Image } from 'expo-image';
 import { Colors, Shadows, scale } from '../constants/design-tokens';
 import { useNotificationStore } from '@/stores/notification.store';
 import { useProfileStore } from '@features/profile/store/profile.store';
+import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
 import { getAvatarSource } from '@/shared/utils/avatar';
 
 export function HomeHeader() {
   const unreadCount = useNotificationStore((s) => s.notifications.filter((n) => !n.isRead).length);
   const profile = useProfileStore((s) => s.profile);
-  const displayName = profile.fullName || 'Rahul';
-  const firstName = displayName.split(' ')[0];
+  const { maskName } = usePrivacyDisplay();
+  const displayName = maskName(profile.fullName || 'there');
+  const firstName = displayName.split(' ')[0] || 'there';
 
   const avatarSource = profile.profileImage
     ? { uri: profile.profileImage }
@@ -38,12 +40,16 @@ export function HomeHeader() {
 
         <View style={styles.greetingContainer}>
           <View style={styles.greetingRow}>
-            <Text style={styles.greetingText}>Hey, {firstName} </Text>
-            <Hand size={scale(28)} color="#F59E0B" fill="#FBBF24" />
+            <Text style={styles.greetingText} numberOfLines={1}>
+              Hey, {firstName}{' '}
+            </Text>
+            <Hand size={scale(20)} color="#F59E0B" fill="#FBBF24" />
           </View>
           <View style={styles.subtitleRow}>
-            <Text style={styles.subtitleText}>Let&apos;s make every birthday magical</Text>
-            <Sparkles size={scale(14)} color="#A855F7" style={{ marginLeft: 4 }} />
+            <Text style={styles.subtitleText} numberOfLines={1}>
+              Let&apos;s make every birthday magical
+            </Text>
+            <Sparkles size={scale(12)} color="#A855F7" style={{ marginLeft: 4 }} />
           </View>
         </View>
 
@@ -53,7 +59,7 @@ export function HomeHeader() {
             onPress={() => router.push('/search')}
             accessibilityRole="button"
             accessibilityLabel="Search">
-            <Search size={scale(22)} color="#374151" strokeWidth={2} />
+            <Search size={scale(18)} color="#374151" strokeWidth={2} />
           </Pressable>
           <View>
             <Pressable
@@ -61,7 +67,7 @@ export function HomeHeader() {
               onPress={() => router.push('/notifications')}
               accessibilityRole="button"
               accessibilityLabel="Notifications">
-              <Bell size={scale(22)} color="#374151" strokeWidth={2} />
+              <Bell size={scale(18)} color="#374151" strokeWidth={2} />
             </Pressable>
             {unreadCount > 0 && <View style={styles.badge} />}
           </View>
@@ -73,7 +79,7 @@ export function HomeHeader() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: scale(12),
+    paddingVertical: scale(8),
   },
   row: {
     flexDirection: 'row',
@@ -81,60 +87,66 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   avatarWrapper: {
-    marginRight: scale(12),
+    marginRight: scale(10),
   },
   avatarRing: {
-    width: scale(64),
-    height: scale(64),
-    borderRadius: scale(32),
-    borderWidth: 3,
+    width: scale(52),
+    height: scale(52),
+    borderRadius: scale(26),
+    borderWidth: 2.5,
     borderColor: '#8B5CF6',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 30,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 6,
   },
   avatar: {
-    width: scale(56),
-    height: scale(56),
-    borderRadius: scale(28),
+    width: scale(44),
+    height: scale(44),
+    borderRadius: scale(22),
   },
   greetingContainer: {
     flex: 1,
-    marginRight: scale(8),
+    marginRight: scale(6),
+    minWidth: 0,
   },
   greetingRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
   },
   greetingText: {
-    fontSize: scale(26),
+    fontSize: scale(20),
     fontWeight: '800',
     color: Colors.foreground,
     letterSpacing: -0.5,
+    flexShrink: 1,
   },
   subtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: scale(2),
+    marginTop: scale(1),
+    flexShrink: 1,
   },
   subtitleText: {
-    fontSize: scale(13),
+    fontSize: scale(11),
     fontWeight: '500',
     color: Colors.foregroundSecondary,
+    flexShrink: 1,
   },
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(10),
+    gap: scale(8),
+    flexShrink: 0,
   },
   actionButton: {
-    width: scale(48),
-    height: scale(48),
-    borderRadius: scale(24),
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -144,11 +156,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: scale(2),
     right: scale(2),
-    width: scale(10),
-    height: scale(10),
-    borderRadius: scale(5),
+    width: scale(8),
+    height: scale(8),
+    borderRadius: scale(4),
     backgroundColor: Colors.pinkBadge,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: Colors.background,
   },
 });

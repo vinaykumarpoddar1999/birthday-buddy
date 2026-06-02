@@ -42,6 +42,14 @@ export function SessionRecoveryScreen() {
   };
 
   const handleReLogin = async () => {
+    await secureAuthStorage.clearSession();
+    useAuthStore.setState({
+      authState: 'guest',
+      user: null,
+      session: null,
+      isHydrated: true,
+    });
+    await secureAuthStorage.setGuestMode(true);
     router.replace('/(auth)/login');
   };
 

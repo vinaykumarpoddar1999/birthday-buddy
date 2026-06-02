@@ -71,15 +71,12 @@ export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
   weekendRules: 'same',
   notificationSound: true,
   vibration: true,
+  timingMode: 'flexible',
 };
 
 export const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
   faceId: false,
   biometricLock: false,
-  appLock: false,
-  hidePersonalData: false,
-  privateMode: false,
-  autoLockMinutes: 5,
 };
 
 export const DEFAULT_BACKUP_SETTINGS: BackupSettings = {
@@ -191,10 +188,27 @@ export class ProfileService {
       ),
       reminderSettings: {
         ...DEFAULT_REMINDER_SETTINGS,
-        defaultTime: appSettings.reminderTime,
-        quietHoursStart: appSettings.quietHoursStart ?? DEFAULT_REMINDER_SETTINGS.quietHoursStart,
-        quietHoursEnd: appSettings.quietHoursEnd ?? DEFAULT_REMINDER_SETTINGS.quietHoursEnd,
         ...extReminder,
+        defaultTime:
+          extReminder?.defaultTime ??
+          appSettings.reminderTime ??
+          DEFAULT_REMINDER_SETTINGS.defaultTime,
+        quietHoursStart:
+          extReminder?.quietHoursStart ??
+          appSettings.quietHoursStart ??
+          DEFAULT_REMINDER_SETTINGS.quietHoursStart,
+        quietHoursEnd:
+          extReminder?.quietHoursEnd ??
+          appSettings.quietHoursEnd ??
+          DEFAULT_REMINDER_SETTINGS.quietHoursEnd,
+        multipleReminderTimes:
+          extReminder?.multipleReminderTimes?.length
+            ? extReminder.multipleReminderTimes
+            : [
+                extReminder?.defaultTime ??
+                  appSettings.reminderTime ??
+                  DEFAULT_REMINDER_SETTINGS.defaultTime,
+              ],
       },
       privacySettings: mergePrefs(
         DEFAULT_PRIVACY_SETTINGS,
@@ -229,13 +243,19 @@ export class ProfileService {
     if (patch.currency) await settingsService.update({ currency: patch.currency });
     if (patch.theme) await settingsService.update({ theme: patch.theme });
     if (patch.reminderSettings) {
-      const { defaultTime, quietHoursStart, quietHoursEnd, ...ext } = patch.reminderSettings;
+      const existingExt =
+        (await settingsRepository.getJson<Partial<ReminderSettings>>(KEYS.reminderSettings)) ?? {};
+      const mergedReminder: ReminderSettings = {
+        ...DEFAULT_REMINDER_SETTINGS,
+        ...existingExt,
+        ...patch.reminderSettings,
+      };
       await settingsService.update({
-        reminderTime: defaultTime ?? undefined,
-        quietHoursStart,
-        quietHoursEnd,
+        reminderTime: mergedReminder.defaultTime,
+        quietHoursStart: mergedReminder.quietHoursStart,
+        quietHoursEnd: mergedReminder.quietHoursEnd,
       });
-      await settingsRepository.setJson(KEYS.reminderSettings, ext);
+      await settingsRepository.setJson(KEYS.reminderSettings, mergedReminder);
     }
     if (patch.notificationPrefs) {
       await settingsRepository.setJson(KEYS.notificationPrefs, patch.notificationPrefs);

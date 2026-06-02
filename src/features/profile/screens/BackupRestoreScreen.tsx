@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { syncBackupScheduler } from '@/services/backup/backup-scheduler.service';
 import { backupService, type BackupHistoryEntry } from '@/services/backup/backup.service';
 import { useFeedback } from '@/shared/hooks/useFeedback';
+import { getSaveSuccessMessage } from '@/utils/file-download';
 
 import { useProfileStore } from '../store/profile.store';
 
@@ -35,13 +36,13 @@ export const BackupRestoreScreen = () => {
     setBusy(true);
     update({ backupStatus: 'backing_up' });
     try {
-      await backupService.shareJsonBackup();
+      const result = await backupService.downloadJsonBackup();
       update({
         backupStatus: 'completed',
         lastBackupDate: new Date().toISOString(),
       });
       await loadHistory();
-      showSuccess('Backup Complete', 'Your data has been exported. Save the shared file safely.');
+      showSuccess('Backup Complete', getSaveSuccessMessage(result));
     } catch (error) {
       update({ backupStatus: 'failed' });
       showError('Backup Failed', error instanceof Error ? error.message : 'Could not create backup.');

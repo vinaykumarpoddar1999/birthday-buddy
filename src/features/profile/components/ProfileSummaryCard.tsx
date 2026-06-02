@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
+import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
 import { useAuth } from '@features/auth';
 
 import { useProfileStore } from '../store/profile.store';
@@ -20,6 +21,7 @@ export function ProfileSummaryCard({
   const profile = useProfileStore((s) => s.profile);
   const updateProfile = useProfileStore((s) => s.updateProfile);
   const profileCompletion = useProfileStore((s) => s.profileCompletion);
+  const { maskName, maskEmail, shouldMask } = usePrivacyDisplay();
   const { isAuthenticated, isGuest } = useAuth();
   const { showImagePicker } = useProfileImagePicker((uri) => updateProfile({ profileImage: uri }));
 
@@ -30,7 +32,7 @@ export function ProfileSummaryCard({
       <View className="flex-row items-center">
         <Pressable onPress={showImagePicker} accessibilityRole="button" accessibilityLabel="Change profile photo">
           <View className="relative">
-            <ProfileAvatar size="lg" profileImage={profile.profileImage} gender={profile.gender} />
+            <ProfileAvatar size="lg" profileImage={shouldMask ? null : profile.profileImage} gender={profile.gender} />
             <View className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary items-center justify-center border-2 border-surface">
               <Camera size={12} color="#FFFFFF" />
             </View>
@@ -39,7 +41,7 @@ export function ProfileSummaryCard({
         <View className="flex-1 ml-4 min-w-0">
           <View className="flex-row items-center flex-wrap gap-x-2 gap-y-1">
             <Text className="text-title text-foreground font-bold shrink" numberOfLines={1}>
-              {profile.fullName || 'Your Profile'}
+              {maskName(profile.fullName || 'Your Profile')}
             </Text>
             {profile.isPremium && (
               <View className="flex-row items-center bg-primary/10 rounded-full px-2 py-0.5 shrink-0 gap-0.5">
@@ -50,10 +52,10 @@ export function ProfileSummaryCard({
           </View>
           <Text className="text-caption text-foreground-secondary mt-0.5" numberOfLines={1}>
             {isAuthenticated
-              ? profile.email || 'Add your email'
+              ? maskEmail(profile.email || 'Add your email')
               : isGuest
                 ? 'Guest mode — sign in to sync your profile'
-                : profile.email || 'Add your email'}
+                : maskEmail(profile.email || 'Add your email')}
           </Text>
           <View className="flex-row items-center mt-1.5 gap-3 flex-wrap">
             <View className="flex-row items-center gap-1">

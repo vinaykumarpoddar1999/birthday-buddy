@@ -18,12 +18,22 @@ type QuickAction = {
 
 const QUICK_ACTIONS: QuickAction[] = [
   {
+    id: 'surprise-link',
+    icon: Link2,
+    iconColor: '#7C3AED',
+    iconBg: '#F5F3FF',
+    title: 'Surprise Link',
+    subtitle: 'Share magic links with your loved ones',
+    badge: 'POPULAR',
+    href: '/surprise-link-studio',
+  },
+  {
     id: 'wish-gen',
     icon: Wand2,
     iconColor: '#EC4899',
     iconBg: '#FDF2F8',
     title: 'Wish Generator',
-    subtitle: 'Personalized\nmessages',
+    subtitle: 'Personalized messages for your loved ones',
     href: '/ai-wish',
   },
   {
@@ -32,26 +42,17 @@ const QUICK_ACTIONS: QuickAction[] = [
     iconColor: '#3B82F6',
     iconBg: '#EFF6FF',
     title: 'Create Card',
-    subtitle: 'Design & share\nbeautiful cards',
+    subtitle: 'Design & share beautiful cards',
     href: '/card-studio',
   },
-  {
-    id: 'surprise-link',
-    icon: Link2,
-    iconColor: '#7C3AED',
-    iconBg: '#F5F3FF',
-    title: 'Surprise Link',
-    subtitle: 'Share magic\nlinks',
-    badge: 'NEW',
-    href: '/surprise-link-studio',
-  },
+ 
   {
     id: 'gift-ideas',
     icon: Gift,
     iconColor: '#F59E0B',
     iconBg: '#FFFBEB',
     title: 'Gift Ideas',
-    subtitle: 'Perfect picks\nby relation',
+    subtitle: 'Perfect picks  by your loved ones',
     href: { pathname: '/coming-soon', params: { feature: 'gift-ideas' } },
   },
 ];

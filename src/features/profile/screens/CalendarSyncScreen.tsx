@@ -13,9 +13,9 @@ import type { CalendarSyncSettings } from '../types';
 type ProviderKey = keyof CalendarSyncSettings;
 
 const PROVIDERS: { key: ProviderKey; title: string; desc: string; icon: typeof Calendar; color: string; bg: string }[] = [
-  { key: 'google', title: 'Google Calendar', desc: 'Sync birthdays with Google Calendar', icon: Calendar, color: '#4285F4', bg: '#DBEAFE' },
-  { key: 'apple', title: 'Apple Calendar', desc: 'Sync with iCloud Calendar', icon: Apple, color: '#111827', bg: '#F3F4F6' },
-  { key: 'outlook', title: 'Outlook Calendar', desc: 'Sync with Microsoft Outlook', icon: Mail, color: '#0078D4', bg: '#DBEAFE' },
+  { key: 'google', title: 'Google Calendar', desc: 'Sync birthdays to device calendar', icon: Calendar, color: '#4285F4', bg: '#DBEAFE' },
+  { key: 'apple', title: 'Apple Calendar', desc: 'Sync birthdays to device calendar', icon: Apple, color: '#111827', bg: '#F3F4F6' },
+  { key: 'outlook', title: 'Outlook Calendar', desc: 'Sync birthdays to device calendar', icon: Mail, color: '#0078D4', bg: '#DBEAFE' },
 ];
 
 export const CalendarSyncScreen = () => {
@@ -23,28 +23,85 @@ export const CalendarSyncScreen = () => {
   const updateCalendarSync = useProfileStore((s) => s.updateCalendarSync);
   const { toast, showError } = useFeedback();
   const [syncingDevice, setSyncingDevice] = useState(false);
+  const [syncingProvider, setSyncingProvider] = useState<ProviderKey | null>(null);
+
+  const runDeviceSync = async (): Promise<boolean> => {
+    const granted = await deviceCalendarService.requestPermissions();
+    if (!granted) {
+      showError('Permission Required', 'Allow calendar access in your device settings to sync birthdays.');
+      return false;
+    }
+
+    const result = await deviceCalendarService.syncAllBirthdays();
+    if (result.error === 'permission_denied') {
+      showError('Permission Required', 'Allow calendar access in your device settings to sync birthdays.');
+      return false;
+    }
+    if (result.error === 'no_birthdays') {
+      showError('No Birthdays', 'Add people with birthdays before syncing to your calendar.');
+      return false;
+    }
+    if (result.error === 'no_calendar') {
+      showError('Unavailable', 'Calendar sync is not available on this platform.');
+      return false;
+    }
+    if (result.synced === 0) {
+      showError('Sync Failed', 'Could not sync birthdays. Check calendar permissions and try again.');
+      return false;
+    }
+    toast(`Synced ${result.synced} birthday${result.synced === 1 ? '' : 's'} to BirthdayBuddy calendar`, 'success');
+    return true;
+  };
 
   const toggleProvider = (key: ProviderKey, enabled: boolean) => {
     updateCalendarSync({
       [key]: {
         ...calendarSync[key],
         enabled,
-        lastSyncAt: enabled ? new Date().toISOString() : calendarSync[key].lastSyncAt,
+        lastSyncAt: enabled ? calendarSync[key].lastSyncAt : calendarSync[key].lastSyncAt,
       },
     });
-    toast(`${PROVIDERS.find((p) => p.key === key)?.title} ${enabled ? 'enabled' : 'disabled'}`, 'success');
+
+    if (enabled) {
+      setSyncingProvider(key);
+      void runDeviceSync()
+        .then((ok) => {
+          if (ok) {
+            updateCalendarSync({
+              [key]: {
+                ...calendarSync[key],
+                enabled: true,
+                lastSyncAt: new Date().toISOString(),
+              },
+            });
+          } else {
+            updateCalendarSync({
+              [key]: {
+                ...calendarSync[key],
+                enabled: false,
+              },
+            });
+          }
+        })
+        .finally(() => setSyncingProvider(null));
+    } else {
+      toast(`${PROVIDERS.find((p) => p.key === key)?.title} disabled`, 'success');
+    }
   };
 
   const handleDeviceSync = async () => {
     if (syncingDevice) return;
     setSyncingDevice(true);
     try {
-      const result = await deviceCalendarService.syncAllBirthdays();
-      if (result.synced === 0 && result.skipped > 0) {
-        showError('Sync Failed', 'Calendar permission denied or no birthdays to sync.');
-        return;
+      const ok = await runDeviceSync();
+      if (ok) {
+        const now = new Date().toISOString();
+        updateCalendarSync({
+          google: { enabled: true, lastSyncAt: now },
+          apple: { enabled: true, lastSyncAt: now },
+          outlook: { enabled: true, lastSyncAt: now },
+        });
       }
-      toast(`Synced ${result.synced} birthday${result.synced === 1 ? '' : 's'} to device calendar`, 'success');
     } catch (error) {
       showError('Sync Failed', error instanceof Error ? error.message : 'Could not sync to device calendar.');
     } finally {
@@ -63,7 +120,7 @@ export const CalendarSyncScreen = () => {
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         <Text className="text-[13px] text-foreground-secondary mt-2 mb-4">
-          Configure calendar sync preferences stored offline in SQLite. Calendar provider login can be connected later.
+          Sync birthdays to a dedicated BirthdayBuddy calendar on your device. Changes sync automatically when you add or edit people.
         </Text>
 
         <Pressable
@@ -96,12 +153,16 @@ export const CalendarSyncScreen = () => {
                     </Text>
                   )}
                 </View>
-                <Switch
-                  value={calendarSync[item.key].enabled}
-                  onValueChange={(v) => toggleProvider(item.key, v)}
-                  trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
-                  thumbColor="#FFFFFF"
-                />
+                {syncingProvider === item.key ? (
+                  <ActivityIndicator color="#7C3AED" />
+                ) : (
+                  <Switch
+                    value={calendarSync[item.key].enabled}
+                    onValueChange={(v) => toggleProvider(item.key, v)}
+                    trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
+                    thumbColor="#FFFFFF"
+                  />
+                )}
               </View>
             </View>
           ))}

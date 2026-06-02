@@ -52,15 +52,12 @@ export interface ReminderSettings {
   weekendRules: 'same' | 'skip' | 'earlier';
   notificationSound: boolean;
   vibration: boolean;
+  timingMode: 'fixed' | 'flexible';
 }
 
 export interface PrivacySettings {
   faceId: boolean;
   biometricLock: boolean;
-  appLock: boolean;
-  hidePersonalData: boolean;
-  privateMode: boolean;
-  autoLockMinutes: number;
 }
 
 export interface BackupSettings {

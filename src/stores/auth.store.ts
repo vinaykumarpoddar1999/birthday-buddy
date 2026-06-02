@@ -121,6 +121,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   hydrate: async () => {
     try {
       const hasAccount = await authService.hasAccount();
+      const isGuest = await secureAuthStorage.isGuestMode();
       let onboardingComplete = (await secureAuthStorage.isOnboardingComplete()) || hasAccount;
 
       if (!onboardingComplete && !hasAccount) {
@@ -137,7 +138,6 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       let { valid, userId, session } = await sessionService.validateSession();
 
       if (!hasAccount) {
-        const isGuest = await secureAuthStorage.isGuestMode();
         set({
           user: null,
           session: null,
@@ -147,6 +147,20 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
           isLocked: false,
           onboardingComplete,
           hasAccount: false,
+        });
+        return;
+      }
+
+      if (isGuest) {
+        set({
+          user: null,
+          session: null,
+          securityPreferences: null,
+          authState: 'guest',
+          isHydrated: true,
+          isLocked: false,
+          onboardingComplete: true,
+          hasAccount: true,
         });
         return;
       }
@@ -221,11 +235,13 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     try {
       const { user, recoveryCode } = await authService.signUp(input);
       const prefs = await authService.getSecurityPreferences(user.id);
+      const { session } = await sessionService.validateSession();
       await secureAuthStorage.setOnboardingComplete(true);
       await secureAuthStorage.setGuestMode(false);
       await syncProfileFromAuthUser(user);
       set({
         user,
+        session,
         securityPreferences: prefs,
         authState: 'authenticated',
         isLocked: false,
@@ -243,13 +259,17 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   signIn: async (input) => {
     set({ isLoading: true });
     try {
+      await sessionService.invalidateCurrentSession().catch(() => undefined);
       const user = await authService.login(input);
       const prefs = await authService.getSecurityPreferences(user.id);
+      const { session } = await sessionService.validateSession();
       appLockService.unlock();
       await secureAuthStorage.setGuestMode(false);
+      await secureAuthStorage.setOnboardingComplete(true);
       await syncProfileFromAuthUser(user);
       set({
         user,
+        session,
         securityPreferences: prefs,
         authState: 'authenticated',
         isLocked: false,

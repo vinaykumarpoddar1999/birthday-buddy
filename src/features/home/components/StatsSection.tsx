@@ -27,7 +27,7 @@ export function StatsSection({ remindersToday, streakDays, upcomingThisWeek }: S
             <Text style={styles.cardLabel}>Today&apos;s Reminders</Text>
           </View>
           <Text style={styles.cardValue}>{remindersToday}</Text>
-          <Text style={styles.cardSubtext}>{upcomingThisWeek} birthdays in 7 days</Text>
+          <Text style={styles.cardSubtext}>{upcomingThisWeek} upcoming birthdays in 7 days</Text>
           {/* Decoration */}
           <View style={styles.decoration}>
             <PartyPopper size={scale(36)} color="rgba(255,255,255,0.2)" />

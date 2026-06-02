@@ -46,7 +46,11 @@ export function AuthGate({ children }: AuthGateProps) {
   }
 
   if (authState === 'session_recovery' && segments[1] !== 'session-recovery') {
-    return <Redirect href="/(auth)/session-recovery" />;
+    const recoveryBypassRoutes = ['login', 'register', 'forgot-password', 'welcome'];
+    const currentRoute = segments[1] as string | undefined;
+    if (!currentRoute || !recoveryBypassRoutes.includes(currentRoute)) {
+      return <Redirect href="/(auth)/session-recovery" />;
+    }
   }
 
   if (isLocked && segments[1] !== 'lock') {

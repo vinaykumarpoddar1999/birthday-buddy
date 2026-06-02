@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Camera, Crown } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Camera, ChevronRight, Crown } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,14 +7,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
 import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
+import {
+  BirthdayDatePickerModal,
+  formatBirthdayDisplay,
+} from '@/shared/components/BirthdayDatePickerModal';
 
 import { z } from 'zod';
 
 import { useProfileStore } from '../store/profile.store';
-import { COUNTRY_OPTIONS, profileSchema, RELATIONSHIP_TYPE_OPTIONS, TIMEZONE_OPTIONS } from '../validation/profile.schema';
+import { profileEditSchema } from '../validation/profile.schema';
 
 const GENDERS = ['male', 'female', 'other'] as const;
-const RELATIONSHIP_OPTIONS = ['Single', 'In a relationship', 'Married', 'Prefer not to say'];
 
 export const EditProfileScreen = () => {
   const profile = useProfileStore((s) => s.profile);
@@ -27,34 +30,32 @@ export const EditProfileScreen = () => {
   const [phone, setPhone] = useState(profile.phone);
   const [gender, setGender] = useState(profile.gender);
   const [birthday, setBirthday] = useState(profile.birthday);
-  const [location, setLocation] = useState(profile.location);
   const [bio, setBio] = useState(profile.bio);
-  const [relationshipStatus, setRelationshipStatus] = useState(profile.relationshipStatus);
-  const [relationship, setRelationship] = useState(profile.relationship);
-  const [timezone, setTimezone] = useState(profile.timezone);
-  const [country, setCountry] = useState(profile.country);
-  const [preferences, setPreferences] = useState(profile.preferences);
   const [profileImage, setProfileImage] = useState(profile.profileImage);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const { showImagePicker } = useProfileImagePicker((uri) => setProfileImage(uri));
 
   const handleSave = () => {
     try {
-      const validated = profileSchema.parse({
+      const validated = profileEditSchema.parse({
         fullName: name,
         email,
         phone,
         gender,
         birthday,
-        location,
         bio,
-        relationshipStatus,
-        relationship,
-        timezone,
-        country,
-        preferences,
       });
-      updateProfile({ ...validated, profileImage });
+      updateProfile({
+        ...validated,
+        profileImage,
+        location: profile.location,
+        country: profile.country,
+        timezone: profile.timezone,
+        relationshipStatus: profile.relationshipStatus,
+        relationship: profile.relationship,
+        preferences: profile.preferences,
+      });
       toast('Profile updated successfully', 'success');
       router.back();
     } catch (error) {
@@ -79,7 +80,7 @@ export const EditProfileScreen = () => {
       </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
-        <View className="items-center my-5">
+        <View className="items-center my-4">
           <Pressable onPress={showImagePicker} accessibilityRole="button" accessibilityLabel="Change profile photo">
             <View className="relative">
               <ProfileAvatar size="xl" profileImage={profileImage} gender={gender} />
@@ -97,7 +98,7 @@ export const EditProfileScreen = () => {
         </View>
 
         {profile.isPremium && (
-          <View className="bg-primary/5 rounded-xl p-3 flex-row items-center justify-center gap-2 mb-5 border border-primary/20">
+          <View className="bg-primary/5 rounded-xl p-3 flex-row items-center justify-center gap-2 mb-4 border border-primary/20">
             <Crown size={16} color="#7C3AED" />
             <Text className="text-[13px] font-bold text-primary">Premium Member</Text>
             <Text className="text-[11px] text-foreground-secondary">
@@ -106,7 +107,7 @@ export const EditProfileScreen = () => {
           </View>
         )}
 
-        <View className="gap-4">
+        <View className="gap-3">
           <FieldInput label="Full Name" value={name} onChangeText={setName} placeholder="Your name" />
           <FieldInput label="Email" value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" />
           <FieldInput label="Phone" value={phone} onChangeText={setPhone} placeholder="Phone" keyboardType="phone-pad" />
@@ -126,74 +127,19 @@ export const EditProfileScreen = () => {
             </View>
           </View>
 
-          <FieldInput label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
-          <FieldInput label="Address / Location" value={location} onChangeText={setLocation} placeholder="City, Country" />
-
           <View>
-            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Country</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-1">
-              <View className="flex-row gap-2">
-                {COUNTRY_OPTIONS.map((c) => (
-                  <Pressable
-                    key={c}
-                    onPress={() => setCountry(c)}
-                    className={`px-3 py-2 rounded-xl border ${country === c ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
-                    accessibilityRole="button">
-                    <Text className={`text-[12px] font-semibold ${country === c ? 'text-primary' : 'text-foreground-secondary'}`}>{c}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-1.5">Birthday</Text>
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
+              className="bg-surface border border-border rounded-xl px-4 py-3 flex-row items-center"
+              accessibilityRole="button"
+              accessibilityLabel="Select birthday">
+              <Calendar size={18} color="#7C3AED" />
+              <Text className="text-[15px] text-foreground flex-1 ml-3">{formatBirthdayDisplay(birthday)}</Text>
+              <ChevronRight size={18} color="#9CA3AF" />
+            </Pressable>
           </View>
 
-          <View>
-            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Timezone</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-1">
-              <View className="flex-row gap-2">
-                {TIMEZONE_OPTIONS.slice(0, 12).map((tz) => (
-                  <Pressable
-                    key={tz}
-                    onPress={() => setTimezone(tz)}
-                    className={`px-3 py-2 rounded-xl border ${timezone === tz ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
-                    accessibilityRole="button">
-                    <Text className={`text-[11px] font-semibold ${timezone === tz ? 'text-primary' : 'text-foreground-secondary'}`}>{tz.replace(/_/g, ' ')}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-
-          <View>
-            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Relationship</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {RELATIONSHIP_TYPE_OPTIONS.map((opt) => (
-                <Pressable
-                  key={opt}
-                  onPress={() => setRelationship(opt)}
-                  className={`px-3 py-2 rounded-xl border ${relationship === opt ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
-                  accessibilityRole="button">
-                  <Text className={`text-[12px] font-semibold ${relationship === opt ? 'text-primary' : 'text-foreground-secondary'}`}>{opt}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          <View>
-            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Relationship Status</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {RELATIONSHIP_OPTIONS.map((opt) => (
-                <Pressable
-                  key={opt}
-                  onPress={() => setRelationshipStatus(opt)}
-                  className={`px-3 py-2 rounded-xl border ${relationshipStatus === opt ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
-                  accessibilityRole="button">
-                  <Text className={`text-[12px] font-semibold ${relationshipStatus === opt ? 'text-primary' : 'text-foreground-secondary'}`}>{opt}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          <FieldInput label="Preferences" value={preferences} onChangeText={setPreferences} placeholder="Gift preferences, interests..." />
           <FieldInput label="Bio" value={bio} onChangeText={setBio} placeholder="Tell us about yourself..." multiline numberOfLines={3} />
         </View>
 
@@ -201,6 +147,16 @@ export const EditProfileScreen = () => {
           <Text className="text-[15px] font-bold text-white">Save Changes</Text>
         </Pressable>
       </ScrollView>
+
+      <BirthdayDatePickerModal
+        visible={showDatePicker}
+        value={birthday}
+        onConfirm={(d) => {
+          setBirthday(d);
+          setShowDatePicker(false);
+        }}
+        onClose={() => setShowDatePicker(false)}
+      />
     </SafeAreaView>
   );
 };

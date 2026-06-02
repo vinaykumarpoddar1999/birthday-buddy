@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Camera } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Camera, ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,11 +7,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
+import {
+  BirthdayDatePickerModal,
+  formatBirthdayDisplay,
+} from '@/shared/components/BirthdayDatePickerModal';
 
 import { z } from 'zod';
 
 import { useProfileStore } from '../store/profile.store';
-import { COUNTRY_OPTIONS, profileSchema, TIMEZONE_OPTIONS } from '../validation/profile.schema';
+import { profileEditSchema } from '../validation/profile.schema';
 
 const GENDERS = ['male', 'female', 'other'] as const;
 
@@ -24,31 +28,32 @@ export const PersonalInfoScreen = () => {
   const [phone, setPhone] = useState(profile.phone);
   const [gender, setGender] = useState(profile.gender);
   const [birthday, setBirthday] = useState(profile.birthday);
-  const [location, setLocation] = useState(profile.location);
   const [bio, setBio] = useState(profile.bio);
-  const [timezone, setTimezone] = useState(profile.timezone);
-  const [country, setCountry] = useState(profile.country);
   const [profileImage, setProfileImage] = useState(profile.profileImage);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const { toast, showError } = useFeedback();
   const { showImagePicker } = useProfileImagePicker((uri) => setProfileImage(uri));
 
   const handleSave = () => {
     try {
-      const validated = profileSchema.parse({
+      const validated = profileEditSchema.parse({
         fullName: name,
         email,
         phone,
         gender,
         birthday,
-        location,
         bio,
+      });
+      updateProfile({
+        ...validated,
+        profileImage,
+        location: profile.location,
+        country: profile.country,
+        timezone: profile.timezone,
         relationshipStatus: profile.relationshipStatus,
         relationship: profile.relationship,
-        timezone,
-        country,
         preferences: profile.preferences,
       });
-      updateProfile({ ...validated, profileImage });
       toast('Your profile has been updated', 'success');
       router.back();
     } catch (error) {
@@ -71,7 +76,7 @@ export const PersonalInfoScreen = () => {
       </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
-        <View className="items-center my-5">
+        <View className="items-center my-4">
           <Pressable onPress={showImagePicker} accessibilityRole="button" accessibilityLabel="Change photo">
             <View className="relative">
               <ProfileAvatar size="xl" profileImage={profileImage} gender={gender} />
@@ -82,7 +87,7 @@ export const PersonalInfoScreen = () => {
           </Pressable>
         </View>
 
-        <View className="gap-4">
+        <View className="gap-3">
           <FieldInput label="Full Name" value={name} onChangeText={setName} placeholder="Enter your name" />
           <FieldInput label="Email" value={email} onChangeText={setEmail} placeholder="Enter email" keyboardType="email-address" />
           <FieldInput label="Phone" value={phone} onChangeText={setPhone} placeholder="Enter phone" keyboardType="phone-pad" />
@@ -102,42 +107,32 @@ export const PersonalInfoScreen = () => {
             </View>
           </View>
 
-          <FieldInput label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
-          <FieldInput label="Location" value={location} onChangeText={setLocation} placeholder="City, Country" />
-
           <View>
-            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Country</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {COUNTRY_OPTIONS.slice(0, 6).map((c) => (
-                <Pressable
-                  key={c}
-                  onPress={() => setCountry(c)}
-                  className={`px-3 py-2 rounded-xl border ${country === c ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
-                  accessibilityRole="button">
-                  <Text className={`text-[12px] font-semibold ${country === c ? 'text-primary' : 'text-foreground-secondary'}`}>{c}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          <View>
-            <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Timezone</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {TIMEZONE_OPTIONS.slice(0, 6).map((tz) => (
-                <Pressable
-                  key={tz}
-                  onPress={() => setTimezone(tz)}
-                  className={`px-3 py-2 rounded-xl border ${timezone === tz ? 'bg-primary/10 border-primary' : 'bg-surface border-border'}`}
-                  accessibilityRole="button">
-                  <Text className={`text-[11px] font-semibold ${timezone === tz ? 'text-primary' : 'text-foreground-secondary'}`}>{tz.replace(/_/g, ' ')}</Text>
-                </Pressable>
-              ))}
-            </View>
+            <Text className="text-[13px] font-medium text-foreground-secondary mb-1.5">Birthday</Text>
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
+              className="bg-surface border border-border rounded-xl px-4 py-3 flex-row items-center"
+              accessibilityRole="button"
+              accessibilityLabel="Select birthday">
+              <Calendar size={18} color="#7C3AED" />
+              <Text className="text-[15px] text-foreground flex-1 ml-3">{formatBirthdayDisplay(birthday)}</Text>
+              <ChevronRight size={18} color="#9CA3AF" />
+            </Pressable>
           </View>
 
           <FieldInput label="Bio" value={bio} onChangeText={setBio} placeholder="Tell us about yourself..." multiline numberOfLines={3} />
         </View>
       </ScrollView>
+
+      <BirthdayDatePickerModal
+        visible={showDatePicker}
+        value={birthday}
+        onConfirm={(d) => {
+          setBirthday(d);
+          setShowDatePicker(false);
+        }}
+        onClose={() => setShowDatePicker(false)}
+      />
     </SafeAreaView>
   );
 };

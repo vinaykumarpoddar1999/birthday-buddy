@@ -31,12 +31,18 @@ async function loadNotificationPrefs(): Promise<NotificationPreferences> {
 async function loadReminderSettings(): Promise<ReminderSettings> {
   const appSettings = await settingsRepository.getAllSettings();
   const ext = await settingsRepository.getJson<Partial<ReminderSettings>>('reminder_settings_ext');
+  const defaultTime =
+    ext?.defaultTime ?? appSettings.reminderTime ?? DEFAULT_REMINDER_SETTINGS.defaultTime;
   return {
     ...DEFAULT_REMINDER_SETTINGS,
-    defaultTime: appSettings.reminderTime,
-    quietHoursStart: appSettings.quietHoursStart ?? DEFAULT_REMINDER_SETTINGS.quietHoursStart,
-    quietHoursEnd: appSettings.quietHoursEnd ?? DEFAULT_REMINDER_SETTINGS.quietHoursEnd,
     ...ext,
+    defaultTime,
+    quietHoursStart:
+      ext?.quietHoursStart ?? appSettings.quietHoursStart ?? DEFAULT_REMINDER_SETTINGS.quietHoursStart,
+    quietHoursEnd:
+      ext?.quietHoursEnd ?? appSettings.quietHoursEnd ?? DEFAULT_REMINDER_SETTINGS.quietHoursEnd,
+    multipleReminderTimes:
+      ext?.multipleReminderTimes?.length ? ext.multipleReminderTimes : [defaultTime],
   };
 }
 
@@ -268,6 +274,10 @@ export async function scheduleBirthdayReminders(
   const offsets = [...new Set([...globalOffsets, ...personOffsets, 0])].sort((a, b) => b - a);
 
   const notifyTime = input.notifyTime ?? reminderSettings.defaultTime;
+  const advanceTimes =
+    reminderSettings.timingMode === 'flexible' && reminderSettings.multipleReminderTimes.length > 0
+      ? reminderSettings.multipleReminderTimes
+      : [notifyTime];
   const scheduledIds: string[] = [];
   const scheduledKeys = new Set<string>();
 
@@ -278,27 +288,28 @@ export async function scheduleBirthdayReminders(
       if (!adjusted) continue;
       triggerMonthDay = adjusted;
 
-      const time = notifyTime;
-      const key = `${triggerMonthDay.month}-${triggerMonthDay.day}-${time}-advance-${daysBefore}`;
-      if (scheduledKeys.has(key)) continue;
-      scheduledKeys.add(key);
+      for (const time of advanceTimes) {
+        const key = `${triggerMonthDay.month}-${triggerMonthDay.day}-${time}-advance-${daysBefore}`;
+        if (scheduledKeys.has(key)) continue;
+        scheduledKeys.add(key);
 
-      const content = buildAdvanceContent(input.contactName, daysBefore, reminderSettings);
-      const channelId = daysBefore === 0 && reminderSettings.birthdayAlarm ? 'birthday-alarms' : 'birthday-reminders';
+        const content = buildAdvanceContent(input.contactName, daysBefore, reminderSettings);
+        const channelId = daysBefore === 0 && reminderSettings.birthdayAlarm ? 'birthday-alarms' : 'birthday-reminders';
 
-      const id = await scheduleCalendarNotification(
-        content,
-        triggerMonthDay,
-        time,
-        channelId,
-        {
-          contactId: input.contactId,
-          daysBefore,
-          type: daysBefore === 0 ? 'day_of' : 'advance',
-          alarm: reminderSettings.birthdayAlarm,
-        },
-      );
-      scheduledIds.push(id);
+        const id = await scheduleCalendarNotification(
+          content,
+          triggerMonthDay,
+          time,
+          channelId,
+          {
+            contactId: input.contactId,
+            daysBefore,
+            type: daysBefore === 0 ? 'day_of' : 'advance',
+            alarm: reminderSettings.birthdayAlarm,
+          },
+        );
+        scheduledIds.push(id);
+      }
     }
 
     if (reminderSettings.birthdayAlarm) {

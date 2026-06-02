@@ -42,7 +42,12 @@ export function useAuth() {
       try {
         await signUp(input);
       } catch (err) {
-        const message = err instanceof AuthError ? err.message : 'Sign up failed';
+        const message =
+          err instanceof AuthError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : 'Sign up failed';
         setError(message);
         throw err;
       }
@@ -56,7 +61,12 @@ export function useAuth() {
       try {
         await signIn(input);
       } catch (err) {
-        const message = err instanceof AuthError ? err.message : 'Sign in failed';
+        const message =
+          err instanceof AuthError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : 'Sign in failed';
         setError(message);
         throw err;
       }

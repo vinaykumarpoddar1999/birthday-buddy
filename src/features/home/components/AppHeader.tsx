@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { IconButton } from '@shared/ui/IconButton';
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
-import { useActivityStore } from '@features/profile/store/activity.store';
+import { useNotificationStore } from '@/stores/notification.store';
 import { useProfileStore } from '@features/profile/store/profile.store';
 
 export type AppHeaderProps = {
@@ -14,7 +14,7 @@ export type AppHeaderProps = {
 };
 
 export function AppHeader({ userName }: AppHeaderProps) {
-  const unreadCount = useActivityStore((s) => s.notifications.filter((n) => !n.isRead).length);
+  const unreadCount = useNotificationStore((s) => s.notifications.filter((n) => !n.isRead).length);
   const profile = useProfileStore((s) => s.profile);
   const displayName = profile.fullName || userName;
 
@@ -36,9 +36,9 @@ export function AppHeader({ userName }: AppHeaderProps) {
           <View className="flex-row items-center justify-between">
             <Pressable
               className="flex-row items-center gap-3 flex-1 pr-2"
-              onPress={() => router.push('/(tabs)/settings')}
+              onPress={() => router.push('/(tabs)/profile')}
               accessibilityRole="button"
-              accessibilityLabel="Open profile and settings">
+              accessibilityLabel="Open profile">
               <View className="relative">
                 <ProfileAvatar
                   size="header"

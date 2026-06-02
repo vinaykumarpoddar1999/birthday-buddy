@@ -135,6 +135,13 @@ export async function hydrateAppStores(): Promise<void> {
   }
 
   try {
+    const { syncDeviceCalendarIfEnabled } = await import('@/services/calendar/device-calendar.service');
+    await syncDeviceCalendarIfEnabled();
+  } catch {
+    /* calendar sync on startup is best-effort */
+  }
+
+  try {
     const refreshedNotifications = await appNotificationService.list();
     useNotificationStore.getState().hydrateNotifications(refreshedNotifications);
     useActivityStore.setState({ notifications: refreshedNotifications });

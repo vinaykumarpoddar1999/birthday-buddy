@@ -3,17 +3,15 @@ import { settingsRepository } from '@/repositories/settings.repository';
 import type { SearchResult } from '@/types/entities';
 
 const SETTINGS_SEARCH: { key: string; title: string; routeKey: string }[] = [
-  { key: 'theme', title: 'Theme', routeKey: 'theme' },
-  { key: 'language', title: 'Language', routeKey: 'language' },
-  { key: 'currency', title: 'Currency', routeKey: 'currency' },
   { key: 'notification', title: 'Notification Preferences', routeKey: 'notification-prefs' },
-  { key: 'reminder', title: 'Reminder Time', routeKey: 'reminder-time' },
+  { key: 'reminder', title: 'Reminder Settings', routeKey: 'reminder-settings' },
+  { key: 'reminder-time', title: 'Reminder Time', routeKey: 'reminder-time' },
   { key: 'backup', title: 'Backup & Restore', routeKey: 'backup-restore' },
+  { key: 'import', title: 'Import Data', routeKey: 'import-data' },
+  { key: 'calendar', title: 'Calendar Sync', routeKey: 'calendar-sync' },
   { key: 'help', title: 'Help & FAQ', routeKey: 'help-faq' },
   { key: 'privacy', title: 'Privacy & Security', routeKey: 'privacy-security' },
   { key: 'export', title: 'Export Data', routeKey: 'export-data' },
-  { key: 'activity', title: 'Activity History', routeKey: 'activity-history' },
-  { key: 'wish-history', title: 'Wish History', routeKey: 'wish-history' },
 ];
 
 export class SearchService {
