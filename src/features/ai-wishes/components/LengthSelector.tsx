@@ -1,23 +1,20 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Zap, Type, FileText, type LucideIcon } from 'lucide-react-native';
+import { FileText, Type, Zap, type LucideIcon } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import type { WishLength } from '../types';
-import { WishSectionHeader } from './WishSectionHeader';
-import { WishColors, WishShadows } from '../constants/design-tokens';
 
 type LengthItem = {
   id: WishLength;
   label: string;
-  description: string;
   Icon: LucideIcon;
 };
 
 const LENGTHS: LengthItem[] = [
-  { id: 'short', label: 'Short', description: '1 Line', Icon: Zap },
-  { id: 'medium', label: 'Medium', description: '3-4 Lines', Icon: Type },
-  { id: 'long', label: 'Long', description: 'Paragraph', Icon: FileText },
+  { id: 'short', label: 'Short', Icon: Zap },
+  { id: 'medium', label: 'Medium', Icon: Type },
+  { id: 'long', label: 'Long', Icon: FileText },
 ];
 
 export function LengthSelector() {
@@ -25,10 +22,8 @@ export function LengthSelector() {
   const setLength = useAIWishesStore((s) => s.setLength);
 
   return (
-    <Animated.View entering={FadeInDown.delay(200).duration(400)} className="mb-5">
-      <WishSectionHeader step={2} title="Choose length" subtitle="Short punchy line or a full paragraph" Icon={Type} />
-      <View className="px-5">
-
+    <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mb-5 px-5">
+      <Text className="text-[14px] font-bold text-foreground mb-3">Choose length</Text>
       <View className="flex-row gap-2.5">
         {LENGTHS.map((opt) => {
           const isActive = selectedLength === opt.id;
@@ -37,49 +32,24 @@ export function LengthSelector() {
             <Pressable
               key={opt.id}
               onPress={() => setLength(opt.id)}
-              className="flex-1 overflow-hidden rounded-xl border"
-              style={[
+              className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-xl border ${
                 isActive
-                  ? {
-                      borderColor: WishColors.primary,
-                      backgroundColor: WishColors.primaryLight,
-                      ...WishShadows.sm,
-                      shadowColor: WishColors.primary,
-                      shadowOpacity: 0.15,
-                    }
-                  : {
-                      borderColor: WishColors.borderLight,
-                      backgroundColor: WishColors.surface,
-                      ...WishShadows.sm,
-                    },
-              ]}
+                  ? 'border-primary bg-primary/8'
+                  : 'border-border/80 bg-surface'
+              }`}
               accessibilityRole="button"
-              accessibilityLabel={`${opt.label} length`}>
-              <View className="items-center py-3 px-2">
-                <View
-                  className="h-8 w-8 rounded-lg items-center justify-center mb-1.5"
-                  style={{
-                    backgroundColor: isActive ? '#7C3AED' : '#F3F4F6',
-                  }}>
-                  <Icon size={16} color={isActive ? '#FFFFFF' : '#6B7280'} strokeWidth={2} />
-                </View>
-                <Text
-                  className={`text-[13px] font-bold ${
-                    isActive ? 'text-primary' : 'text-foreground'
-                  }`}>
-                  {opt.label}
-                </Text>
-                <Text
-                  className={`text-[10px] mt-0.5 ${
-                    isActive ? 'text-primary/70' : 'text-foreground-muted'
-                  }`}>
-                  {opt.description}
-                </Text>
-              </View>
+              accessibilityLabel={`${opt.label} length`}
+              accessibilityState={{ selected: isActive }}>
+              <Icon size={16} color={isActive ? '#7C3AED' : '#6B7280'} strokeWidth={2} />
+              <Text
+                className={`text-[13px] font-semibold ${
+                  isActive ? 'text-primary' : 'text-foreground'
+                }`}>
+                {opt.label}
+              </Text>
             </Pressable>
           );
         })}
-      </View>
       </View>
     </Animated.View>
   );

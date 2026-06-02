@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Sparkles, Star, WandSparkles } from 'lucide-react-native';
+import { RefreshCw, Sparkles, WandSparkles } from 'lucide-react-native';
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -10,14 +10,12 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useAIWishesStore } from '../store/ai-wishes.store';
 import { WishGradients, WishShadows } from '../constants/design-tokens';
 
 type Props = {
   onGenerate: () => void;
   isGenerating: boolean;
   generationCount: number;
-  disabled?: boolean;
 };
 
 function GeneratingDots() {
@@ -54,26 +52,26 @@ function GeneratingDots() {
   );
 }
 
-export function GenerateButton({ onGenerate, isGenerating, generationCount, disabled = false }: Props) {
-  const credits = useAIWishesStore((s) => s.credits);
-  const label = generationCount > 0 ? 'Regenerate Wish' : 'Generate Wish';
+export function GenerateButton({ onGenerate, isGenerating, generationCount }: Props) {
+  const isRegenerate = generationCount > 0;
+  const label = isRegenerate ? 'Regenerate Wish' : 'Generate Wish';
+  const Icon = isRegenerate ? RefreshCw : WandSparkles;
 
   return (
-    <Animated.View entering={FadeInDown.delay(350).duration(400)} className="px-5 mb-5">
+    <Animated.View entering={FadeInDown.delay(200).duration(400)} className="px-5 mb-5">
       <Pressable
         onPress={onGenerate}
-        disabled={isGenerating || disabled}
+        disabled={isGenerating}
         className="overflow-hidden rounded-2xl"
         style={({ pressed }) => ({
-          transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
-          opacity: disabled ? 0.55 : 1,
-          ...(disabled ? {} : WishShadows.glow),
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+          ...WishShadows.glow,
         })}
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityState={{ disabled: isGenerating || disabled }}>
+        accessibilityState={{ disabled: isGenerating }}>
         <LinearGradient
-          colors={disabled ? ['#9CA3AF', '#6B7280'] : [...WishGradients.primary]}
+          colors={[...WishGradients.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}>
           <View className="flex-row items-center justify-center py-4 gap-2.5">
@@ -84,7 +82,7 @@ export function GenerateButton({ onGenerate, isGenerating, generationCount, disa
               </>
             ) : (
               <>
-                <WandSparkles size={20} color="#FFF" />
+                <Icon size={20} color="#FFF" />
                 <Text className="text-[16px] font-bold text-white">{label}</Text>
                 <Sparkles size={16} color="#FCD34D" />
               </>
@@ -92,15 +90,6 @@ export function GenerateButton({ onGenerate, isGenerating, generationCount, disa
           </View>
         </LinearGradient>
       </Pressable>
-
-      {!disabled && (
-        <View className="flex-row items-center justify-center gap-1.5 mt-2.5">
-          <Star size={10} color="#7C3AED" fill="#7C3AED" />
-          <Text className="text-[11px] text-foreground-muted">
-            <Text className="font-bold text-primary">{credits}</Text> credits remaining
-          </Text>
-        </View>
-      )}
     </Animated.View>
   );
 }

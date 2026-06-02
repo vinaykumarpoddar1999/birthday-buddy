@@ -350,14 +350,26 @@ function OptionPickerModal({
 // ─── Main Screen ───────────────────────────────────────────────────────────
 
 export function AddPersonScreen() {
-  const { personId, eventFocus } = useLocalSearchParams<{ personId?: string; eventFocus?: string }>();
+  const {
+    personId,
+    prefillName,
+    prefillPhone,
+    prefillEmail,
+    prefillBirthDate,
+    prefillAvatarUri,
+  } = useLocalSearchParams<{
+    personId?: string;
+    prefillName?: string;
+    prefillPhone?: string;
+    prefillEmail?: string;
+    prefillBirthDate?: string;
+    prefillAvatarUri?: string;
+  }>();
   const isEditing = Boolean(personId);
   const { data: existingPerson } = usePerson(personId);
   const { addPerson, updatePerson } = usePersonMutations();
 
-  const [eventType, setEventType] = useState<PersonEventType>(
-    eventFocus === 'true' ? 'anniversary' : 'birthday',
-  );
+  const [eventType, setEventType] = useState<PersonEventType>('birthday');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [hobbyInput, setHobbyInput] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -403,6 +415,35 @@ export function AddPersonScreen() {
     setEventType(eventTypeFromPerson(existingPerson.eventType));
     if (existingPerson.avatarUri) setProfileImage(existingPerson.avatarUri);
   }, [existingPerson, reset]);
+
+  useEffect(() => {
+    if (isEditing || !prefillName) return;
+    reset({
+      fullName: prefillName,
+      nickname: '',
+      gender: 'female',
+      birthDate: prefillBirthDate ?? '',
+      relationship: 'friend',
+      phone: prefillPhone ?? '',
+      email: prefillEmail ?? '',
+      favoriteColor: '',
+      favoriteCake: '',
+      hobbies: [],
+      notes: '',
+      reminderDaysBefore: 3,
+      reminderTime: '08:00',
+      repeatYearly: true,
+    });
+    if (prefillAvatarUri) setProfileImage(prefillAvatarUri);
+  }, [
+    isEditing,
+    prefillName,
+    prefillPhone,
+    prefillEmail,
+    prefillBirthDate,
+    prefillAvatarUri,
+    reset,
+  ]);
 
   const pickImage = useCallback(async (source: 'camera' | 'gallery') => {
     let result: ImagePicker.ImagePickerResult;

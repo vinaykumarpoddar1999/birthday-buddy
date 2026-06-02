@@ -58,6 +58,8 @@ export function CalendarCell({
             <EventMarker
               type={visibleEvents[0].type}
               avatarVariant={visibleEvents[0].avatarVariant}
+              avatarUri={visibleEvents[0].avatarUri}
+              gender={visibleEvents[0].gender}
               compact
             />
           ) : null}
@@ -68,6 +70,8 @@ export function CalendarCell({
                   key={event.id}
                   type={event.type}
                   avatarVariant={event.avatarVariant}
+                  avatarUri={event.avatarUri}
+                  gender={event.gender}
                   compact
                 />
               ))}

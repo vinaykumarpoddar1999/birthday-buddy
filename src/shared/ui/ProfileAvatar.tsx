@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Image } from 'expo-image';
 import { View } from 'react-native';
 
@@ -33,8 +34,11 @@ export function ProfileAvatar({
 }: ProfileAvatarProps) {
   const px = SIZE_PX[size];
   const borderRadius = px / 2;
-  const source = profileImage
-    ? { uri: profileImage }
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const useRemote = Boolean(profileImage) && !imageFailed;
+  const source = useRemote
+    ? { uri: profileImage! }
     : getAvatarSource(gender === 'female' ? 'female' : 'male');
 
   return (
@@ -46,6 +50,7 @@ export function ProfileAvatar({
         style={{ width: px, height: px, borderRadius }}
         contentFit="cover"
         accessibilityLabel={label ?? 'Profile photo'}
+        onError={() => setImageFailed(true)}
       />
     </View>
   );

@@ -1,5 +1,4 @@
 import { useActivityStore } from '@features/profile/store/activity.store';
-import { useAIWishesStore } from '@features/ai-wishes/store/ai-wishes.store';
 import { hydrateProfileDomains } from '@features/profile/store/profile.store';
 import { useCardStudioStore } from '@features/card-studio/store/card-studio.store';
 import { useThemeStore } from '@/stores/theme.store';
@@ -87,11 +86,6 @@ export async function hydrateAppStores(): Promise<void> {
   }
 
   hydrateProfileDomains(profileBundle);
-
-  useAIWishesStore.setState({
-    credits: profileBundle.aiCredits,
-    savedTemplates: aiTemplates,
-  });
 
   useCardStudioStore.setState({
     favoriteTemplateIds: cardPrefs.favoriteTemplateIds,

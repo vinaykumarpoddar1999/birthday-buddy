@@ -11,7 +11,7 @@ import {
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
-import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { EVENT_TYPE_CONFIG } from '../constants/event-types';
 import type { UpcomingEvent, UpcomingEventActionIcon, EventType } from '../types';
 
@@ -111,7 +111,12 @@ export function UpcomingEventCard({ event }: UpcomingEventCardProps) {
 
       <View className="flex-1 flex-row items-center min-w-0 mr-2">
         <View className="relative mr-2.5 shrink-0">
-          <ProfilePlaceholder size="md" variant={event.avatarVariant} />
+          <ProfileAvatar
+            size="md"
+            profileImage={event.avatarUri}
+            gender={event.gender}
+            borderClassName="border border-white"
+          />
           <View
             className={`absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full items-center justify-center border border-white ${typeConfig.badgeClass}`}>
             <BadgeIcon size={9} color="#FFFFFF" strokeWidth={2.5} />

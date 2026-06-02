@@ -1,34 +1,76 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { feedback } from '@/shared/feedback';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Copy, Share2 } from 'lucide-react-native';
 import {
-  Copy,
-  Mail,
-  MessageCircle,
-  Send,
-  Share2,
-  type LucideIcon,
-} from 'lucide-react-native';
+  FontAwesome5,
+  Ionicons,
+  MaterialCommunityIcons,
+} from '@expo/vector-icons';
 import { wishService } from '@/services/wish/wish.service';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import { shareWish, type WishShareChannel } from '../utils/share-wish';
 import { WishColors, WishShadows } from '../constants/design-tokens';
 
-const SHARE_OPTIONS: {
+type ShareOption = {
   id: WishShareChannel;
   label: string;
-  Icon: LucideIcon;
   color: string;
   bg: string;
-}[] = [
-  { id: 'whatsapp', label: 'WhatsApp', Icon: MessageCircle, color: '#25D366', bg: '#25D36614' },
-  { id: 'telegram', label: 'Telegram', Icon: Send, color: '#0088CC', bg: '#0088CC14' },
-  { id: 'sms', label: 'SMS', Icon: MessageCircle, color: '#3B82F6', bg: '#3B82F614' },
-  { id: 'email', label: 'Email', Icon: Mail, color: '#6366F1', bg: '#6366F114' },
-  { id: 'instagram', label: 'Instagram', Icon: Share2, color: '#E4405F', bg: '#E4405F14' },
-  { id: 'copy', label: 'Copy', Icon: Copy, color: '#7C3AED', bg: '#7C3AED14' },
-  { id: 'more', label: 'More', Icon: Share2, color: '#6B7280', bg: '#6B728014' },
+  renderIcon: (size: number) => React.ReactNode;
+};
+
+const SHARE_OPTIONS: ShareOption[] = [
+  {
+    id: 'whatsapp',
+    label: 'WhatsApp',
+    color: '#25D366',
+    bg: '#25D36618',
+    renderIcon: (size) => <FontAwesome5 name="whatsapp" size={size} color="#25D366" />,
+  },
+  {
+    id: 'telegram',
+    label: 'Telegram',
+    color: '#0088CC',
+    bg: '#0088CC18',
+    renderIcon: (size) => <FontAwesome5 name="telegram-plane" size={size} color="#0088CC" />,
+  },
+  {
+    id: 'sms',
+    label: 'SMS',
+    color: '#3B82F6',
+    bg: '#3B82F618',
+    renderIcon: (size) => <Ionicons name="chatbubble-ellipses" size={size} color="#3B82F6" />,
+  },
+  {
+    id: 'email',
+    label: 'Email',
+    color: '#6366F1',
+    bg: '#6366F118',
+    renderIcon: (size) => <MaterialCommunityIcons name="email-outline" size={size} color="#6366F1" />,
+  },
+  {
+    id: 'instagram',
+    label: 'Instagram',
+    color: '#E4405F',
+    bg: '#E4405F18',
+    renderIcon: (size) => <FontAwesome5 name="instagram" size={size} color="#E4405F" />,
+  },
+  {
+    id: 'copy',
+    label: 'Copy',
+    color: '#7C3AED',
+    bg: '#7C3AED18',
+    renderIcon: (size) => <Copy size={size} color="#7C3AED" strokeWidth={2} />,
+  },
+  {
+    id: 'more',
+    label: 'More',
+    color: '#64748B',
+    bg: '#64748B18',
+    renderIcon: (size) => <Share2 size={size} color="#64748B" strokeWidth={2} />,
+  },
 ];
 
 type Props = {
@@ -60,8 +102,8 @@ export function ShareSection({ personName }: Props) {
   if (!currentWish) return null;
 
   return (
-    <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mb-5">
-      <View className="flex-row items-center gap-2 px-5 mb-3">
+    <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mb-8 px-5">
+      <View className="flex-row items-center gap-2 mb-4">
         <View className="h-7 w-7 rounded-lg bg-primary/10 items-center justify-center">
           <Share2 size={14} color={WishColors.primary} />
         </View>
@@ -73,37 +115,37 @@ export function ShareSection({ personName }: Props) {
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerClassName="px-5 gap-2.5">
+      <View className="flex-row flex-wrap gap-3">
         {SHARE_OPTIONS.map((opt) => {
           const isSharing = sharingId === opt.id;
-          const { Icon } = opt;
           return (
             <Pressable
               key={opt.id}
               onPress={() => void handleShare(opt.id)}
               disabled={sharingId !== null}
-              className="items-center rounded-2xl border border-border/80 bg-surface px-3 py-3 min-w-[72px] active:opacity-80"
+              className="items-center rounded-2xl border border-border/60 bg-surface px-3 py-3.5 active:opacity-85"
               style={({ pressed }) => ({
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-                opacity: sharingId !== null && !isSharing ? 0.6 : 1,
+                width: '30%',
+                minWidth: 96,
+                transform: [{ scale: pressed ? 0.96 : 1 }],
+                opacity: sharingId !== null && !isSharing ? 0.55 : 1,
                 ...WishShadows.sm,
               })}
               accessibilityRole="button"
               accessibilityLabel={`Share via ${opt.label}`}
               accessibilityState={{ disabled: sharingId !== null }}>
               <View
-                className="h-10 w-10 rounded-xl items-center justify-center mb-1.5"
+                className="h-12 w-12 rounded-2xl items-center justify-center mb-2"
                 style={{ backgroundColor: opt.bg }}>
-                <Icon size={18} color={opt.color} strokeWidth={2} />
+                {opt.renderIcon(22)}
               </View>
-              <Text className="text-[10px] font-bold text-foreground-secondary">{opt.label}</Text>
+              <Text className="text-[11px] font-bold text-foreground-secondary text-center">
+                {isSharing ? '...' : opt.label}
+              </Text>
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
     </Animated.View>
   );
 }

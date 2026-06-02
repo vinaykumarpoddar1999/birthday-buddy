@@ -36,21 +36,23 @@ export class WishService {
     relationship: string,
     params: Omit<GenerateWishParams, 'personId' | 'personName' | 'relationship'>,
   ): GeneratedWish {
-    const catalogText = birthdayWishService.getWishByRelationship(
-      relationship,
-      personName,
-    );
     const generated = generateWish({
       ...params,
       personId: personUuid,
       personName,
       relationship,
     });
-    const text = formatGeneratedWishText(catalogText, {
+    const catalogFallback = birthdayWishService.getWishByRelationship(
+      relationship,
       personName,
-      personalContext: params.personalContext,
-      language: params.language,
-    });
+    );
+    const text = generated.text?.trim()
+      ? generated.text
+      : formatGeneratedWishText(catalogFallback, {
+          personName,
+          personalContext: params.personalContext,
+          language: params.language ?? 'english',
+        });
     return { ...generated, text, originalText: text };
   }
 
@@ -121,7 +123,7 @@ export class WishService {
     const saved = await wishRepository.findByPersonUuid(personUuid, 1);
     const wish = saved.find((w) => w.id === wishUuid) ?? saved[0];
     if (wish) {
-      return this.toGeneratedWish(wish, {
+      const mapped = this.toGeneratedWish(wish, {
         personName: person.fullName,
         tone: params.tone,
         length: params.length,
@@ -129,6 +131,7 @@ export class WishService {
         relationship: person.relationship,
         personalContext: params.personalContext ?? '',
       });
+      return { ...mapped, originalText: generated.originalText };
     }
 
     return { ...generated, id: wishUuid };

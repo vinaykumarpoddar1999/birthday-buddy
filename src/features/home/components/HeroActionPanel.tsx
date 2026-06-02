@@ -19,8 +19,8 @@ const ACTIONS: ActionItem[] = [
     id: 'ai-wish',
     icon: Wand2,
     iconColor: '#7C3AED',
-    title: 'AI Wish',
-    subtitle: 'Generate',
+    title: 'Wish Generator',
+    subtitle: '',
     href: '/ai-wish',
   },
   {
@@ -28,7 +28,7 @@ const ACTIONS: ActionItem[] = [
     icon: Sparkles,
     iconColor: '#3B82F6',
     title: 'Create Card',
-    subtitle: 'Make it special',
+    subtitle: '',
     href: '/card-studio',
   },
   {
@@ -36,7 +36,7 @@ const ACTIONS: ActionItem[] = [
     icon: Link2,
     iconColor: '#7C3AED',
     title: 'Surprise Link',
-    subtitle: 'Interactive',
+    subtitle: '',
     href: '/surprise-link-studio',
   },
   {
@@ -44,7 +44,7 @@ const ACTIONS: ActionItem[] = [
     icon: Gift,
     iconColor: '#EC4899',
     title: 'Gift Ideas',
-    subtitle: 'For them',
+    subtitle: '',
     href: { pathname: '/coming-soon', params: { feature: 'gift-ideas' } },
   },
 ];

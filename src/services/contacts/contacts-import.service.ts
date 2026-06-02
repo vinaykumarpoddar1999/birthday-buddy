@@ -1,4 +1,6 @@
 import * as Contacts from 'expo-contacts';
+import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 
 import { peopleService } from '@/services/people/people.service';
 import type { DeviceContactPreview } from '@/stores/contacts.store';
@@ -8,6 +10,14 @@ export type ContactImportResult = {
   imported: number;
   skipped: number;
   total: number;
+};
+
+export type PickedContact = {
+  fullName: string;
+  phone?: string;
+  email?: string;
+  birthDate?: string;
+  avatarUri?: string;
 };
 
 export type DuplicateMatch = {
@@ -100,6 +110,64 @@ function toCreateInput(
     reminderTime: '08:00',
     repeatYearly: true,
     eventType: 'birthday',
+  };
+}
+
+export async function persistContactImageUri(uri?: string): Promise<string | undefined> {
+  if (!uri) return undefined;
+  try {
+    const dir = `${FileSystem.documentDirectory}profile/`;
+    await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+    const dest = `${dir}contact-${Date.now()}.jpg`;
+    await FileSystem.copyAsync({ from: uri, to: dest });
+    return dest;
+  } catch {
+    return uri;
+  }
+}
+
+export function contactToPicked(contact: Contacts.Contact): PickedContact | null {
+  const fullName = buildName(contact);
+  if (!fullName) return null;
+  return {
+    fullName,
+    phone: contact.phoneNumbers?.[0]?.number,
+    email: contact.emails?.[0]?.email,
+    birthDate: formatBirthDate(contact) ?? undefined,
+    avatarUri: contact.imageAvailable ? contact.image?.uri : undefined,
+  };
+}
+
+export async function pickSingleContactNative(): Promise<PickedContact | null> {
+  const { status } = await Contacts.requestPermissionsAsync();
+  if (status !== 'granted') {
+    throw new Error('Contacts permission is required to pick a contact.');
+  }
+
+  if (Platform.OS === 'ios') {
+    const contact = await Contacts.presentContactPickerAsync();
+    if (!contact) return null;
+    const picked = contactToPicked(contact);
+    if (!picked) return null;
+    if (picked.avatarUri) {
+      picked.avatarUri = await persistContactImageUri(picked.avatarUri);
+    }
+    return picked;
+  }
+
+  return null;
+}
+
+export async function preparePickedContact(preview: DeviceContactPreview): Promise<PickedContact> {
+  const avatarUri = preview.avatarUri
+    ? await persistContactImageUri(preview.avatarUri)
+    : undefined;
+  return {
+    fullName: preview.fullName,
+    phone: preview.phone,
+    email: preview.email,
+    birthDate: preview.birthDate ?? undefined,
+    avatarUri,
   };
 }
 

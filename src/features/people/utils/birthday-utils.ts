@@ -251,6 +251,8 @@ export function getBirthdayCalendarEvents(
         type: 'birthday',
         personId: person.id,
         avatarVariant: person.gender === 'female' ? 'female' : 'user',
+        avatarUri: person.avatarUri,
+        gender: person.gender,
       });
     }
   }
@@ -298,6 +300,8 @@ export function getCalendarUpcomingEvents(
         countdown: getCountdownLabel(Math.max(0, days)),
         type: 'birthday' as const,
         avatarVariant: (person.gender === 'female' ? 'female' : 'user') as ProfilePlaceholderVariant,
+        avatarUri: person.avatarUri,
+        gender: person.gender,
         cardTint: 'bg-violet-50',
         primaryAction: { label: 'Send Wish', icon: 'send' as const },
         secondaryAction: { label: 'Create Card', icon: 'card' as const },

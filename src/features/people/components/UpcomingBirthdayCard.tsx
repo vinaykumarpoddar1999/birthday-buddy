@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { Gift, Send } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
@@ -46,22 +46,13 @@ export function UpcomingBirthdayCard({ item }: UpcomingBirthdayCardProps) {
           </View>
         </View>
 
-        <View className="flex-row gap-2 shrink-0">
-          <Pressable
-            onPress={() => router.push({ pathname: '/ai-wish', params: { personId: item.id } })}
-            className="h-9 w-9 rounded-xl bg-primary/10 items-center justify-center"
-            accessibilityRole="button"
-            accessibilityLabel="Send wish">
-            <Send size={15} color="#7C3AED" />
-          </Pressable>
-          <Pressable
-            onPress={() => router.push({ pathname: '/ai-wish', params: { personId: item.id } })}
-            className="h-9 w-9 rounded-xl bg-pink-50 items-center justify-center"
-            accessibilityRole="button"
-            accessibilityLabel="Gift ideas">
-            <Gift size={15} color="#EC4899" />
-          </Pressable>
-        </View>
+        <Pressable
+          onPress={() => router.push({ pathname: '/ai-wish', params: { personId: item.id } })}
+          className="h-9 w-9 rounded-xl bg-primary/10 items-center justify-center shrink-0"
+          accessibilityRole="button"
+          accessibilityLabel="Send wish">
+          <Send size={15} color="#7C3AED" />
+        </Pressable>
       </View>
     </View>
   );

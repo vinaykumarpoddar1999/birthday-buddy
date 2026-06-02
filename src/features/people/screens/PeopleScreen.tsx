@@ -8,7 +8,6 @@ import { EmptyState, ErrorState, ListSkeleton } from '@shared/ui';
 import { usePeople } from '@features/people/hooks/usePeople';
 import { feedback } from '@/shared/feedback';
 import {
-  getBirthdayStats,
   sortByUpcoming,
   toBirthdayEvent,
   toContact,
@@ -20,6 +19,8 @@ import { SearchBar } from '../components/SearchBar';
 import { SortDropdown } from '../components/SortDropdown';
 import { UpcomingBirthdayList } from '../components/UpcomingBirthdayList';
 import { PEOPLE_CATEGORIES } from '@/constants/people-categories';
+import { QuickAddModal } from '@shared/navigation/QuickAddModal';
+import { openSelectFromContact } from '@shared/navigation/quick-add-actions';
 import type { CategoryId, Contact, SortDirection } from '../types';
 
 function matchCategory(contact: Contact, selectedCategory: CategoryId): boolean {
@@ -36,12 +37,11 @@ export function PeopleScreen() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('all');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterActive, setFilterActive] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   const handleImportContacts = () => {
     router.push('/contact-import');
   };
-
-  const stats = useMemo(() => getBirthdayStats(people), [people]);
 
   const allContacts = useMemo(
     () =>
@@ -122,10 +122,7 @@ export function PeopleScreen() {
           className="flex-1"
           contentContainerClassName="px-5 pt-2 pb-32"
           showsVerticalScrollIndicator={false}>
-          <PeopleHeader
-            contactCountLabel={`${stats.totalCount} people · ${stats.upcoming30Count} upcoming`}
-            onAddPress={() => router.push('/add-person')}
-          />
+          <PeopleHeader onAddPress={() => setShowAddMenu(true)} />
 
           <SearchBar
             value={searchText}
@@ -186,6 +183,19 @@ export function PeopleScreen() {
           )}
         </ScrollView>
       </View>
+
+      <QuickAddModal
+        visible={showAddMenu}
+        onClose={() => setShowAddMenu(false)}
+        onAddManually={() => {
+          setShowAddMenu(false);
+          router.push('/add-person');
+        }}
+        onSelectFromContact={() => {
+          setShowAddMenu(false);
+          void openSelectFromContact();
+        }}
+      />
     </SafeAreaView>
   );
 }

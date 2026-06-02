@@ -5,7 +5,6 @@ import type { CalendarViewMode } from '../types';
 const VIEW_OPTIONS: { key: CalendarViewMode; label: string }[] = [
   { key: 'month', label: 'Month' },
   { key: 'timeline', label: 'Timeline' },
-  { key: 'list', label: 'List' },
 ];
 
 export type CalendarSwitcherProps = {

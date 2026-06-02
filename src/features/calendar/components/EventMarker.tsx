@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { Cake, Gift, Heart, Package } from 'lucide-react-native';
 
-import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import type { ProfilePlaceholderVariant } from '@shared/ui/ProfilePlaceholder';
 import { EVENT_TYPE_CONFIG } from '../constants/event-types';
 import type { EventType } from '../types';
@@ -16,19 +16,28 @@ const eventIcons = {
 export type EventMarkerProps = {
   type: EventType;
   avatarVariant: ProfilePlaceholderVariant;
+  avatarUri?: string;
+  gender?: 'male' | 'female' | 'other';
   compact?: boolean;
 };
 
-export function EventMarker({ type, avatarVariant, compact = false }: EventMarkerProps) {
+export function EventMarker({
+  type,
+  avatarUri,
+  gender = 'other',
+  compact = false,
+}: EventMarkerProps) {
   const config = EVENT_TYPE_CONFIG[type];
   const BadgeIcon = eventIcons[type];
+  const size = compact ? 'tiny' : 'xs';
 
   return (
     <View className="items-center">
       <View className="relative">
-        <ProfilePlaceholder
-          size={compact ? 'tiny' : 'xs'}
-          variant={avatarVariant}
+        <ProfileAvatar
+          size={size}
+          profileImage={avatarUri}
+          gender={gender}
           borderClassName="border border-white"
         />
         <View

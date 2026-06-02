@@ -24,7 +24,7 @@ import {
 import { getBirthdayCardTheme } from '@features/people/utils/birthday-card-theme';
 
 const MESSAGES = [
-  'Make her day extra special! 💜',
+  'Make the birthday extra special! 💜',
   'Celebrate the moments! 🎉',
   'A special day for a special person 💜',
   'Wishing joy and happiness! ✨',

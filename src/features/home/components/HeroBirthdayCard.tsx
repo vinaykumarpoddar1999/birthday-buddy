@@ -82,10 +82,6 @@ export function HeroBirthdayCard({ person }: HeroBirthdayCardProps) {
                   <Calendar size={scale(11)} color="#FFFFFF" strokeWidth={2} />
                   <Text style={styles.tagText}>{dateLabel}</Text>
                 </View>
-                <View style={styles.tag}>
-                  <MapPin size={scale(11)} color="#FFFFFF" strokeWidth={2} />
-                  <Text style={styles.tagText}>Just You</Text>
-                </View>
               </View>
 
               <View style={styles.messageRow}>
