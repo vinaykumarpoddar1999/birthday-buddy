@@ -201,8 +201,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
 
       const user = await userRepository.findByUuid(userId);
       const prefs = await authService.getSecurityPreferences(userId);
-      const shouldLock = appLockService.shouldLockOnStart(prefs);
-
+      const shouldLock = appLockService.consumeStartupLock(prefs);
       if (shouldLock) {
         appLockService.lock();
       }
@@ -375,7 +374,10 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   setLocked: (locked) => {
     if (locked) appLockService.lock();
     else appLockService.unlock();
-    set({ isLocked: locked, authState: locked ? 'locked' : 'authenticated' });
+    set((state) => ({
+      isLocked: locked,
+      authState: locked ? 'locked' : state.user ? 'authenticated' : 'guest',
+    }));
   },
 
   recordActivity: () => {

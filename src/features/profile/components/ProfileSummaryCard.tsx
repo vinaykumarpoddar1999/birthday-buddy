@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { Camera, Crown, Flame } from 'lucide-react-native';
+import { Camera, Crown } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
@@ -10,11 +11,13 @@ import { useAuth } from '@features/auth';
 import { useProfileStore } from '../store/profile.store';
 
 type ProfileSummaryCardProps = {
+  variant?: 'default' | 'settings';
   editProfileLabel?: string;
   onEditProfilePress?: () => void;
 };
 
 export function ProfileSummaryCard({
+  variant = 'default',
   editProfileLabel = 'View Profile →',
   onEditProfilePress,
 }: ProfileSummaryCardProps) {
@@ -26,13 +29,97 @@ export function ProfileSummaryCard({
   const { showImagePicker } = useProfileImagePicker((uri) => updateProfile({ profileImage: uri }));
 
   const handleEditProfile = onEditProfilePress ?? (() => router.push('/edit-profile'));
+  const isSettings = variant === 'settings';
 
   return (
-    <View className="bg-surface rounded-2xl p-4 border border-border/60 shadow-card">
+    <View
+      className={`rounded-2xl overflow-hidden ${isSettings ? '' : 'bg-surface border border-border/60 shadow-card'}`}>
+      {isSettings ? (
+        <LinearGradient
+          colors={['#FFFFFF', '#FAF5FF', '#FDF2F8']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            padding: 16,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: 'rgba(124, 58, 237, 0.15)',
+          }}>
+          <CardContent
+            profile={profile}
+            shouldMask={shouldMask}
+            maskName={maskName}
+            maskEmail={maskEmail}
+            isAuthenticated={isAuthenticated}
+            isGuest={isGuest}
+            profileCompletion={profileCompletion}
+            showImagePicker={showImagePicker}
+            handleEditProfile={handleEditProfile}
+            editProfileLabel={editProfileLabel}
+            avatarSize="lg"
+          />
+        </LinearGradient>
+      ) : (
+        <View className="p-4">
+          <CardContent
+            profile={profile}
+            shouldMask={shouldMask}
+            maskName={maskName}
+            maskEmail={maskEmail}
+            isAuthenticated={isAuthenticated}
+            isGuest={isGuest}
+            profileCompletion={profileCompletion}
+            showImagePicker={showImagePicker}
+            handleEditProfile={handleEditProfile}
+            editProfileLabel={editProfileLabel}
+            avatarSize="lg"
+          />
+        </View>
+      )}
+    </View>
+  );
+}
+
+type CardContentProps = {
+  profile: ReturnType<typeof useProfileStore.getState>['profile'];
+  shouldMask: boolean;
+  maskName: (name: string) => string;
+  maskEmail: (email: string) => string;
+  isAuthenticated: boolean;
+  isGuest: boolean;
+  profileCompletion: number;
+  showImagePicker: () => void;
+  handleEditProfile: () => void;
+  editProfileLabel: string;
+  avatarSize: 'lg' | 'xl';
+};
+
+function CardContent({
+  profile,
+  shouldMask,
+  maskName,
+  maskEmail,
+  isAuthenticated,
+  isGuest,
+  profileCompletion,
+  showImagePicker,
+  handleEditProfile,
+  editProfileLabel,
+  avatarSize,
+}: CardContentProps) {
+  return (
+    <>
       <View className="flex-row items-center">
         <Pressable onPress={showImagePicker} accessibilityRole="button" accessibilityLabel="Change profile photo">
           <View className="relative">
-            <ProfileAvatar size="lg" profileImage={shouldMask ? null : profile.profileImage} gender={profile.gender} />
+            <View className="rounded-full border-2 border-primary/30 p-0.5">
+              <ProfileAvatar
+                size={avatarSize}
+                profileImage={shouldMask ? null : profile.profileImage}
+                name={profile.fullName}
+                gender={profile.gender}
+              />
+            </View>
             <View className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary items-center justify-center border-2 border-surface">
               <Camera size={12} color="#FFFFFF" />
             </View>
@@ -57,15 +144,9 @@ export function ProfileSummaryCard({
                 ? 'Guest mode — sign in to sync your profile'
                 : maskEmail(profile.email || 'Add your email')}
           </Text>
-          <View className="flex-row items-center mt-1.5 gap-3 flex-wrap">
-            <View className="flex-row items-center gap-1">
-              <Flame size={12} color="#F59E0B" />
-              <Text className="text-[11px] font-semibold text-foreground-secondary">{profile.streak} Day Streak</Text>
-            </View>
-            <Pressable onPress={handleEditProfile} accessibilityRole="button" accessibilityLabel="Edit profile">
-              <Text className="text-[11px] font-bold text-primary">{editProfileLabel}</Text>
-            </Pressable>
-          </View>
+          <Pressable onPress={handleEditProfile} className="mt-2" accessibilityRole="button" accessibilityLabel="Edit profile">
+            <Text className="text-[11px] font-bold text-primary">{editProfileLabel}</Text>
+          </Pressable>
         </View>
       </View>
       <View className="mt-3">
@@ -73,10 +154,15 @@ export function ProfileSummaryCard({
           <Text className="text-[11px] text-foreground-secondary">Profile completion</Text>
           <Text className="text-[11px] font-bold text-primary">{profileCompletion}%</Text>
         </View>
-        <View className="h-1.5 bg-border/40 rounded-full overflow-hidden">
-          <View className="h-full bg-primary rounded-full" style={{ width: `${profileCompletion}%` }} />
+        <View className="h-2 bg-border/40 rounded-full overflow-hidden">
+          <LinearGradient
+            colors={['#7C3AED', '#A855F7']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ width: `${profileCompletion}%`, height: '100%', borderRadius: 999 }}
+          />
         </View>
       </View>
-    </View>
+    </>
   );
 }

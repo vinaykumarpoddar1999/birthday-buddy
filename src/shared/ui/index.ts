@@ -5,9 +5,11 @@ export { Card, type CardProps } from './Card';
 export { Modal, ModalHeader, type ModalProps } from './Modal';
 export { Sheet, type SheetProps } from './Sheet';
 export { Badge, type BadgeProps } from './Badge';
-export { Loader, type LoaderProps } from './Loader';
+export { Loader, CelebrationLoader, type LoaderProps } from './Loader';
+export { InitialAvatar, type InitialAvatarProps } from './InitialAvatar';
 export { IconButton, type IconButtonProps } from './IconButton';
 export { SectionHeader, type SectionHeaderProps } from './SectionHeader';
+export { TabScreenHeader, type TabScreenHeaderProps } from './TabScreenHeader';
 export {
   ProfilePlaceholder,
   type ProfilePlaceholderProps,

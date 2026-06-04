@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 
+import { ensureAppBootstrap, isAppBootstrapComplete, resetAppBootstrap } from './app-bootstrap';
 import { DatabaseManager } from './database-manager';
-import { hydrateAppStores } from './store-hydration';
-import { ErrorState } from '@/shared/ui';
+import { ErrorState, Loader } from '@/shared/ui';
+import { DEFAULT_STARTUP_MESSAGE } from '@/shared/ui/loaders/startup-messages';
 
 type DatabaseContextValue = {
   isReady: boolean;
@@ -24,17 +25,13 @@ type DatabaseProviderProps = {
 };
 
 export function DatabaseProvider({ children }: DatabaseProviderProps) {
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(isAppBootstrapComplete());
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
-  const initializeDatabase = useCallback(async (signal: { cancelled: boolean }) => {
-    setError(null);
-    setIsReady(false);
-
+  const runBootstrap = useCallback(async (signal: { cancelled: boolean }) => {
     try {
-      await DatabaseManager.initialize();
-      await hydrateAppStores();
+      await ensureAppBootstrap();
       if (!signal.cancelled) {
         setIsReady(true);
         setError(null);
@@ -48,29 +45,35 @@ export function DatabaseProvider({ children }: DatabaseProviderProps) {
   }, []);
 
   useEffect(() => {
+    if (isAppBootstrapComplete()) {
+      setIsReady(true);
+      return;
+    }
+
     const signal = { cancelled: false };
-    void initializeDatabase(signal);
+    void runBootstrap(signal);
     return () => {
       signal.cancelled = true;
     };
-  }, [attempt, initializeDatabase]);
+  }, [attempt, runBootstrap]);
+
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setIsReady(false);
+    resetAppBootstrap();
+    void DatabaseManager.close().finally(() => setAttempt((value) => value + 1));
+  }, []);
 
   if (error) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ErrorState
-          kind="database"
-          message={error}
-          onRetry={() => {
-            void DatabaseManager.close().finally(() => setAttempt((value) => value + 1));
-          }}
-        />
+        <ErrorState kind="database" message={error} onRetry={handleRetry} />
       </View>
     );
   }
 
   if (!isReady) {
-    return null;
+    return <Loader fullScreen message={DEFAULT_STARTUP_MESSAGE} variant="startup" />;
   }
 
   return (

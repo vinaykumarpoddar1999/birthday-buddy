@@ -2,6 +2,8 @@ import { router } from 'expo-router';
 import { Cake, UserPlus } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { ConfettiBurst } from '@/shared/ui/ConfettiBurst';
+import { useBirthdayConfetti } from '../hooks/useBirthdayConfetti';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState, PageSkeleton } from '@shared/ui';
@@ -14,6 +16,7 @@ import { StatsSection } from '../components/StatsSection';
 import { SpecialCardsBanner } from '../components/SpecialCardsBanner';
 import { QuickActionsGrid } from '../components/QuickActionsGrid';
 import { ShareAppSection } from '../components/ShareAppSection';
+import { MadeWithLoveFooter } from '../components/MadeWithLoveFooter';
 import { Colors, scale } from '../constants/design-tokens';
 
 export function HomeDashboardScreen() {
@@ -22,10 +25,12 @@ export function HomeDashboardScreen() {
     isLoading,
     isError,
     refetch,
-  } = useUpcomingPeople(8);
+  } = useUpcomingPeople(10);
   const { data: homeInsights } = useHomeInsights();
 
-  const listPeople = useMemo(() => upcomingPeople.slice(1, 5), [upcomingPeople]);
+  const listPeople = useMemo(() => upcomingPeople.slice(0, 10), [upcomingPeople]);
+  const heroPerson = upcomingPeople[0];
+  const { showConfetti } = useBirthdayConfetti(heroPerson?.id, heroPerson?.birthDate);
 
   if (isLoading) {
     return (
@@ -65,6 +70,7 @@ export function HomeDashboardScreen() {
         {/* Hero Birthday Card */}
         {upcomingPeople.length > 0 ? (
           <View style={styles.heroWrapper}>
+            {showConfetti ? <ConfettiBurst active durationMs={8000} count={120} /> : null}
             <HeroBirthdayCard person={upcomingPeople[0]} />
             <HeroActionPanel />
           </View>
@@ -105,8 +111,7 @@ export function HomeDashboardScreen() {
 
         <ShareAppSection />
 
-        {/* Bottom spacing for tab bar */}
-        <View style={styles.bottomSpacer} />
+        <MadeWithLoveFooter />
       </ScrollView>
     </SafeAreaView>
   );
@@ -123,7 +128,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: scale(20),
     paddingTop: scale(8),
-    paddingBottom: scale(120),
+    paddingBottom: scale(88),
   },
   errorContainer: {
     paddingHorizontal: scale(20),
@@ -134,8 +139,5 @@ const styles = StyleSheet.create({
   },
   emptyHero: {
     marginBottom: scale(16),
-  },
-  bottomSpacer: {
-    height: scale(40),
   },
 });

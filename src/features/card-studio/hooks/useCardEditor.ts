@@ -50,7 +50,7 @@ export function useCardEditor() {
       const maxZ = currentElements.length > 0 ? Math.max(...currentElements.map((e) => e.zIndex)) : 0;
       const el: CardElement = {
         id,
-        type: 'text',
+        type: 'sticker',
         content: emoji,
         x: 130,
         y: 200,

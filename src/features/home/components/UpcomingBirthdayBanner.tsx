@@ -180,6 +180,7 @@ const BannerSlide = memo(function BannerSlide({ item }: { item: BannerItem }) {
                 <ProfileAvatar
                   size="xl"
                   profileImage={person.avatarUri}
+                  name={person.fullName}
                   gender={person.gender}
                   borderClassName="border-4 border-white/40"
                   label={`${person.fullName} avatar`}

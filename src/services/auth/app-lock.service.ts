@@ -23,6 +23,10 @@ class AppLockServiceClass {
     backgroundedAt: null,
   };
 
+  /** Set when a cold-start lock has been requested (prevents duplicate startup locks). */
+  private startupLockConsumed = false;
+  private hasUnlockedThisSession = false;
+
   private listeners = new Set<(state: AppLockState) => void>();
 
   subscribe(listener: (state: AppLockState) => void): () => void {
@@ -51,12 +55,24 @@ class AppLockServiceClass {
   }
 
   unlock(): void {
+    this.hasUnlockedThisSession = true;
     this.state = {
       isLocked: false,
       lastActivityAt: Date.now(),
       backgroundedAt: null,
     };
     this.notify();
+  }
+
+  /**
+   * Returns true only once per cold start when app lock should show before first unlock.
+   * Safe to call from hydrate and AppLockProvider without re-locking after successful auth.
+   */
+  consumeStartupLock(prefs: SecurityPreferences): boolean {
+    if (this.startupLockConsumed || this.hasUnlockedThisSession) return false;
+    if (!prefs.appLockEnabled || !prefs.lockOnRestart) return false;
+    this.startupLockConsumed = true;
+    return true;
   }
 
   onBackground(prefs: SecurityPreferences): void {
@@ -90,8 +106,7 @@ class AppLockServiceClass {
   }
 
   shouldLockOnStart(prefs: SecurityPreferences): boolean {
-    if (!prefs.appLockEnabled) return false;
-    return prefs.lockOnRestart;
+    return this.consumeStartupLock(prefs);
   }
 
   checkInactivity(prefs: SecurityPreferences): boolean {

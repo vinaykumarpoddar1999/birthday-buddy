@@ -29,6 +29,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 import { useAuth } from '@features/auth';
 
+import { TabScreenHeader } from '@shared/ui/TabScreenHeader';
+
 import { ProfileSummaryCard } from '../components/ProfileSummaryCard';
 import { useProfileStore } from '../store/profile.store';
 
@@ -146,10 +148,8 @@ export const ProfileSettingsScreen = () => {
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <ScrollView className="flex-1" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         <View className="bg-primary/5 px-5 pt-4 pb-6">
-          <Text className="text-heading text-foreground font-bold mb-1">Settings</Text>
-          <Text className="text-caption text-foreground-secondary mb-5">Customize your experience</Text>
-
-          <ProfileSummaryCard />
+          <TabScreenHeader title="Settings" />
+          <ProfileSummaryCard variant="settings" />
         </View>
 
         <View className="px-5 mt-5 mb-2">
@@ -167,7 +167,7 @@ export const ProfileSettingsScreen = () => {
           <View className="bg-surface rounded-2xl px-4 border border-border/60">
             <SettingsRow icon={User} iconBg="#EDE9FE" iconColor="#7C3AED" title="Personal Information" description="Update name, email, mobile number" onPress={() => router.push('/personal-info')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
-            <SettingsRow icon={Shield} iconBg="#DBEAFE" iconColor="#3B82F6" title="Privacy & Security" description="Manage biometrics and password" onPress={() => router.push('/privacy-security')} />
+            <SettingsRow icon={Shield} iconBg="#DBEAFE" iconColor="#3B82F6" title="Privacy & Security" description="System lock and password" onPress={() => router.push('/privacy-security')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Cloud} iconBg="#DCFCE7" iconColor="#22C55E" title="Backup & Restore" description="Backup/restore data" onPress={() => router.push('/backup-restore')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
@@ -176,21 +176,6 @@ export const ProfileSettingsScreen = () => {
             <SettingsRow icon={Upload} iconBg="#CFFAFE" iconColor="#06B6D4" title="Import Data" description="Import JSON backup with preview" onPress={() => router.push('/import-data')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Users} iconBg="#FCE7F3" iconColor="#EC4899" title="Import Contacts" description="Import birthdays from your phone contacts" onPress={() => router.push('/contact-import')} />
-            {isAuthenticated ? (
-              <>
-                <View className="h-[0.5px] bg-border/60 ml-12" />
-                <SettingsRow icon={LogOut} iconBg="#FEF3C7" iconColor="#F59E0B" title="Sign Out" description="Sign out and continue as guest" onPress={handleLogout} />
-                <View className="h-[0.5px] bg-border/60 ml-12" />
-                <SettingsRow icon={Trash2} iconBg="#FEE2E2" iconColor="#EF4444" title="Delete Account" description="Permanently delete your account and all data" onPress={() => router.push('/delete-account')} destructive />
-              </>
-            ) : (
-              <>
-                <View className="h-[0.5px] bg-border/60 ml-12" />
-                <SettingsRow icon={LogOut} iconBg="#EDE9FE" iconColor="#7C3AED" title="Sign In" description="Access your saved profile and data" onPress={() => router.push('/(auth)/login')} />
-                <View className="h-[0.5px] bg-border/60 ml-12" />
-                <SettingsRow icon={User} iconBg="#DCFCE7" iconColor="#22C55E" title="Create Account" description="Save your profile and sync across sessions" onPress={() => router.push('/(auth)/register')} />
-              </>
-            )}
           </View>
         </View>
 
@@ -288,7 +273,26 @@ export const ProfileSettingsScreen = () => {
           </View>
         </View>
 
-        <View className="items-center mt-6 mb-4">
+        <View className="px-5 mt-8 mb-4">
+          <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-1">Account</Text>
+          <View className="bg-surface rounded-2xl px-4 border border-border/60">
+            {isAuthenticated ? (
+              <>
+                <SettingsRow icon={LogOut} iconBg="#FEF3C7" iconColor="#F59E0B" title="Sign Out" description="Sign out and continue as guest" onPress={handleLogout} />
+                <View className="h-[0.5px] bg-border/60 ml-12" />
+                <SettingsRow icon={Trash2} iconBg="#FEE2E2" iconColor="#EF4444" title="Delete Account" description="Permanently delete your account and all data" onPress={() => router.push('/delete-account')} destructive />
+              </>
+            ) : (
+              <>
+                <SettingsRow icon={LogOut} iconBg="#EDE9FE" iconColor="#7C3AED" title="Sign In" description="Access your saved profile and data" onPress={() => router.push('/(auth)/login')} />
+                <View className="h-[0.5px] bg-border/60 ml-12" />
+                <SettingsRow icon={User} iconBg="#DCFCE7" iconColor="#22C55E" title="Create Account" description="Save your profile and sync across sessions" onPress={() => router.push('/(auth)/register')} />
+              </>
+            )}
+          </View>
+        </View>
+
+        <View className="items-center mt-4 mb-4">
           <Text className="text-[11px] text-foreground-secondary/60">BirthdayBuddy v1.0.0</Text>
         </View>
       </ScrollView>

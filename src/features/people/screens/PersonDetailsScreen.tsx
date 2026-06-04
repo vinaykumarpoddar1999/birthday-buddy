@@ -16,10 +16,9 @@ import {
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image } from 'expo-image';
 
 import { EmptyState, PageSkeleton } from '@shared/ui';
-import { getAvatarSource } from '@/shared/utils/avatar';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { usePerson } from '@features/people/hooks/usePeople';
 import {
   formatBirthdayShort,
@@ -102,10 +101,6 @@ export function PersonDetailsScreen() {
           ? 'Wedding Anniversary'
           : 'Custom Event';
 
-  const avatarSource = person.avatarUri
-    ? { uri: person.avatarUri }
-    : getAvatarSource(person.gender === 'female' ? 'female' : 'male');
-
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="flex-row items-center justify-between px-5 py-3">
@@ -139,7 +134,13 @@ export function PersonDetailsScreen() {
             <View style={birthdayCardStyles.cardRow}>
               <View style={styles.avatarSection}>
                 <View style={[birthdayCardStyles.avatarGlow, { borderColor: theme.accent }]}>
-                  <Image source={avatarSource} style={birthdayCardStyles.avatarImage} contentFit="cover" />
+                  <ProfileAvatar
+                    dimension={scale(64)}
+                    profileImage={person.avatarUri}
+                    name={person.fullName}
+                    gender={person.gender}
+                    label={`${person.fullName} avatar`}
+                  />
                 </View>
                 <View style={[styles.avatarDecor, { backgroundColor: theme.accent }]}>
                   <Sparkles size={scale(8)} color="#FFFFFF" />

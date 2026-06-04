@@ -1,6 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
-  InteractionManager,
   Platform,
   Pressable,
   ScrollView,
@@ -16,10 +15,9 @@ import {
   ClipboardCopy,
   Download,
   Link2,
-  MessageCircle,
   Plus,
+  Share2,
 } from 'lucide-react-native';
-import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
@@ -27,8 +25,18 @@ import { router } from 'expo-router';
 import { cardService } from '@/services/card/card.service';
 import { useSurpriseLinkStore } from '@features/surprise-link/store/surprise-link.store';
 
+import { CardStudioPrimaryButton } from '../components/common/CardStudioPrimaryButton';
+import { CardStudioSecondaryButton } from '../components/common/CardStudioSecondaryButton';
+import { CardExportHost } from '../components/preview/CardExportHost';
+import { studioTokens } from '../constants/studio-tokens';
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardRenderer } from '../components/preview/CardRenderer';
+import {
+  captureCardImage,
+  getExportUnavailableMessage,
+  isCardExportAvailable,
+  type ViewShotCaptureHandle,
+} from '../utils/card-export';
 import { getCanvasDimensions } from '../utils/canvas-dimensions';
 
 export function Step4ShareScreen() {
@@ -71,24 +79,27 @@ export function Step4ShareScreen() {
     setSurpriseOccasion,
   ]);
 
-  const cardRef = useRef<View>(null);
+  const exportRef = useRef<ViewShotCaptureHandle>(null);
+  const fallbackRef = useRef<View>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [sharing, setSharing] = useState(false);
 
   const capture = useCallback(async () => {
-    if (!cardRef.current) return null;
-    await new Promise<void>((resolve) => {
-      InteractionManager.runAfterInteractions(() => resolve());
-    });
-    await new Promise((r) => setTimeout(r, 120));
-    try {
-      return await captureRef(cardRef, { format: 'png', quality: 1, result: 'tmpfile' });
-    } catch {
-      feedback.error('Error', 'Could not capture card.');
+    if (!isCardExportAvailable()) {
+      feedback.error('Development build required', getExportUnavailableMessage());
       return null;
     }
-  }, []);
+    const uri = await captureCardImage({
+      cardRef: fallbackRef,
+      viewShotRef: exportRef,
+      canvasFormat,
+    });
+    if (!uri) {
+      feedback.error('Export failed', 'Could not capture your card. Try again after the preview loads.');
+    }
+    return uri;
+  }, [canvasFormat]);
 
   const persistCard = useCallback(
     async (exportUri?: string): Promise<string | undefined> => {
@@ -112,19 +123,24 @@ export function Step4ShareScreen() {
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
-        feedback.error('Permission needed', 'Allow access to save images.');
+        feedback.error('Permission needed', 'Allow photo library access to save your card.');
         setSaving(false);
         return;
       }
       const uri = await capture();
       if (uri) {
         await MediaLibrary.saveToLibraryAsync(uri);
-        await persistCard(uri);
+        const cardUuid = await persistCard(uri);
+        if (cardUuid) {
+          await cardService.logDownloaded(cardUuid);
+        }
         setSaved(true);
+        feedback.success('Saved!', 'Your HD card was saved to your gallery.');
         setTimeout(() => setSaved(false), 3000);
       }
-    } catch {
-      feedback.error('Error', 'Failed to save.');
+    } catch (error) {
+      if (__DEV__) console.warn('[Step4Share] download failed:', error);
+      feedback.error('Error', 'Failed to save. Please try again.');
     }
     setSaving(false);
   }, [capture, persistCard]);
@@ -149,8 +165,9 @@ export function Step4ShareScreen() {
           await cardService.logShared(cardUuid, 'share_sheet');
         }
       }
-    } catch {
-      feedback.error('Error', 'Failed to share.');
+    } catch (error) {
+      if (__DEV__) console.warn('[Step4Share] share failed:', error);
+      feedback.error('Error', 'Failed to share. Please try again.');
     }
     setSharing(false);
   }, [capture, personalization.recipientName, persistCard]);
@@ -180,29 +197,50 @@ export function Step4ShareScreen() {
   if (!template) return null;
 
   const { w: cardW, h: cardH } = getCanvasDimensions(canvasFormat);
-  const cardScale = Math.min((screenW - 80) / cardW, 0.78);
+  const cardScale = Math.min((screenW - 72) / cardW, 0.8);
 
   return (
     <View className="flex-1 bg-background">
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: -2000,
+          top: 0,
+          opacity: 1,
+        }}>
+        <View ref={fallbackRef} collapsable={false}>
+          <CardExportHost
+            ref={exportRef}
+            template={template}
+            personalization={personalization}
+            elements={elements}
+            customBackground={customBackground}
+            canvasFormat={canvasFormat}
+          />
+        </View>
+      </View>
+
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 48 }}>
-        {/* Success Banner */}
-        <Animated.View entering={FadeInDown.duration(400)} className="mx-5 mt-3 mb-5">
-          <View className="rounded-2xl overflow-hidden">
+        contentContainerStyle={{ paddingBottom: 40 }}>
+        <Animated.View entering={FadeInDown.duration(400)} className="mx-5 mt-3 mb-3">
+          <View className="rounded-2xl overflow-hidden border border-primary/15">
             <LinearGradient
-              colors={['#EDE9FE', '#FCE7F3', '#EDE9FE']}
+              colors={['#EDE9FE', '#FDF2F8', '#EDE9FE']}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}>
+              end={{ x: 1, y: 1 }}>
               <View className="flex-row items-center px-5 py-4 gap-4">
-                <Animated.View entering={ZoomIn.duration(500)} className="h-12 w-12 rounded-2xl bg-primary items-center justify-center">
+                <Animated.View
+                  entering={ZoomIn.duration(500)}
+                  className="h-12 w-12 rounded-2xl bg-primary items-center justify-center">
                   <Check size={22} color="#FFF" strokeWidth={3} />
                 </Animated.View>
                 <View className="flex-1">
-                  <Text className="text-[16px] font-bold text-foreground">Your card is ready!</Text>
+                  <Text className="text-[17px] font-bold text-foreground">Your card is ready</Text>
                   <Text className="text-[12px] text-foreground-muted mt-0.5">
-                    Share with {personalization.recipientName || 'someone special'}
+                    Save in HD or share with {personalization.recipientName || 'someone special'}
                   </Text>
                 </View>
               </View>
@@ -210,150 +248,109 @@ export function Step4ShareScreen() {
           </View>
         </Animated.View>
 
-        {/* Hidden full-resolution capture target */}
-        <View
-          style={{ position: 'absolute', left: -9999, top: 0, opacity: 0 }}
-          pointerEvents="none">
-          <View ref={cardRef} collapsable={false}>
-            <CardRenderer
-              template={template}
-              personalization={personalization}
-              elements={elements}
-              scale={1}
-              customBackground={customBackground}
-              canvasFormat={canvasFormat}
-            />
-          </View>
-        </View>
-
-        {/* Card Preview */}
-        <View className="items-center py-3">
+        <View className="items-center py-1 px-5">
           <View
-            collapsable={false}
-            className="rounded-2xl overflow-hidden"
+            className="rounded-3xl items-center justify-center w-full"
             style={{
-              width: cardW * cardScale,
-              height: cardH * cardScale,
-              shadowColor: '#7C3AED',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.12,
-              shadowRadius: 20,
-              elevation: 6,
+              padding: 8,
+              backgroundColor: studioTokens.colors.frameTint,
+              shadowColor: studioTokens.colors.primary,
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.14,
+              shadowRadius: 22,
+              elevation: 8,
             }}>
-            <CardRenderer
-              template={template}
-              personalization={personalization}
-              elements={elements}
-              scale={cardScale}
-              customBackground={customBackground}
-              canvasFormat={canvasFormat}
-            />
+            <View
+              collapsable={false}
+              className="rounded-2xl overflow-hidden"
+              style={{
+                width: cardW * cardScale,
+                height: cardH * cardScale,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 12,
+                elevation: 6,
+              }}>
+              <CardRenderer
+                template={template}
+                personalization={personalization}
+                elements={elements}
+                scale={cardScale}
+                customBackground={customBackground}
+                canvasFormat={canvasFormat}
+              />
+            </View>
           </View>
+          <Text className="text-[11px] text-foreground-muted mt-2 text-center">
+            {isCardExportAvailable()
+              ? 'Exports at full resolution (2× pixel density)'
+              : 'HD save requires a dev build — use Expo Go for editing only'}
+          </Text>
         </View>
 
-        {/* Action Buttons */}
-        <View className="px-5 mt-5">
-          {/* Primary: Download */}
-          <Pressable
+        <View className="px-5 mt-4 gap-3">
+          <CardStudioPrimaryButton
+            label={saving ? 'Saving…' : saved ? 'Saved to Gallery' : 'Save to Gallery (HD)'}
             onPress={handleDownload}
+            loading={saving}
             disabled={saving}
-            className="overflow-hidden rounded-2xl mb-3"
-            style={({ pressed }) => ({
-              transform: [{ scale: pressed ? 0.98 : 1 }],
-              shadowColor: saved ? '#22C55E' : '#7C3AED',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              elevation: 8,
-            })}
-            accessibilityRole="button">
-            <LinearGradient
-              colors={saved ? ['#22C55E', '#16A34A'] : ['#7C3AED', '#5B21B6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}>
-              <View className="flex-row items-center justify-center py-4 gap-2.5">
-                {saved ? (
-                  <Check size={20} color="#FFF" strokeWidth={3} />
-                ) : (
-                  <Download size={19} color="#FFF" />
-                )}
-                <Text className="text-[16px] font-bold text-white">
-                  {saving ? 'Saving...' : saved ? 'Saved to Gallery!' : 'Save to Gallery'}
-                </Text>
-              </View>
-            </LinearGradient>
-          </Pressable>
+            icon={
+              saved ? (
+                <Check size={18} color="#FFF" strokeWidth={3} />
+              ) : (
+                <Download size={18} color="#FFF" />
+              )
+            }
+          />
 
-          {/* Share actions */}
-          <View className="flex-row gap-3 mb-3">
-            <Pressable
+          <View className="flex-row gap-3">
+            <CardStudioSecondaryButton
+              label={sharing ? 'Sharing…' : 'Share Image'}
               onPress={handleShare}
               disabled={sharing}
-              className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2"
-              style={({ pressed }) => ({
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-                backgroundColor: '#22C55E',
-                shadowColor: '#22C55E',
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.25,
-                shadowRadius: 8,
-                elevation: 4,
-              })}
-              accessibilityRole="button">
-              <MessageCircle size={17} color="#FFF" />
-              <Text className="text-[14px] font-bold text-white">
-                {sharing ? 'Sharing...' : 'Share'}
-              </Text>
-            </Pressable>
-            <Pressable
+              loading={sharing}
+              className="flex-1"
+              icon={<Share2 size={16} color="#374151" />}
+            />
+            <CardStudioSecondaryButton
+              label="Copy Message"
               onPress={handleShareMessage}
-              className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2"
-              style={({ pressed }) => ({
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-                backgroundColor: '#1F2937',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 4,
-              })}
-              accessibilityRole="button"
-              accessibilityLabel="Share birthday message">
-              <ClipboardCopy size={16} color="#FFF" />
-              <Text className="text-[14px] font-bold text-white">Share Message</Text>
-            </Pressable>
+              className="flex-1"
+              icon={<ClipboardCopy size={16} color="#374151" />}
+              accessibilityLabel="Share birthday message"
+            />
           </View>
 
-          <View className="flex-row gap-3 mt-3">
-            <Pressable
-              onPress={() => {
-                reset();
-                useCardStudioStore.getState().setStep(1);
-              }}
-              className="flex-1 flex-row items-center justify-center rounded-2xl py-3.5 gap-2 bg-primary/10 border border-primary/20"
-              style={({ pressed }) => ({
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-              })}
-              accessibilityRole="button"
-              accessibilityLabel="Create new card">
-              <Plus size={15} color="#7C3AED" />
-              <Text className="text-[13px] font-semibold text-primary">New Card</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => reset()}
+            className="flex-row items-center justify-center rounded-2xl gap-2 bg-primary/10 border border-primary/20"
+            style={({ pressed }) => ({
+              minHeight: studioTokens.touchMin,
+              paddingVertical: 12,
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+            })}
+            accessibilityRole="button"
+            accessibilityLabel="Create new card">
+            <Plus size={15} color={studioTokens.colors.primary} />
+            <Text className="text-[13px] font-semibold text-primary">Create New Card</Text>
+          </Pressable>
 
           <Pressable
             onPress={handleTurnIntoSurprise}
-            className="overflow-hidden rounded-2xl mt-3"
+            className="overflow-hidden rounded-2xl"
             accessibilityRole="button"
             accessibilityLabel="Turn card into surprise experience">
             <LinearGradient
               colors={['#EC4899', '#7C3AED']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, gap: 8 }}>
-              <Link2 size={17} color="#FFF" />
-              <Text className="text-[14px] font-bold text-white">Turn Card Into Surprise</Text>
-            </View>
+              <View
+                className="flex-row items-center justify-center gap-2"
+                style={{ minHeight: studioTokens.touchMin, paddingVertical: 14 }}>
+                <Link2 size={17} color="#FFF" />
+                <Text className="text-[14px] font-bold text-white">Turn Card Into Surprise</Text>
+              </View>
             </LinearGradient>
           </Pressable>
         </View>

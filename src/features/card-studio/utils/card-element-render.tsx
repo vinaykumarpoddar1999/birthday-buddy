@@ -134,9 +134,18 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
     );
   }
 
+  const lineCount = Math.max(1, content.split('\n').length);
+
   return (
-    <View style={pos}>
-      <Text style={textStyle}>{content}</Text>
+    <View style={[pos, { overflow: 'hidden' }]}>
+      <Text
+        style={[textStyle, { width: '100%' }]}
+        adjustsFontSizeToFit
+        minimumFontScale={0.4}
+        numberOfLines={lineCount}
+        ellipsizeMode="tail">
+        {content}
+      </Text>
     </View>
   );
 }

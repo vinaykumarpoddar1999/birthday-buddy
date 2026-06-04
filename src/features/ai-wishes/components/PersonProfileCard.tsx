@@ -31,6 +31,7 @@ export function PersonProfileCard({ person }: Props) {
         <ProfileAvatar
           size="lg"
           profileImage={person.avatarUri}
+          name={person.fullName}
           gender={person.gender}
           borderClassName="border-2 border-primary/15"
           label={`${person.fullName} avatar`}

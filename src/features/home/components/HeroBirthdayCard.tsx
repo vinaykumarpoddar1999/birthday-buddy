@@ -1,11 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Cake, Calendar, Gift, Heart, MapPin, Sparkles } from 'lucide-react-native';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 
 import { Colors, Shadows, scale } from '../constants/design-tokens';
-import { getAvatarSource } from '@/shared/utils/avatar';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import type { Person } from '@/types/entities';
 import {
   getDaysUntilBirthday,
@@ -24,13 +23,10 @@ function getCelebrationMessage(person: Person): string {
 
 export function HeroBirthdayCard({ person }: HeroBirthdayCardProps) {
   const daysLeft = getDaysUntilBirthday(person.birthDate);
+  const isToday = daysLeft === 0;
   const age = getAgeAtNextBirthday(person.birthDate);
   const dateLabel = formatBirthdayShort(person.birthDate);
   const dateShort = dateLabel.split(',')[0];
-
-  const avatarSource = person.avatarUri
-    ? { uri: person.avatarUri }
-    : getAvatarSource(person.gender === 'female' ? 'female' : 'male');
 
   const handlePress = () => {
     router.push({ pathname: '/person-details', params: { personId: person.id } });
@@ -55,12 +51,16 @@ export function HeroBirthdayCard({ person }: HeroBirthdayCardProps) {
           </View>
 
           <View style={styles.topRow}>
-            <View style={styles.upNextBadge}>
-              <Text style={styles.upNextText}>UP NEXT</Text>
+            <View style={[styles.upNextBadge, isToday && styles.todayBadge]}>
+              <Text style={[styles.upNextText, isToday && styles.todayBadgeText]}>
+                {isToday ? 'TODAY' : 'UP NEXT'}
+              </Text>
             </View>
             <View style={styles.daysRow}>
               <Cake size={scale(14)} color="#FFFFFF" strokeWidth={2} />
-              <Text style={styles.daysText}>{daysLeft} Days Left</Text>
+              <Text style={styles.daysText}>
+                {isToday ? 'Birthday Today!' : `${daysLeft} Days Left`}
+              </Text>
             </View>
           </View>
 
@@ -94,7 +94,14 @@ export function HeroBirthdayCard({ person }: HeroBirthdayCardProps) {
 
             <View style={styles.rightProfile}>
               <View style={styles.profileImageWrapper}>
-                <Image source={avatarSource} style={styles.profileImage} contentFit="cover" />
+                <ProfileAvatar
+                  dimension={scale(94)}
+                  profileImage={person.avatarUri}
+                  name={person.fullName}
+                  gender={person.gender}
+                  borderClassName="border-0"
+                  label={`${person.fullName} avatar`}
+                />
               </View>
               <Pressable
                 style={styles.giftButton}
@@ -156,6 +163,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#7C3AED',
     letterSpacing: 0.5,
+  },
+  todayBadge: {
+    backgroundColor: '#FDE68A',
+  },
+  todayBadgeText: {
+    color: '#92400E',
   },
   daysRow: {
     flexDirection: 'row',
@@ -237,15 +250,13 @@ const styles = StyleSheet.create({
     borderWidth: scale(3),
     borderColor: 'rgba(255,255,255,0.8)',
     overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#FF4D9D',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.35,
     shadowRadius: 24,
     elevation: 8,
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
   },
   giftButton: {
     position: 'absolute',

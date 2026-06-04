@@ -17,6 +17,7 @@ export type EventMarkerProps = {
   type: EventType;
   avatarVariant: ProfilePlaceholderVariant;
   avatarUri?: string;
+  name?: string;
   gender?: 'male' | 'female' | 'other';
   compact?: boolean;
 };
@@ -24,7 +25,8 @@ export type EventMarkerProps = {
 export function EventMarker({
   type,
   avatarUri,
-  gender = 'other',
+  name,
+  gender,
   compact = false,
 }: EventMarkerProps) {
   const config = EVENT_TYPE_CONFIG[type];
@@ -37,6 +39,7 @@ export function EventMarker({
         <ProfileAvatar
           size={size}
           profileImage={avatarUri}
+          name={name}
           gender={gender}
           borderClassName="border border-white"
         />

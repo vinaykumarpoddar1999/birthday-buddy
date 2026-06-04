@@ -1,14 +1,12 @@
 import React, { useCallback, useRef } from 'react';
-import { Dimensions, FlatList, View } from 'react-native';
+import { FlatList, useWindowDimensions, View } from 'react-native';
 
 import { useCardStudioStore } from '../../store/card-studio.store';
 import type { CardTemplate } from '../../types';
 import { TemplateCard } from './TemplateCard';
 
-const SCREEN_W = Dimensions.get('window').width;
-const CARD_W = Math.floor(SCREEN_W * 0.72);
-const CARD_GAP = 14;
-const SIDE_PAD = (SCREEN_W - CARD_W) / 2;
+const CARD_WIDTH_RATIO = 0.39;
+const CARD_GAP = 12;
 
 type Props = {
   templates: CardTemplate[];
@@ -16,6 +14,11 @@ type Props = {
 };
 
 export function TemplateCarousel({ templates, onSelect }: Props) {
+  const { width: screenW } = useWindowDimensions();
+  const cardW = Math.floor(screenW * CARD_WIDTH_RATIO);
+  const sidePad = Math.max(20, (screenW - cardW) / 2);
+  const snapInterval = cardW + CARD_GAP;
+
   const selectedId = useCardStudioStore((s) => s.selectedTemplatePreviewId);
   const setPreviewId = useCardStudioStore((s) => s.setSelectedTemplatePreviewId);
   const listRef = useRef<FlatList<CardTemplate>>(null);
@@ -30,16 +33,16 @@ export function TemplateCarousel({ templates, onSelect }: Props) {
 
   const renderItem = useCallback(
     ({ item }: { item: CardTemplate }) => (
-      <View style={{ width: CARD_W, marginRight: CARD_GAP }}>
+      <View style={{ width: cardW, marginRight: CARD_GAP }}>
         <TemplateCard
           template={item}
           onSelect={handleSelect}
-          width={CARD_W}
+          width={cardW}
           selected={selectedId === item.id}
         />
       </View>
     ),
-    [handleSelect, selectedId],
+    [handleSelect, selectedId, cardW],
   );
 
   if (templates.length === 0) return null;
@@ -52,11 +55,11 @@ export function TemplateCarousel({ templates, onSelect }: Props) {
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
       showsHorizontalScrollIndicator={false}
-      snapToInterval={CARD_W + CARD_GAP}
+      snapToInterval={snapInterval}
       decelerationRate="fast"
-      contentContainerStyle={{ paddingHorizontal: SIDE_PAD, paddingVertical: 8 }}
+      contentContainerStyle={{ paddingHorizontal: sidePad, paddingVertical: 4 }}
       onMomentumScrollEnd={(e) => {
-        const index = Math.round(e.nativeEvent.contentOffset.x / (CARD_W + CARD_GAP));
+        const index = Math.round(e.nativeEvent.contentOffset.x / snapInterval);
         const item = templates[Math.min(index, templates.length - 1)];
         if (item) setPreviewId(item.id);
       }}

@@ -26,10 +26,12 @@ export interface Person {
 export interface BirthdayEvent extends Person {
   eventLabel: string;
   eventState: EventState;
+  avatarUri?: string;
 }
 
 export interface Contact extends Person {
   birthdayLabel: string;
+  avatarUri?: string;
 }
 
 export interface Category {

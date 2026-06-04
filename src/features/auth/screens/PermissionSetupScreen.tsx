@@ -102,8 +102,8 @@ export function PermissionSetupScreen() {
       />
       <PermissionCard
         icon={Fingerprint}
-        title="Biometrics"
-        description="Use Face ID or fingerprint for secure, instant app access."
+        title="System Lock (Optional)"
+        description="You can enable Face ID, fingerprint, or device PIN later in Privacy & Security."
         granted={granted.biometrics}
         onRequest={requestBiometrics}
       />

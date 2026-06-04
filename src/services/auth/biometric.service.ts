@@ -63,6 +63,16 @@ export class BiometricService {
     return { success: false, error: result.error ?? 'Authentication failed' };
   }
 
+  getSystemLockLabel(supportedTypes: LocalAuthentication.AuthenticationType[]): string {
+    if (supportedTypes.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+      return 'Face ID, fingerprint, or device PIN';
+    }
+    if (supportedTypes.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+      return 'Fingerprint or device PIN';
+    }
+    return 'Device passcode or biometrics';
+  }
+
   getDeviceInfo(): { deviceName: string; platform: string; osVersion: string; appVersion: string } {
     return {
       deviceName: Constants.deviceName ?? `${Platform.OS} Device`,

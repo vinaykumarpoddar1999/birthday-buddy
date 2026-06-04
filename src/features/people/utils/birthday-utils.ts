@@ -241,6 +241,7 @@ export function toBirthdayEvent(person: Person): BirthdayEvent {
     birthday: formatBirthdayShort(person.birthDate),
     age: getAgeAtNextBirthday(person.birthDate),
     gender: person.gender === 'other' ? 'male' : person.gender,
+    avatarUri: person.avatarUri,
     eventLabel: days === 0 ? `Today, ${monthName}` : days === 1 ? `Tomorrow, ${monthName}` : `In ${days} days, ${monthName}`,
     eventState: getEventState(days),
   };
@@ -258,6 +259,7 @@ export function toContact(person: Person): Contact {
     birthdayLabel: format(new Date(new Date().getFullYear(), month - 1, day), 'd MMM'),
     age: getAge(person.birthDate),
     gender: person.gender === 'other' ? 'male' : person.gender,
+    avatarUri: person.avatarUri,
   };
 }
 
@@ -276,6 +278,7 @@ export function getBirthdayCalendarEvents(
         id: `bd-${person.id}`,
         type: 'birthday',
         personId: person.id,
+        name: person.fullName,
         avatarVariant: person.gender === 'female' ? 'female' : 'user',
         avatarUri: person.avatarUri,
         gender: person.gender,

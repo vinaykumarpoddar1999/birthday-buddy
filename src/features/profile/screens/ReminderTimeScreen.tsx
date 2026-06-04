@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ReminderTimePickerField } from '@/shared/ui/ReminderTimePickerField';
 import { useProfileStore } from '../store/profile.store';
 
 const TIMES = [
@@ -28,7 +29,7 @@ export const ReminderTimeScreen = () => {
     const existing = current.multipleReminderTimes;
     const nextTimes =
       current.timingMode === 'flexible'
-        ? [selected, ...existing.filter((t) => t !== selected)].slice(0, 3)
+        ? [selected, ...existing.filter((t) => t !== selected)]
         : [selected];
     update({
       defaultTime: selected,
@@ -58,7 +59,9 @@ export const ReminderTimeScreen = () => {
           <Text className="text-caption text-foreground-secondary mt-1">Set default reminder time for all events</Text>
         </View>
 
-        <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2">Select Time</Text>
+        <ReminderTimePickerField value={selected} onChange={setSelected} label="Custom time" />
+
+        <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2 mt-6">Quick Presets</Text>
         <View className="flex-row flex-wrap gap-3">
           {TIMES.map((time) => {
             const isSelected = time.value === selected;

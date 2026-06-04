@@ -70,16 +70,19 @@ function TinyEl({ el, s }: { el: CardElement; s: number }) {
 type Props = {
   template: CardTemplate;
   width?: number;
+  /** Optional fixed height; defaults to full card aspect ratio. */
+  height?: number;
   personalization?: PersonalizationData;
 };
 
 export const TemplateThumbnail = memo(function TemplateThumbnail({
   template,
   width = 160,
+  height: heightProp,
   personalization,
 }: Props) {
   const scale = width / FULL_W;
-  const height = FULL_H * scale;
+  const height = heightProp ?? FULL_H * scale;
   const data = { ...DEFAULT_DATA, ...template.placeholders, ...personalization } as PersonalizationData;
   const resolved = resolveElements(template.elements, data);
   const bg = template.background;

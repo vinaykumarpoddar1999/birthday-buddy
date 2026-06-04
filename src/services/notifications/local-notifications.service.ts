@@ -56,6 +56,31 @@ function parseTime(time: string): { hours: number; minutes: number } {
   return { hours, minutes };
 }
 
+function timeToMinutes(time: string): number {
+  const { hours, minutes } = parseTime(time);
+  return hours * 60 + minutes;
+}
+
+/** Returns true if the given HH:mm falls inside quiet hours (supports overnight ranges). */
+export function isWithinQuietHours(time: string, start: string, end: string): boolean {
+  const t = timeToMinutes(time);
+  const s = timeToMinutes(start);
+  const e = timeToMinutes(end);
+  if (s === e) return false;
+  if (s < e) return t >= s && t < e;
+  return t >= s || t < e;
+}
+
+function shiftTimeOutOfQuietHours(
+  time: string,
+  quietStart: string,
+  quietEnd: string,
+): string {
+  if (!isWithinQuietHours(time, quietStart, quietEnd)) return time;
+  const { hours, minutes } = parseTime(quietEnd);
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
 export function parseBirthMonthDay(birthDate: string): MonthDay | null {
   const parts = birthDate.trim().split('-');
   if (parts.length >= 3) {
@@ -304,7 +329,12 @@ export async function scheduleBirthdayReminders(
       if (!adjusted) continue;
       triggerMonthDay = adjusted;
 
-      for (const time of advanceTimes) {
+      for (let time of advanceTimes) {
+        time = shiftTimeOutOfQuietHours(
+          time,
+          reminderSettings.quietHoursStart,
+          reminderSettings.quietHoursEnd,
+        );
         const key = `${triggerMonthDay.month}-${triggerMonthDay.day}-${time}-advance-${daysBefore}`;
         if (scheduledKeys.has(key)) continue;
         scheduledKeys.add(key);
@@ -341,7 +371,12 @@ export async function scheduleBirthdayReminders(
           ? reminderSettings.multipleReminderTimes
           : [notifyTime];
 
-      for (const alarmTime of alarmTimes) {
+      for (let alarmTime of alarmTimes) {
+        alarmTime = shiftTimeOutOfQuietHours(
+          alarmTime,
+          reminderSettings.quietHoursStart,
+          reminderSettings.quietHoursEnd,
+        );
         const adjusted = adjustForWeekendRules(birth, reminderSettings.weekendRules) ?? birth;
         const key = `${adjusted.month}-${adjusted.day}-${alarmTime}-alarm`;
         if (scheduledKeys.has(key)) continue;

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { ArrowLeft, Check, Crown, Lock, Shield } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { usePremium } from '@features/premium/hooks/usePremium';
 import { usePremiumEntitlement } from '@features/premium/hooks/usePremiumEntitlement';
@@ -18,6 +18,7 @@ const BENEFITS = [
 ];
 
 export function PremiumUpgradeScreen() {
+  const insets = useSafeAreaInsets();
   const { plans, isLoading, subscribe, restore } = usePremium();
   const { isActive } = usePremiumEntitlement();
   const [activating, setActivating] = useState(false);
@@ -59,24 +60,30 @@ export function PremiumUpgradeScreen() {
       <View className="flex-row items-center px-5 py-3">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 rounded-full bg-surface border border-border items-center justify-center"
+          className="h-10 w-10 rounded-full bg-surface border border-border items-center justify-center shrink-0"
           accessibilityRole="button">
           <ArrowLeft size={20} color="#111827" />
         </Pressable>
-        <Text className="flex-1 text-center text-[17px] font-bold text-foreground mr-10">
+        <Text className="flex-1 text-center text-[17px] font-bold text-foreground px-2" numberOfLines={2}>
           BirthdayBuddy Premium
         </Text>
+        <View className="h-10 w-10 shrink-0" />
       </View>
 
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-5"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        showsVerticalScrollIndicator={false}>
         <LinearGradient
           colors={['#F3E8FF', '#FDF2F8', '#FFFFFF']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           className="rounded-3xl p-5 mb-5 border border-primary/10">
-          <View className="flex-row items-center gap-2 mb-2">
-            <Crown size={22} color="#D97706" fill="#FBBF24" />
-            <Text className="text-[22px] font-bold text-foreground">Make every birthday unforgettable</Text>
+          <View className="flex-row items-start gap-2 mb-2">
+            <Crown size={22} color="#D97706" fill="#FBBF24" style={{ marginTop: 2 }} />
+            <Text className="flex-1 text-[22px] font-bold text-foreground" numberOfLines={3}>
+              Make every birthday unforgettable
+            </Text>
           </View>
           <Text className="text-[14px] text-foreground-secondary leading-5">
             Unlock AI wishes, premium templates, and unlimited reminders — all offline-ready today.

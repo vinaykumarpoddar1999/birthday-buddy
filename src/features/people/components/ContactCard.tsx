@@ -3,7 +3,7 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import { Ellipsis, MessageCircle, Phone } from 'lucide-react-native';
 
 import { feedback } from '@/shared/feedback';
-import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { usePersonMutations } from '@features/people/hooks/usePeople';
 import { RelationshipBadge } from './RelationshipBadge';
 import type { Contact } from '../types';
@@ -80,7 +80,13 @@ export function ContactCard({ item }: ContactCardProps) {
       accessibilityLabel={`View ${item.name} details`}>
       <View className="bg-surface rounded-2xl border border-border px-4 py-3.5 mb-3 shadow-sm">
         <View className="flex-row items-center gap-3">
-          <ProfilePlaceholder size="sm" variant={item.gender === 'female' ? 'female' : 'user'} />
+          <ProfileAvatar
+            size="sm"
+            profileImage={item.avatarUri}
+            name={item.name}
+            gender={item.gender}
+            label={`${item.name} avatar`}
+          />
           <View className="flex-1 min-w-0">
             <Text className="text-[15px] font-semibold text-foreground" numberOfLines={1}>
               {item.name}

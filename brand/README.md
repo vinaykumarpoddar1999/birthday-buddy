@@ -6,4 +6,4 @@ Place final production assets here:
 - `logo-dark.png` — dark background variant
 - `favicon.png` — web favicon
 
-Current app icons live in `assets/images/` and `assets/expo.icon/`.
+Current app icons live in `assets/images/` (main icon: `expo-logo.png`) and `assets/expo.icon/` (iOS).

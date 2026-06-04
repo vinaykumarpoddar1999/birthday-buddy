@@ -93,6 +93,7 @@ function ListItem({ person, index }: { person: Person; index: number }) {
               <ProfileAvatar
                 size="lg"
                 profileImage={person.avatarUri}
+                name={person.fullName}
                 gender={person.gender}
                 borderClassName={`border-2 ${countdown.isToday ? 'border-accent-gold' : 'border-primary/20'}`}
                 label={`${person.fullName} avatar`}

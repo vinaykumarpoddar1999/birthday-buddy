@@ -1,51 +1,52 @@
-import { router } from 'expo-router';
 import { Lock } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
+import { biometricService } from '@/services/auth/biometric.service';
 import { Button } from '@shared/ui';
 import { useAuth } from '@features/auth';
 import { useFeedback } from '@/shared/hooks/useFeedback';
-import { AuthHero, AuthScreenLayout, PinKeypad } from '../components';
+import { useAuthStore } from '@/stores/auth.store';
+import { AuthHero, AuthScreenLayout } from '../components';
 
 export function LockScreen() {
-  const { unlock, user, securityPreferences } = useAuth();
+  const { user, securityPreferences } = useAuth();
+  const setLocked = useAuthStore((s) => s.setLocked);
   const { showError } = useFeedback();
-  const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lockMethodLabel, setLockMethodLabel] = useState('Device security');
 
-  const pinLength = securityPreferences?.pinLength ?? 4;
+  const useSystemLock = securityPreferences?.appLockEnabled ?? false;
+  const isGuestSession = !user;
 
-  const handleUnlockWithPin = async (value: string) => {
-    setPin(value);
-    if (value.length !== pinLength) return;
+  useEffect(() => {
+    void (async () => {
+      const caps = await biometricService.getCapabilities();
+      setLockMethodLabel(biometricService.getSystemLockLabel(caps.supportedTypes));
+    })();
+  }, []);
 
+  const finishUnlock = () => {
+    setLocked(false);
+  };
+
+  const handleSystemUnlock = async () => {
     setLoading(true);
-    const success = await unlock({
-      identifier: user?.email ?? user?.phone ?? '',
-      pin: value,
-      authMethod: pinLength === 6 ? 'pin_6' : 'pin_4',
-    });
+    const result = await biometricService.authenticate('Unlock Birthday Buddy');
     setLoading(false);
-
-    if (success) {
-      router.replace('/(tabs)');
+    if (result.success) {
+      finishUnlock();
     } else {
-      showError('Incorrect PIN', 'Please try again.');
-      setPin('');
+      showError('Authentication Failed', 'Verification was cancelled or failed.');
     }
   };
 
-  const handleBiometricUnlock = async () => {
-    setLoading(true);
-    const success = await unlock({
-      identifier: user?.email ?? user?.phone ?? '',
-      authMethod: securityPreferences?.devicePasscodeEnabled ? 'device_passcode' : 'biometric',
-    });
-    setLoading(false);
-    if (success) router.replace('/(tabs)');
-    else showError('Authentication Failed', 'Verification failed. Try your PIN or password.');
-  };
+  useEffect(() => {
+    if (!useSystemLock) return;
+    void handleSystemUnlock();
+    // Auto-prompt once when lock screen opens
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const displayName = user?.nickname || user?.fullName || 'there';
 
@@ -56,33 +57,23 @@ export function LockScreen() {
           icon={Lock}
           compact
           title="App Locked"
-          subtitle={`Welcome back, ${displayName}. Authenticate to continue.`}
+          subtitle={
+            isGuestSession
+              ? 'Authenticate with your device security to continue.'
+              : `Welcome back, ${displayName}. Authenticate to continue.`
+          }
         />
-
-        <View className="flex-1 justify-center">
-          {securityPreferences?.pinEnabled && (
-            <PinKeypad value={pin} maxLength={pinLength} onChange={handleUnlockWithPin} label="Enter PIN" />
-          )}
-
-          {securityPreferences?.biometricEnabled && (
-            <View className={`${securityPreferences?.pinEnabled ? 'mt-6' : ''}`}>
-              <Button
-                label="Unlock with Biometrics"
-                variant="outline"
-                loading={loading}
-                onPress={handleBiometricUnlock}
-                size="lg"
-              />
-            </View>
-          )}
-
-          {!securityPreferences?.pinEnabled && !securityPreferences?.biometricEnabled && (
-            <Button label="Unlock with Password" onPress={() => router.replace('/(auth)/login')} size="lg" />
-          )}
+        <View className="flex-1 justify-center px-2">
+          <Button
+            label={`Unlock with ${lockMethodLabel}`}
+            variant="primary"
+            loading={loading}
+            onPress={handleSystemUnlock}
+            size="lg"
+          />
         </View>
-
         <Text className="text-caption text-foreground-muted text-center pb-4">
-          Your data stays encrypted on this device
+          Your data stays private on this device
         </Text>
       </View>
     </AuthScreenLayout>

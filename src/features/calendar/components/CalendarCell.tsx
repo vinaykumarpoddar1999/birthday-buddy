@@ -128,7 +128,7 @@ export function CalendarCell({
               type={visibleEvents[0].type}
               avatarVariant={visibleEvents[0].avatarVariant}
               avatarUri={visibleEvents[0].avatarUri}
-              gender={visibleEvents[0].gender}
+              name={visibleEvents[0].name}
               compact
             />
           ) : null}
@@ -140,7 +140,7 @@ export function CalendarCell({
                   type={event.type}
                   avatarVariant={event.avatarVariant}
                   avatarUri={event.avatarUri}
-                  gender={event.gender}
+                  name={event.name}
                   compact
                 />
               ))}

@@ -9,11 +9,10 @@ import {
   MapPin,
   Sparkles,
 } from 'lucide-react-native';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 
 import { Colors, Shadows, scale } from '../constants/design-tokens';
-import { getAvatarSource } from '@/shared/utils/avatar';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import type { Person } from '@/types/entities';
 import {
   getDaysUntilBirthday,
@@ -22,6 +21,9 @@ import {
   formatRelationship,
 } from '@features/people/utils/birthday-utils';
 import { getBirthdayCardTheme } from '@features/people/utils/birthday-card-theme';
+
+const AVATAR_RING = scale(64);
+const AVATAR_FILL = scale(58);
 
 const MESSAGES = [
   'Make the birthday extra special! 💜',
@@ -42,10 +44,6 @@ function BirthdayCard({ person, index }: { person: Person; index: number }) {
   const dateLabel = formatBirthdayShort(person.birthDate);
   const message = MESSAGES[index % MESSAGES.length];
 
-  const avatarSource = person.avatarUri
-    ? { uri: person.avatarUri }
-    : getAvatarSource(person.gender === 'female' ? 'female' : 'male');
-
   const handlePress = () => {
     router.push({ pathname: '/person-details', params: { personId: person.id } });
   };
@@ -61,11 +59,17 @@ function BirthdayCard({ person, index }: { person: Person; index: number }) {
           <View style={styles.cardRow}>
             {/* Left Avatar */}
             <View style={styles.avatarSection}>
-              <View style={[styles.avatarGlow, { borderColor: theme.accent }]}>
-                <Image
-                  source={avatarSource}
-                  style={styles.avatarImage}
-                  contentFit="cover"
+              <View
+                style={[
+                  styles.avatarGlow,
+                  { borderColor: theme.accent, width: AVATAR_RING, height: AVATAR_RING, borderRadius: AVATAR_RING / 2 },
+                ]}>
+                <ProfileAvatar
+                  dimension={AVATAR_FILL}
+                  profileImage={person.avatarUri}
+                  name={person.fullName}
+                  gender={person.gender}
+                  label={`${person.fullName} avatar`}
                 />
               </View>
               <View style={[styles.avatarDecor, { backgroundColor: theme.accent }]}>
@@ -185,10 +189,9 @@ const styles = StyleSheet.create({
     marginRight: scale(12),
   },
   avatarGlow: {
-    width: scale(68),
-    height: scale(68),
-    borderRadius: scale(34),
     borderWidth: 2.5,
+    alignItems: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
   },
   avatarImage: {

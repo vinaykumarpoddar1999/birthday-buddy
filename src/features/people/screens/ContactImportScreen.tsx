@@ -28,7 +28,7 @@ import {
 import { navigateToContactDetailsQueue } from '@/shared/navigation/quick-add-actions';
 import { useContactsStore } from '@/stores/contacts.store';
 import { feedback } from '@/shared/feedback';
-import { EmptyState, ErrorState, ProfilePlaceholder } from '@shared/ui';
+import { EmptyState, ErrorState, Loader, ProfilePlaceholder } from '@shared/ui';
 
 function formatBirthdayLabel(birthDate: string | null): string {
   if (!birthDate) return 'No birthday';
@@ -150,8 +150,7 @@ export function ContactImportScreen() {
       <SafeAreaView className="flex-1 bg-background" edges={['top']}>
         <Header onBack={() => router.back()} />
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#7C3AED" />
-          <Text className="text-[14px] text-foreground-secondary mt-3">Loading device contacts…</Text>
+          <Loader message="Loading device contacts…" />
         </View>
       </SafeAreaView>
     );
@@ -250,7 +249,7 @@ export function ContactImportScreen() {
                       {checked ? <Check size={14} color="#FFFFFF" strokeWidth={3} /> : null}
                     </View>
 
-                    <ProfilePlaceholder size="sm" variant="user" />
+                    <ProfilePlaceholder size="sm" variant="user" name={contact.fullName} />
 
                     <View className="flex-1 ml-3 min-w-0">
                       <Text className="text-[15px] font-semibold text-foreground" numberOfLines={1}>

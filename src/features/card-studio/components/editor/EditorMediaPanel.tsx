@@ -4,6 +4,8 @@ import { ImagePlus, Smile, Type } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 import { feedback } from '@/shared/feedback';
+import { CardStudioSectionTitle } from '../common/CardStudioSectionTitle';
+import { studioTokens } from '../../constants/studio-tokens';
 
 import { useCardStudioStore } from '../../store/card-studio.store';
 import { useCardEditor } from '../../hooks/useCardEditor';
@@ -44,42 +46,47 @@ export function EditorMediaPanel() {
   }, [addElement]);
 
   return (
-    <View className="px-4 pb-3">
+    <View className="px-4 pt-1 pb-2">
+      <CardStudioSectionTitle title="Media" subtitle="Add photos, text, and stickers" />
+
       <View className="flex-row gap-2 mb-3">
         <Pressable
           onPress={() => addTextElement('Your text')}
-          className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 border border-primary/20"
+          className="flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary/10 border border-primary/20 py-3"
           accessibilityRole="button"
           accessibilityLabel="Add text">
-          <Type size={16} color="#7C3AED" />
-          <Text className="text-[12px] font-bold text-primary">Add Text</Text>
+          <Type size={20} color={studioTokens.colors.primary} />
+          <Text className="text-[11px] font-bold text-primary">Add Text</Text>
         </Pressable>
         <Pressable
           onPress={addPhotoElement}
-          className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl bg-surface border border-border"
+          className="flex-1 items-center justify-center gap-1.5 rounded-xl bg-surface border border-border py-3"
           accessibilityRole="button"
           accessibilityLabel="Add image">
-          <ImagePlus size={16} color="#6B7280" />
-          <Text className="text-[12px] font-bold text-foreground-secondary">Add Image</Text>
+          <ImagePlus size={20} color={studioTokens.colors.textSecondary} />
+          <Text className="text-[11px] font-bold text-foreground-secondary">Add Image</Text>
         </Pressable>
       </View>
 
-      <View className="flex-row items-center gap-2 mb-2">
-        <Smile size={14} color="#7C3AED" />
-        <Text className="text-[12px] font-semibold text-foreground-muted">Emojis</Text>
+      <View className="rounded-xl bg-surface border border-border p-3">
+        <View className="flex-row items-center gap-2 mb-2">
+          <Smile size={14} color={studioTokens.colors.primary} />
+          <Text className="text-[11px] font-semibold text-foreground-muted">Stickers & Emojis</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {EMOJI_PRESETS.map((emoji) => (
+            <Pressable
+              key={emoji}
+              onPress={() => addEmojiElement(emoji)}
+              className="rounded-xl bg-background border border-border items-center justify-center"
+              style={{ width: studioTokens.swatchSize, height: studioTokens.swatchSize }}
+              accessibilityRole="button"
+              accessibilityLabel={`Add ${emoji}`}>
+              <Text className="text-[22px]">{emoji}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {EMOJI_PRESETS.map((emoji) => (
-          <Pressable
-            key={emoji}
-            onPress={() => addEmojiElement(emoji)}
-            className="h-11 w-11 rounded-xl bg-surface border border-border items-center justify-center"
-            accessibilityRole="button"
-            accessibilityLabel={`Add ${emoji}`}>
-            <Text className="text-[22px]">{emoji}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
     </View>
   );
 }

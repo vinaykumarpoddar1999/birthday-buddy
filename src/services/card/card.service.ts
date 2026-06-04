@@ -80,6 +80,11 @@ export class CardService {
     await refreshActivityFeed();
   }
 
+  async logDownloaded(cardUuid: string): Promise<void> {
+    await activityLogRepository.log('card_downloaded', 'card', cardUuid);
+    await refreshActivityFeed();
+  }
+
   async saveStudioCard(input: {
     personUuid?: string | null;
     templateId?: string | null;

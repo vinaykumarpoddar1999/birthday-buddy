@@ -8,6 +8,7 @@ export type CalendarDayEvent = {
   id: string;
   type: EventType;
   personId?: string;
+  name?: string;
   avatarVariant: ProfilePlaceholderVariant;
   avatarUri?: string;
   gender?: 'male' | 'female' | 'other';

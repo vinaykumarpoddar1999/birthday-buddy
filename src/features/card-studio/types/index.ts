@@ -10,7 +10,12 @@ export type TemplateCategory =
   | 'family'
   | 'minimal';
 
-export type TemplateCategoryFilter = 'all' | TemplateCategory;
+export type TemplateCategoryFilter =
+  | 'birthday'
+  | 'anniversary'
+  | 'love'
+  | 'friendship'
+  | 'other';
 
 export type CanvasFormat = 'portrait' | 'landscape' | 'square';
 export type GradientType = 'linear' | 'radial';
@@ -151,15 +156,9 @@ export type EditorPanel =
   | 'media';
 
 export const TEMPLATE_CATEGORIES: { id: TemplateCategoryFilter; label: string }[] = [
-  { id: 'all', label: 'All' },
   { id: 'birthday', label: 'Birthday' },
   { id: 'anniversary', label: 'Anniversary' },
-  { id: 'romantic', label: 'Love' },
-  { id: 'friend', label: 'Friendship' },
-  { id: 'professional', label: 'Congrats' },
-  { id: 'thank-you', label: 'Thank You' },
-  { id: 'festival', label: 'Festival' },
-  { id: 'modern', label: 'Motivation' },
-  { id: 'family', label: 'Family' },
-  { id: 'minimal', label: 'Minimal' },
+  { id: 'love', label: 'Love' },
+  { id: 'friendship', label: 'Friendship' },
+  { id: 'other', label: 'Other' },
 ];

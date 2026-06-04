@@ -2,7 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Send } from 'lucide-react-native';
 import { router } from 'expo-router';
 
-import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { RelationshipBadge } from './RelationshipBadge';
 import type { BirthdayEvent } from '../types';
 
@@ -25,10 +25,12 @@ export function UpcomingBirthdayCard({ item }: UpcomingBirthdayCardProps) {
   return (
     <View className="bg-surface rounded-2xl border border-border px-4 py-3.5 mb-3 shadow-sm">
       <View className="flex-row items-center gap-3">
-        <ProfilePlaceholder
+        <ProfileAvatar
           size="header"
-          variant={item.gender === 'female' ? 'female' : 'user'}
-          label={item.name}
+          profileImage={item.avatarUri}
+          name={item.name}
+          gender={item.gender}
+          label={`${item.name} avatar`}
         />
 
         <View className="flex-1 min-w-0 mr-2">

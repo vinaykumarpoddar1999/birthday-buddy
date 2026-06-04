@@ -1,7 +1,11 @@
 import { Image } from 'expo-image';
 import { Text, View } from 'react-native';
 
-import { getAvatarSource, type Gender } from '../utils/avatar';
+import { getInitials, getAvatarGradient } from '@/shared/utils/initial-avatar';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import type { Gender } from '../utils/avatar';
+import { getAvatarSource } from '../utils/avatar';
 
 export type AvatarProps = {
   uri?: string | null;
@@ -10,13 +14,12 @@ export type AvatarProps = {
   gender?: Gender;
 };
 
-// Explicit pixel dimensions — same reasoning as ProfilePlaceholder.
 const SIZE_PX: Record<NonNullable<AvatarProps['size']>, number> = {
-  xs: 32,  // h-8
-  sm: 40,  // h-10
-  md: 48,  // h-12
-  lg: 64,  // h-16
-  xl: 80,  // h-20
+  xs: 32,
+  sm: 40,
+  md: 48,
+  lg: 64,
+  xl: 80,
 };
 
 const FONT_SIZE: Record<NonNullable<AvatarProps['size']>, number> = {
@@ -27,25 +30,14 @@ const FONT_SIZE: Record<NonNullable<AvatarProps['size']>, number> = {
   xl: 18,
 };
 
-function getInitials(name?: string): string {
-  if (!name) return '?';
-  const parts = name.trim().split(/\s+/);
-  return parts
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('');
-}
-
 export function Avatar({ uri, name, size = 'md', gender }: AvatarProps) {
   const px = SIZE_PX[size];
   const borderRadius = px / 2;
 
-  const imageSource = uri ? { uri } : gender ? getAvatarSource(gender) : null;
-
-  if (imageSource) {
+  if (uri) {
     return (
       <Image
-        source={imageSource}
+        source={{ uri }}
         style={{ width: px, height: px, borderRadius }}
         contentFit="cover"
         accessibilityLabel={name ? `${name} avatar` : 'Avatar'}
@@ -53,20 +45,48 @@ export function Avatar({ uri, name, size = 'md', gender }: AvatarProps) {
     );
   }
 
+  if (gender && !name) {
+    return (
+      <Image
+        source={getAvatarSource(gender)}
+        style={{ width: px, height: px, borderRadius }}
+        contentFit="cover"
+        accessibilityLabel={name ? `${name} avatar` : 'Avatar'}
+      />
+    );
+  }
+
+  const gradient = getAvatarGradient(name);
+  const initials = getInitials(name);
+
   return (
     <View
       style={{
         width: px,
         height: px,
         borderRadius,
-        backgroundColor: 'rgba(124,58,237,0.2)',
-        alignItems: 'center',
-        justifyContent: 'center',
+        shadowColor: gradient[0],
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 2,
+        overflow: 'hidden',
       }}>
-      <Text
-        style={{ color: '#7C3AED', fontWeight: '600', fontSize: FONT_SIZE[size] }}>
-        {getInitials(name)}
-      </Text>
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          width: px,
+          height: px,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Text
+          style={{ color: '#FFFFFF', fontWeight: '700', fontSize: FONT_SIZE[size] }}>
+          {initials}
+        </Text>
+      </LinearGradient>
     </View>
   );
 }

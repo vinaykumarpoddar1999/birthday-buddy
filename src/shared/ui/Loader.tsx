@@ -1,16 +1,29 @@
-import { ActivityIndicator, View } from 'react-native';
+import { CelebrationLoader } from './loaders/CelebrationLoader';
 
 export type LoaderProps = {
   size?: 'small' | 'large';
   fullScreen?: boolean;
+  progress?: number;
+  message?: string;
+  variant?: 'default' | 'startup';
 };
 
-export function Loader({ size = 'large', fullScreen = false }: LoaderProps) {
-  const indicator = <ActivityIndicator size={size} color="#9F4CFF" />;
-
-  if (fullScreen) {
-    return <View className="flex-1 items-center justify-center bg-background">{indicator}</View>;
-  }
-
-  return <View className="items-center justify-center p-4">{indicator}</View>;
+export function Loader({
+  size = 'large',
+  fullScreen = false,
+  progress,
+  message,
+  variant = 'default',
+}: LoaderProps) {
+  return (
+    <CelebrationLoader
+      size={size}
+      fullScreen={fullScreen}
+      progress={progress}
+      message={message}
+      variant={fullScreen ? 'startup' : variant}
+    />
+  );
 }
+
+export { CelebrationLoader } from './loaders/CelebrationLoader';

@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { ArrowLeft, Calendar, Clock, CreditCard, Search, SearchX, Settings, Trash2, User, Wand2, X } from 'lucide-react-native';
 import { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@shared/ui/EmptyState';
+import { Loader } from '@shared/ui';
 import { useDebouncedSearch } from '@features/profile/hooks/useDebouncedSearch';
 import { useSearch } from '@features/profile/hooks/useSearch';
 import { useActivityStore } from '../store/activity.store';
@@ -241,14 +242,13 @@ export const SearchScreen = () => {
 
         {query.trim() !== '' && debouncedQuery === '' && (
           <View className="py-8 items-center">
-            <ActivityIndicator color="#7C3AED" />
+            <Loader size="small" />
           </View>
         )}
 
         {debouncedQuery !== '' && isSearching && (
           <View className="py-8 items-center">
-            <ActivityIndicator color="#7C3AED" />
-            <Text className="text-[13px] text-foreground-secondary mt-2">Searching...</Text>
+            <Loader size="small" message="Searching..." />
           </View>
         )}
 

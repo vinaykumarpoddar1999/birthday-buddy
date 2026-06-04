@@ -1,7 +1,12 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { ChevronLeft, RotateCcw, RotateCw, Sparkles } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { ChevronLeft, ChevronRight, RotateCcw, RotateCw, Sparkles } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+
+import { studioTokens } from '../../constants/studio-tokens';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type Props = {
   onBack: () => void;
@@ -12,7 +17,75 @@ type Props = {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  primaryAction?: { label: string; onPress: () => void };
 };
+
+function HeaderIconButton({
+  onPress,
+  disabled,
+  label,
+  children,
+}: {
+  onPress?: () => void;
+  disabled?: boolean;
+  label: string;
+  children: React.ReactNode;
+}) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      disabled={disabled}
+      onPressIn={() => {
+        if (!disabled) scale.value = withSpring(0.92, { damping: 15 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 15 });
+      }}
+      style={[
+        animStyle,
+        {
+          width: studioTokens.touchMin,
+          height: studioTokens.touchMin,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+      ]}
+      className={`rounded-full border ${
+        disabled ? 'bg-gray-50 border-transparent' : 'bg-surface border-border/80'
+      }`}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}>
+      {children}
+    </AnimatedPressable>
+  );
+}
+
+function HeaderPrimaryAction({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.96 : 1 }] })}
+      className="overflow-hidden rounded-xl">
+      <LinearGradient
+        colors={[...studioTokens.colors.gradientPrimary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}>
+        <View
+          className="flex-row items-center justify-center gap-1 px-3"
+          style={{ minHeight: 36 }}>
+          <Text className="text-[13px] font-bold text-white">{label}</Text>
+          <ChevronRight size={14} color="#FFF" strokeWidth={2.5} />
+        </View>
+      </LinearGradient>
+    </Pressable>
+  );
+}
 
 export function CardStudioHeader({
   onBack,
@@ -23,51 +96,56 @@ export function CardStudioHeader({
   onRedo,
   canUndo,
   canRedo,
+  primaryAction,
 }: Props) {
   return (
     <View className="px-5 pt-2 pb-3 border-b border-border/60 bg-background">
-      <Animated.View entering={FadeInDown.duration(350)} className="flex-row items-center">
-        <Pressable
-          onPress={onBack}
-          className="h-10 w-10 rounded-full items-center justify-center bg-surface border border-border/80"
-          accessibilityRole="button"
-          accessibilityLabel="Go back">
-          <ChevronLeft size={22} color="#7C3AED" />
-        </Pressable>
-
-        <View className="flex-1 flex-row items-center justify-center gap-2 pr-10">
-          <View className="h-8 w-8 rounded-xl bg-primary/10 items-center justify-center">
-            <Sparkles size={17} color="#7C3AED" strokeWidth={2.2} />
-          </View>
-          <Text className="text-[17px] font-bold text-foreground tracking-tight">{title}</Text>
+      <Animated.View entering={FadeInDown.duration(350)} className="flex-row items-center min-h-[44px]">
+        <View style={{ width: studioTokens.touchMin, zIndex: 1 }}>
+          <HeaderIconButton onPress={onBack} label="Go back">
+            <ChevronLeft size={22} color={studioTokens.colors.primary} />
+          </HeaderIconButton>
         </View>
 
-        {showUndoRedo ? (
-          <View className="absolute right-5 flex-row items-center gap-1">
-            <Pressable
-              onPress={onUndo}
-              disabled={!canUndo}
-              className={`h-9 w-9 rounded-full items-center justify-center border ${
-                canUndo ? 'bg-surface border-border' : 'bg-gray-50 border-transparent'
-              }`}
-              accessibilityRole="button"
-              accessibilityLabel="Undo">
-              <RotateCcw size={15} color={canUndo ? '#374151' : '#D1D5DB'} />
-            </Pressable>
-            <Pressable
-              onPress={onRedo}
-              disabled={!canRedo}
-              className={`h-9 w-9 rounded-full items-center justify-center border ${
-                canRedo ? 'bg-surface border-border' : 'bg-gray-50 border-transparent'
-              }`}
-              accessibilityRole="button"
-              accessibilityLabel="Redo">
-              <RotateCw size={15} color={canRedo ? '#374151' : '#D1D5DB'} />
-            </Pressable>
+        <View
+          className="absolute left-0 right-0 flex-row items-center justify-center gap-2 px-14 pointer-events-none"
+          style={{ zIndex: 0 }}>
+          <View className="h-8 w-8 rounded-xl bg-primary/10 items-center justify-center">
+            <Sparkles size={17} color={studioTokens.colors.primary} strokeWidth={2.2} />
           </View>
-        ) : (
-          rightElement || null
-        )}
+          <Text
+            className="text-heading text-foreground tracking-tight"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{ maxWidth: '70%' }}>
+            {title}
+          </Text>
+        </View>
+
+        <View
+          style={{
+            marginLeft: 'auto',
+            zIndex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+          }}>
+          {showUndoRedo ? (
+            <>
+              <HeaderIconButton onPress={onUndo} disabled={!canUndo} label="Undo">
+                <RotateCcw size={15} color={canUndo ? '#374151' : '#D1D5DB'} />
+              </HeaderIconButton>
+              <HeaderIconButton onPress={onRedo} disabled={!canRedo} label="Redo">
+                <RotateCw size={15} color={canRedo ? '#374151' : '#D1D5DB'} />
+              </HeaderIconButton>
+            </>
+          ) : null}
+          {primaryAction ? (
+            <HeaderPrimaryAction label={primaryAction.label} onPress={primaryAction.onPress} />
+          ) : (
+            rightElement ?? null
+          )}
+        </View>
       </Animated.View>
     </View>
   );

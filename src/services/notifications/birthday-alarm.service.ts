@@ -1,6 +1,10 @@
 import { Platform, Vibration } from 'react-native';
 import { create } from 'zustand';
 
+import {
+  startBirthdayAlarmAudio,
+  stopBirthdayAlarmAudio,
+} from './birthday-alarm-audio.service';
 import { getNotificationsModule } from './notifications-api';
 import { BIRTHDAY_ALARM_CATEGORY } from './local-notifications.service';
 
@@ -44,10 +48,12 @@ export const useBirthdayAlarmStore = create<BirthdayAlarmState>((set) => ({
   active: null,
   showOverlay: (alarm) => {
     startVibrationLoop();
+    void startBirthdayAlarmAudio();
     set({ active: alarm });
   },
   dismiss: () => {
     stopVibrationLoop();
+    void stopBirthdayAlarmAudio();
     set({ active: null });
   },
 }));

@@ -38,6 +38,7 @@ export function SelectedDateEvents({ year, month, day, people }: SelectedDateEve
             <ProfileAvatar
               size="md"
               profileImage={person.avatarUri}
+              name={person.fullName}
               gender={person.gender}
               borderClassName="border border-primary/20 mr-3"
               label={`${person.fullName} avatar`}

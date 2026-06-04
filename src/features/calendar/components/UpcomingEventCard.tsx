@@ -114,6 +114,7 @@ export function UpcomingEventCard({ event }: UpcomingEventCardProps) {
           <ProfileAvatar
             size="md"
             profileImage={event.avatarUri}
+            name={event.name}
             gender={event.gender}
             borderClassName="border border-white"
           />

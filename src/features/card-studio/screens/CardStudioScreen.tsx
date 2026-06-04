@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePerson } from '@features/people/hooks/usePeople';
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardStudioHeader } from '../components/common/CardStudioHeader';
-import { StepIndicator } from '../components/common/StepIndicator';
 import { Step1TemplateScreen } from './Step1TemplateScreen';
 import { Step2CustomizeScreen } from './Step2CustomizeScreen';
 import { Step3PreviewScreen } from './Step3PreviewScreen';
@@ -23,6 +22,7 @@ const TITLES: Record<number, string> = {
 
 export function CardStudioScreen() {
   const step = useCardStudioStore((s) => s.currentStep);
+  const nextStep = useCardStudioStore((s) => s.nextStep);
   const prevStep = useCardStudioStore((s) => s.prevStep);
   const resetStore = useCardStudioStore((s) => s.reset);
   const updatePersonalization = useCardStudioStore((s) => s.updatePersonalization);
@@ -97,8 +97,8 @@ export function CardStudioScreen() {
         onRedo={redo}
         canUndo={historyIndex > 0}
         canRedo={historyIndex < historyLength - 1}
+        primaryAction={step === 2 ? { label: 'Preview', onPress: nextStep } : undefined}
       />
-      <StepIndicator currentStep={step} />
       <View className="flex-1">{renderStep()}</View>
     </SafeAreaView>
   );

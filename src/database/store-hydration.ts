@@ -155,10 +155,4 @@ export async function hydrateAppStores(): Promise<void> {
   } catch {
     /* optional */
   }
-
-  setTimeout(() => {
-    void import('@/services/engagement/engagement-prompts.service').then(({ evaluateEngagementPrompts }) =>
-      evaluateEngagementPrompts(),
-    );
-  }, 2500);
 }

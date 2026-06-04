@@ -43,7 +43,7 @@ export function UpcomingBirthdayCard({
           elevation: 3,
         }}>
         <View className="relative mb-2.5">
-          <ProfilePlaceholder size="md" variant={avatarVariant} />
+          <ProfilePlaceholder size="md" variant={avatarVariant} name={name} />
           <View
             className={`absolute -top-0.5 -right-1 ${badgeClass} min-w-[26px] h-[22px] rounded-full items-center justify-center px-1 border-2 border-white`}>
             <Text className="text-[10px] font-bold text-white">{badge}</Text>

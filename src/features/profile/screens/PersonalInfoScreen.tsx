@@ -79,7 +79,7 @@ export const PersonalInfoScreen = () => {
         <View className="items-center my-4">
           <Pressable onPress={showImagePicker} accessibilityRole="button" accessibilityLabel="Change photo">
             <View className="relative">
-              <ProfileAvatar size="xl" profileImage={profileImage} gender={gender} />
+              <ProfileAvatar size="xl" profileImage={profileImage} name={name} gender={gender} />
               <View className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary items-center justify-center border-2 border-surface">
                 <Camera size={14} color="#FFFFFF" />
               </View>

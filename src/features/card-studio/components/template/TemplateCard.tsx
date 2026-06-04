@@ -1,10 +1,14 @@
 import React, { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Check } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
+import { studioTokens } from '../../constants/studio-tokens';
 import type { CardTemplate } from '../../types';
 import { TemplateThumbnail } from './TemplateThumbnail';
+
+const THUMB_ASPECT = 5 / 4;
 
 type Props = {
   template: CardTemplate;
@@ -19,9 +23,11 @@ export const TemplateCard = memo(function TemplateCard({
   width = 155,
   selected = false,
 }: Props) {
+  const thumbHeight = Math.round(width * THUMB_ASPECT);
+
   const animatedStyle = useAnimatedStyle(
     () => ({
-      transform: [{ scale: withSpring(selected ? 1.02 : 1, { damping: 14 }) }],
+      transform: [{ scale: withSpring(selected ? 1.03 : 1, { damping: 16, stiffness: 220 }) }],
     }),
     [selected],
   );
@@ -37,27 +43,47 @@ export const TemplateCard = memo(function TemplateCard({
           transform: [{ scale: pressed ? 0.97 : 1 }],
         })}>
         <View
-          style={{ width }}
-          className={`rounded-2xl overflow-hidden bg-surface border-2 ${
-            selected ? 'border-primary' : 'border-border'
-          }`}>
-          <View className="relative">
-            <TemplateThumbnail template={template} width={width} />
-            <View className="absolute bottom-0 left-0 right-0">
-              <LinearGradient
-                colors={['transparent', 'rgba(0,0,0,0.55)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}>
-                <View className="px-3 pt-8 pb-2.5">
-                  <Text className="text-[12px] font-bold text-white" numberOfLines={1}>
-                    {template.name}
-                  </Text>
-                  <Text className="text-[9px] text-white/75 mt-0.5 capitalize" numberOfLines={1}>
-                    {template.category}
-                  </Text>
-                </View>
-              </LinearGradient>
-            </View>
+          style={{
+            width,
+            borderRadius: studioTokens.templateCardRadius,
+            borderWidth: selected ? 2 : 1,
+            borderColor: selected ? studioTokens.colors.primary : 'rgba(229,231,235,0.9)',
+            shadowColor: selected ? studioTokens.colors.primary : '#0F172A',
+            shadowOffset: { width: 0, height: selected ? 8 : 4 },
+            shadowOpacity: selected ? 0.28 : 0.08,
+            shadowRadius: selected ? 14 : 8,
+            elevation: selected ? 10 : 4,
+            overflow: 'hidden',
+            backgroundColor: '#FFFFFF',
+          }}>
+          <View className="relative" style={{ height: thumbHeight }}>
+            <TemplateThumbnail template={template} width={width} height={thumbHeight} />
+
+            <LinearGradient
+              colors={['transparent', 'rgba(15,23,42,0.55)']}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 52,
+                justifyContent: 'flex-end',
+                paddingHorizontal: 10,
+                paddingBottom: 8,
+              }}>
+              <Text
+                className="text-[11px] font-bold text-white"
+                numberOfLines={2}
+                ellipsizeMode="tail">
+                {template.name}
+              </Text>
+            </LinearGradient>
+
+            {selected ? (
+              <View className="absolute top-2 right-2 h-7 w-7 rounded-full bg-primary items-center justify-center shadow-sm">
+                <Check size={14} color="#FFF" strokeWidth={3} />
+              </View>
+            ) : null}
           </View>
         </View>
       </Pressable>

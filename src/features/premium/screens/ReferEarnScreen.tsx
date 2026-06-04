@@ -3,8 +3,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Copy, Gift, Share2, Users } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { Loader } from '@shared/ui';
 
 import { referralService } from '@/services/premium/referral.service';
 import { useReferralStore } from '@/stores/referral.store';
@@ -13,6 +15,7 @@ import { feedback } from '@/shared/feedback';
 const GOAL = 5;
 
 export function ReferEarnScreen() {
+  const insets = useSafeAreaInsets();
   const { code, inviteLink, joinedCount, hydrated, hydrate, simulateJoin } = useReferralStore();
   const [simulating, setSimulating] = useState(false);
 
@@ -50,8 +53,8 @@ export function ReferEarnScreen() {
 
   if (!hydrated) {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator color="#7C3AED" />
+      <SafeAreaView className="flex-1 bg-background">
+        <Loader fullScreen />
       </SafeAreaView>
     );
   }
@@ -61,14 +64,15 @@ export function ReferEarnScreen() {
       <View className="flex-row items-center px-5 py-3">
         <Pressable
           onPress={() => router.back()}
-          className="h-10 w-10 rounded-full bg-surface border border-border items-center justify-center"
+          className="h-10 w-10 rounded-full bg-surface border border-border items-center justify-center shrink-0"
           accessibilityRole="button">
           <ArrowLeft size={20} color="#111827" />
         </Pressable>
-        <Text className="flex-1 text-center text-[17px] font-bold text-foreground mr-10">Refer & Earn</Text>
+        <Text className="flex-1 text-center text-[17px] font-bold text-foreground px-2">Refer & Earn</Text>
+        <View className="h-10 w-10 shrink-0" />
       </View>
 
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32">
+      <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
         <LinearGradient
           colors={['#FEF3C7', '#FCE7F3', '#FFFFFF']}
           className="rounded-3xl p-5 mb-5 border border-amber-100">
@@ -81,11 +85,11 @@ export function ReferEarnScreen() {
 
         <View className="bg-surface rounded-2xl border border-border p-4 mb-5">
           <Text className="text-[14px] font-bold text-foreground mb-3">Your progress</Text>
-          <View className="flex-row items-center justify-between mb-2">
+          <View className="flex-row flex-wrap items-center justify-center gap-3 mb-2">
             {Array.from({ length: GOAL }).map((_, i) => (
               <View
                 key={i}
-                className={`h-10 w-10 rounded-full items-center justify-center border-2 ${
+                className={`h-11 w-11 rounded-full items-center justify-center border-2 ${
                   i < progress ? 'bg-primary border-primary' : 'border-border bg-background'
                 }`}>
                 {i < progress ? (

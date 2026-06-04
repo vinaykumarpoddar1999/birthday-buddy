@@ -75,8 +75,7 @@ export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
 };
 
 export const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
-  faceId: false,
-  biometricLock: false,
+  systemLockEnabled: false,
 };
 
 export const DEFAULT_BACKUP_SETTINGS: BackupSettings = {
@@ -165,6 +164,17 @@ function mergePrefs<T extends object>(defaults: T, raw: Partial<T> | null): T {
   return { ...defaults, ...(raw ?? {}) };
 }
 
+function normalizePrivacySettings(
+  raw: (Partial<PrivacySettings> & { faceId?: boolean; biometricLock?: boolean }) | null,
+): PrivacySettings {
+  if (raw && typeof raw.systemLockEnabled === 'boolean') {
+    return { systemLockEnabled: raw.systemLockEnabled };
+  }
+  // Legacy keys are ignored — system lock is opt-in via Privacy & Security only.
+  void raw;
+  return { systemLockEnabled: false };
+}
+
 export class ProfileService {
   async load(): Promise<ProfileBundle & { profileCompletion: number }> {
     const appSettings = await settingsService.getAll();
@@ -210,9 +220,10 @@ export class ProfileService {
                   DEFAULT_REMINDER_SETTINGS.defaultTime,
               ],
       },
-      privacySettings: mergePrefs(
-        DEFAULT_PRIVACY_SETTINGS,
-        await settingsRepository.getJson<Partial<PrivacySettings>>(KEYS.privacySettings),
+      privacySettings: normalizePrivacySettings(
+        await settingsRepository.getJson<
+          Partial<PrivacySettings> & { faceId?: boolean; biometricLock?: boolean }
+        >(KEYS.privacySettings),
       ),
       backupSettings: mergePrefs(
         DEFAULT_BACKUP_SETTINGS,

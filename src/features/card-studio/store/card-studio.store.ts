@@ -113,7 +113,7 @@ export const useCardStudioStore = create<CardStudioState>()((set, get) => ({
   elements: [],
   selectedElementId: null,
   searchQuery: '',
-  selectedCategory: 'all',
+  selectedCategory: 'birthday',
   history: [],
   historyIndex: -1,
   preFilledPersonId: null,
@@ -162,7 +162,6 @@ export const useCardStudioStore = create<CardStudioState>()((set, get) => ({
       history: [snapshot],
       historyIndex: 0,
       selectedElementId: null,
-      personPrefillApplied: false,
     });
   },
 
@@ -277,7 +276,7 @@ export const useCardStudioStore = create<CardStudioState>()((set, get) => ({
       elements: [],
       selectedElementId: null,
       searchQuery: '',
-      selectedCategory: 'all',
+      selectedCategory: 'birthday',
       history: [],
       historyIndex: -1,
       preFilledPersonId: null,

@@ -3,6 +3,7 @@ import { peopleRepository } from '@/repositories/people.repository';
 import { eventRepository } from '@/repositories/event.repository';
 import { activityLogRepository } from '@/repositories/activity-log.repository';
 import { refreshActivityFeed } from '@/services/activity/activity-sync.service';
+import { evaluateEngagementPrompts } from '@/services/engagement/engagement-prompts.service';
 import { syncPersonToDeviceCalendar, removePersonFromDeviceCalendar } from '@/services/calendar/device-calendar.service';
 import { reminderService } from '@/services/reminder/reminder.service';
 import type { CreatePersonInput, Person, UpdatePersonInput } from '@/types/entities';
@@ -32,6 +33,10 @@ export class PeopleService {
       await syncPersonToDeviceCalendar(person);
     }
     await refreshActivityFeed();
+    const count = await peopleRepository.count();
+    if (count >= 2) {
+      void evaluateEngagementPrompts();
+    }
     return uuid;
   }
 

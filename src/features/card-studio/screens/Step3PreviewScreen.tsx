@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, Text, useWindowDimensions, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Text, useWindowDimensions, View } from 'react-native';
 import { ChevronLeft, Share2 } from 'lucide-react-native';
 import Animated, {
   FadeInDown,
@@ -11,6 +10,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
+import { CardStudioPrimaryButton } from '../components/common/CardStudioPrimaryButton';
+import { CardStudioSecondaryButton } from '../components/common/CardStudioSecondaryButton';
+import { studioTokens } from '../constants/studio-tokens';
 import { useCardStudioStore } from '../store/card-studio.store';
 import { CardRenderer } from '../components/preview/CardRenderer';
 import { getCanvasDimensions, getCanvasScale } from '../utils/canvas-dimensions';
@@ -62,8 +64,8 @@ export function Step3PreviewScreen() {
     });
 
   const animatedFrameStyle = useAnimatedStyle(() => ({
-    width: cardW * previewScale.value + 8,
-    height: cardH * previewScale.value + 8,
+    width: cardW * previewScale.value + 14,
+    height: cardH * previewScale.value + 14,
   }));
 
   const animatedCardStyle = useAnimatedStyle(() => ({
@@ -73,24 +75,49 @@ export function Step3PreviewScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Animated.View entering={FadeInDown.duration(350)} className="px-6 pt-4 pb-2 items-center">
-        <Text className="text-[22px] font-bold text-foreground">Preview</Text>
-        <Text className="text-[13px] text-foreground-muted mt-1 text-center">
-          {template.name} · Pinch to zoom
+      <Animated.View entering={FadeInDown.duration(350)} className="px-5 pt-2 pb-2 items-center">
+        <View className="rounded-full bg-primary/10 px-4 py-1.5 mb-1.5">
+          <Text className="text-[12px] font-bold text-primary">{template.name}</Text>
+        </View>
+        <Text className="text-[13px] font-semibold text-foreground text-center">
+          Preview your card
+        </Text>
+        <Text className="text-caption text-foreground-muted text-center mt-0.5">
+          Pinch to zoom · Check text and layout
         </Text>
       </Animated.View>
 
-      <View className="flex-1 items-center justify-center px-6">
+      <View className="flex-1 items-center justify-center px-5" style={{ overflow: 'visible' }}>
         <GestureDetector gesture={pinch}>
-          <Animated.View entering={FadeInUp.duration(400).delay(80)}>
+          <Animated.View entering={FadeInUp.duration(400).delay(80)} style={{ overflow: 'visible' }}>
             <Animated.View
-              className="rounded-3xl overflow-hidden"
+              className="rounded-3xl items-center justify-center"
               style={[
                 animatedFrameStyle,
-                { padding: 4, backgroundColor: '#F3F0FF' },
+                {
+                  padding: 7,
+                  backgroundColor: studioTokens.colors.frameTint,
+                  shadowColor: studioTokens.colors.primary,
+                  shadowOffset: { width: 0, height: 10 },
+                  shadowOpacity: 0.16,
+                  shadowRadius: 22,
+                  elevation: 10,
+                  overflow: 'visible',
+                },
               ]}>
               <Animated.View
-                style={[animatedCardStyle, { borderRadius: 20, overflow: 'hidden' }]}>
+                style={[
+                  animatedCardStyle,
+                  {
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.12,
+                    shadowRadius: 12,
+                    elevation: 6,
+                  },
+                ]}>
                 <CardRenderer
                   template={template}
                   personalization={personalization}
@@ -105,29 +132,19 @@ export function Step3PreviewScreen() {
         </GestureDetector>
       </View>
 
-      <View className="px-5 pb-5 pt-3">
-        <View className="flex-row gap-3">
-          <Pressable
+      <View className="px-5 pb-5 pt-2 border-t border-border/50 bg-background">
+        <View className="flex-row gap-3 items-stretch">
+          <CardStudioSecondaryButton
+            label="Edit"
             onPress={prevStep}
-            className="flex-row items-center justify-center bg-surface rounded-2xl px-5 py-4 gap-1.5 border border-border"
-            accessibilityRole="button"
-            accessibilityLabel="Edit card">
-            <ChevronLeft size={16} color="#374151" />
-            <Text className="text-[14px] font-semibold text-foreground">Edit</Text>
-          </Pressable>
-
-          <Pressable
+            icon={<ChevronLeft size={16} color="#374151" />}
+            className="flex-none"
+          />
+          <CardStudioPrimaryButton
+            label="Share & Download"
             onPress={nextStep}
-            className="flex-1 overflow-hidden rounded-2xl"
-            accessibilityRole="button"
-            accessibilityLabel="Continue to share">
-            <LinearGradient colors={['#7C3AED', '#5B21B6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <View className="flex-row items-center justify-center py-4 gap-2">
-                <Share2 size={17} color="#FFF" />
-                <Text className="text-[15px] font-bold text-white">Share & Download</Text>
-              </View>
-            </LinearGradient>
-          </Pressable>
+            icon={<Share2 size={17} color="#FFF" />}
+          />
         </View>
       </View>
     </View>

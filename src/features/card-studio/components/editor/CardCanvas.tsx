@@ -1,6 +1,5 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Pressable, Text, useWindowDimensions, View } from 'react-native';
-import ViewShot from 'react-native-view-shot';
 import { Move } from 'lucide-react-native';
 
 import { useCardStudioStore } from '../../store/card-studio.store';
@@ -10,16 +9,11 @@ import { CardRenderer } from '../preview/CardRenderer';
 import { DraggableElement } from './DraggableElement';
 import { SelectionActions } from './SelectionActions';
 
-type Props = {
-  viewShotRef?: React.RefObject<React.ComponentRef<typeof ViewShot> | null>;
-  editable?: boolean;
-};
-
 function isRenderableElement(el: { x: number; y: number; width: number; height: number }): boolean {
   return [el.x, el.y, el.width, el.height].every((value) => Number.isFinite(value));
 }
 
-export function CardCanvas({ viewShotRef, editable = true }: Props) {
+export function CardCanvas({ editable = true }: { editable?: boolean }) {
   const template = useCardStudioStore((s) => s.selectedTemplate);
   const elements = useCardStudioStore((s) => s.elements);
   const personalization = useCardStudioStore((s) => s.personalization);
@@ -27,7 +21,6 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
   const canvasFormat = useCardStudioStore((s) => s.canvasFormat);
   const selectedElementId = useCardStudioStore((s) => s.selectedElementId);
   const selectElement = useCardStudioStore((s) => s.selectElement);
-  const internalRef = useRef<View>(null);
   const { width: screenW } = useWindowDimensions();
 
   if (!template) return null;
@@ -38,7 +31,7 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
   const { w, h } = getCanvasDimensions(canvasFormat);
 
   return (
-    <View className="items-center py-3 px-4">
+    <View className="items-center py-2 px-3">
       <Pressable
         onPress={() => selectElement(null)}
         accessibilityRole="button"
@@ -50,12 +43,13 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
           padding: 5,
           backgroundColor: '#F3F0FF',
           shadowColor: '#7C3AED',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.18,
-          shadowRadius: 28,
-          elevation: 12,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.16,
+          shadowRadius: 20,
+          elevation: 10,
         }}>
         <View
+          collapsable={false}
           style={{
             width: w * canvasScale,
             height: h * canvasScale,
@@ -63,18 +57,15 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
             overflow: 'hidden',
             position: 'relative',
           }}>
-          <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }}>
-            <CardRenderer
-              ref={internalRef}
-              template={template}
-              personalization={personalization}
-              elements={elements}
-              scale={canvasScale}
-              customBackground={customBackground}
-              hideElements={editable}
-              canvasFormat={canvasFormat}
-            />
-          </ViewShot>
+          <CardRenderer
+            template={template}
+            personalization={personalization}
+            elements={elements}
+            scale={canvasScale}
+            customBackground={customBackground}
+            hideElements={editable}
+            canvasFormat={canvasFormat}
+          />
 
           {editable
             ? safeResolved
@@ -94,15 +85,17 @@ export function CardCanvas({ viewShotRef, editable = true }: Props) {
         </View>
       </Pressable>
 
-      <View className="flex-row items-center mt-2.5 gap-2">
-        <View className="flex-row items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-gray-100">
-          <View className="h-2 w-2 rounded-full bg-green-400" />
-          <Text className="text-[10px] font-semibold text-foreground-muted">
-            {editable ? 'Drag to move · Pinch to resize' : 'Preview'}
-          </Text>
-          <Move size={10} color="#9CA3AF" />
+      {editable ? (
+        <View className="flex-row items-center mt-1.5 gap-2">
+          <View className="flex-row items-center gap-1.5 bg-surface px-3 py-1 rounded-full border border-border/80">
+            <View className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <Text className="text-[10px] font-semibold text-foreground-muted">
+              Drag to move · Pinch to resize
+            </Text>
+            <Move size={10} color="#9CA3AF" />
+          </View>
         </View>
-      </View>
+      ) : null}
     </View>
   );
 }

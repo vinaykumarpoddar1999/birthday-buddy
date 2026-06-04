@@ -6,20 +6,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
-  Bell,
   Cake,
   Calendar,
   Camera,
   Check,
   ChevronDown,
-  Clock,
-  Gift,
   Heart,
   HeartHandshake,
   ImagePlus,
-  Plus,
   Gem,
-  Sparkles,
   Star,
   User,
   X,
@@ -31,7 +26,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   View,
@@ -39,27 +33,24 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
-import { ProfilePlaceholder } from '@shared/ui/ProfilePlaceholder';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
+import { useProfileStore } from '@features/profile/store/profile.store';
 import { usePerson, usePersonMutations } from '@features/people/hooks/usePeople';
 import type { EventType, Gender, Person, RelationshipType } from '@/types/entities';
 import { isPlaceholderBirthDate } from '@/services/contacts/contacts-import.service';
 import { getAge } from '../utils/birthday-utils';
 
+const BOY_IMAGE = require('../../../../assets/images/boy.png');
+const GIRL_IMAGE = require('../../../../assets/images/girl.png');
+
 const schema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   nickname: z.string().optional(),
-  gender: z.enum(['male', 'female', 'other']),
+  gender: z.enum(['male', 'female']),
   birthDate: z.string().min(1, 'Date of birth is required'),
   relationship: z.enum(['friend', 'family', 'colleague', 'partner', 'relative']),
   phone: z.string().optional(),
   email: z.string().optional(),
-  favoriteColor: z.string().optional(),
-  favoriteCake: z.string().optional(),
-  hobbies: z.array(z.string()),
-  notes: z.string().optional(),
-  reminderDaysBefore: z.number().min(0).max(30),
-  reminderTime: z.string(),
-  repeatYearly: z.boolean(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -86,21 +77,16 @@ function eventTypeFromPerson(type: EventType): PersonEventType {
 }
 
 function personToFormValues(person: Person): FormValues {
+  const gender: FormValues['gender'] =
+    person.gender === 'male' || person.gender === 'female' ? person.gender : 'female';
   return {
     fullName: person.fullName,
     nickname: person.nickname ?? '',
-    gender: person.gender,
+    gender,
     birthDate: person.birthDate,
     relationship: person.relationship,
     phone: person.phone ?? '',
     email: person.email ?? '',
-    favoriteColor: person.favoriteColor ?? '',
-    favoriteCake: person.favoriteCake ?? '',
-    hobbies: person.hobbies ?? [],
-    notes: person.notes ?? '',
-    reminderDaysBefore: person.reminderDaysBefore,
-    reminderTime: person.reminderTime,
-    repeatYearly: person.repeatYearly,
   };
 }
 
@@ -112,28 +98,12 @@ const RELATIONSHIPS: { value: RelationshipType; label: string }[] = [
   { value: 'relative', label: 'Relative' },
 ];
 
-const FAVORITE_COLORS = [
-  'Purple', 'Pink', 'Blue', 'Green', 'Red', 'Orange', 'Yellow', 'Teal', 'Coral', 'Gold',
-];
-
-const FAVORITE_CAKES = [
-  'Chocolate Truffle', 'Black Forest', 'Red Velvet', 'Vanilla', 'Strawberry',
-  'Butterscotch', 'Pineapple', 'Mango', 'Blueberry Cheesecake', 'Tiramisu',
-];
-
-const REMINDER_DAYS = [0, 1, 2, 3, 5, 7, 10, 14];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function formatDisplayDate(iso: string): string {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
   return `${parseInt(d)} ${MONTHS[parseInt(m) - 1]} ${y}`;
-}
-
-function formatTime12(time: string): string {
-  const [h, m] = time.split(':').map(Number);
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  return `${String(h % 12 || 12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
@@ -244,67 +214,6 @@ function DatePickerModal({
   );
 }
 
-// ─── Time Picker ───────────────────────────────────────────────────────────
-
-function TimePickerModal({
-  visible, value, onConfirm, onClose,
-}: { visible: boolean; value: string; onConfirm: (t: string) => void; onClose: () => void }) {
-  const [hour, setHour] = useState(parseInt(value.split(':')[0]) || 8);
-  const [minute, setMinute] = useState(parseInt(value.split(':')[1]) || 0);
-  const hours = Array.from({ length: 24 }, (_, i) => i);
-  const minutes = [0, 15, 30, 45];
-
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-3xl p-5">
-          <View className="flex-row items-center justify-between mb-5">
-            <Text className="text-title font-bold text-foreground">Select Time</Text>
-            <Pressable onPress={onClose} className="h-8 w-8 rounded-full bg-gray-100 items-center justify-center">
-              <X size={18} color="#6B7280" />
-            </Pressable>
-          </View>
-
-          <View className="flex-row gap-4 mb-6">
-            <View className="flex-1">
-              <Text className="text-[11px] text-foreground-secondary font-semibold text-center mb-2">Hour</Text>
-              <ScrollView style={{ height: 170 }} showsVerticalScrollIndicator={false}>
-                {hours.map((h) => (
-                  <Pressable key={h} onPress={() => setHour(h)}
-                    className={`py-2.5 rounded-xl mb-1 items-center ${hour === h ? 'bg-primary/10' : ''}`}>
-                    <Text className={`text-[15px] font-semibold ${hour === h ? 'text-primary' : 'text-foreground'}`}>
-                      {String(h).padStart(2, '0')}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-            <View className="flex-1">
-              <Text className="text-[11px] text-foreground-secondary font-semibold text-center mb-2">Minute</Text>
-              <ScrollView style={{ height: 170 }} showsVerticalScrollIndicator={false}>
-                {minutes.map((m) => (
-                  <Pressable key={m} onPress={() => setMinute(m)}
-                    className={`py-2.5 rounded-xl mb-1 items-center ${minute === m ? 'bg-primary/10' : ''}`}>
-                    <Text className={`text-[15px] font-semibold ${minute === m ? 'text-primary' : 'text-foreground'}`}>
-                      {String(m).padStart(2, '0')}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-
-          <Pressable
-            onPress={() => onConfirm(`${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`)}
-            className="bg-primary rounded-2xl py-4 items-center">
-            <Text className="text-white font-bold text-[15px]">Confirm Time</Text>
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
 // ─── Option Picker ─────────────────────────────────────────────────────────
 
 function OptionPickerModal({
@@ -377,16 +286,12 @@ export function AddPersonScreen() {
   const isEditing = Boolean(personId);
   const { data: existingPerson } = usePerson(personId);
   const { addPerson, updatePerson } = usePersonMutations();
+  const reminderSettings = useProfileStore((s) => s.reminderSettings);
 
   const [eventType, setEventType] = useState<PersonEventType>('birthday');
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [hobbyInput, setHobbyInput] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [showRelationshipPicker, setShowRelationshipPicker] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showCakePicker, setShowCakePicker] = useState(false);
-  const [showReminderPicker, setShowReminderPicker] = useState(false);
 
   const {
     control, handleSubmit, watch, setValue, getValues, reset,
@@ -401,21 +306,12 @@ export function AddPersonScreen() {
       relationship: 'friend',
       phone: '',
       email: '',
-      favoriteColor: '',
-      favoriteCake: '',
-      hobbies: [],
-      notes: '',
-      reminderDaysBefore: 3,
-      reminderTime: '08:00',
-      repeatYearly: true,
     },
   });
 
   const birthDate = watch('birthDate');
-  const hobbies = watch('hobbies');
+  const fullName = watch('fullName');
   const gender = watch('gender');
-  const reminderDays = watch('reminderDaysBefore');
-  const reminderTime = watch('reminderTime');
   const computedAge = birthDate ? (() => { try { return getAge(birthDate); } catch { return null; } })() : null;
 
   useEffect(() => {
@@ -439,13 +335,6 @@ export function AddPersonScreen() {
       relationship: 'friend',
       phone: prefillPhone ?? '',
       email: prefillEmail ?? '',
-      favoriteColor: '',
-      favoriteCake: '',
-      hobbies: [],
-      notes: '',
-      reminderDaysBefore: 3,
-      reminderTime: '08:00',
-      repeatYearly: true,
     });
     if (prefillAvatarUri) setProfileImage(prefillAvatarUri);
   }, [
@@ -472,21 +361,11 @@ export function AddPersonScreen() {
     if (!result.canceled && result.assets[0]) setProfileImage(result.assets[0].uri);
   }, []);
 
-  const addHobby = useCallback(() => {
-    const trimmed = hobbyInput.trim();
-    if (!trimmed) return;
-    const current = getValues('hobbies');
-    if (!current.includes(trimmed)) setValue('hobbies', [...current, trimmed]);
-    setHobbyInput('');
-  }, [hobbyInput, getValues, setValue]);
-
-  const removeHobby = useCallback(
-    (h: string) => setValue('hobbies', getValues('hobbies').filter((x) => x !== h)),
-    [getValues, setValue],
-  );
-
   const onSubmit = useCallback(
     async (data: FormValues) => {
+      const defaultReminderDay = reminderSettings.reminderDaysBefore[0] ?? 3;
+      const defaultReminderTime = reminderSettings.defaultTime;
+
       const payload = {
         fullName: data.fullName,
         nickname: data.nickname,
@@ -495,14 +374,14 @@ export function AddPersonScreen() {
         relationship: data.relationship as RelationshipType,
         phone: data.phone,
         email: data.email,
-        favoriteColor: data.favoriteColor,
-        favoriteCake: data.favoriteCake,
-        hobbies: data.hobbies,
-        notes: data.notes,
         avatarUri: profileImage ?? undefined,
-        reminderDaysBefore: data.reminderDaysBefore,
-        reminderTime: data.reminderTime,
-        repeatYearly: data.repeatYearly,
+        favoriteColor: '',
+        favoriteCake: '',
+        hobbies: [] as string[],
+        notes: '',
+        reminderDaysBefore: defaultReminderDay,
+        reminderTime: defaultReminderTime,
+        repeatYearly: true,
         eventType: mapEventType(eventType),
       };
 
@@ -547,6 +426,7 @@ export function AddPersonScreen() {
       queueIdList,
       queueIndex,
       queueIds,
+      reminderSettings,
     ],
   );
 
@@ -617,19 +497,13 @@ export function AddPersonScreen() {
           <View className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 shadow-sm">
             <View className="flex-row items-center gap-4">
               <View className="relative">
-                {profileImage ? (
-                  <Image
-                    source={{ uri: profileImage }}
-                    style={{ width: 80, height: 80, borderRadius: 40 }}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <ProfilePlaceholder
-                    size="lg"
-                    variant={gender === 'female' ? 'female' : 'user'}
-                    borderClassName="border-2 border-primary/20"
-                  />
-                )}
+                <ProfileAvatar
+                  size="lg"
+                  profileImage={profileImage}
+                  name={fullName}
+                  gender={gender}
+                  borderClassName="border-2 border-primary/20"
+                />
                 <View className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary border-2 border-white items-center justify-center">
                   <Camera size={12} color="#FFF" />
                 </View>
@@ -718,21 +592,30 @@ export function AddPersonScreen() {
               <Controller control={control} name="gender"
                 render={({ field: { value, onChange } }) => (
                   <View className="flex-row gap-2">
-                    {(['female', 'male', 'other'] as Gender[]).map((g) => (
+                    {(
+                      [
+                        { id: 'female' as const, label: 'Female', image: GIRL_IMAGE },
+                        { id: 'male' as const, label: 'Male', image: BOY_IMAGE },
+                      ] as const
+                    ).map((option) => (
                       <Pressable
-                        key={g}
-                        onPress={() => onChange(g)}
-                        className={`flex-row items-center px-4 py-3 rounded-xl border gap-2 flex-1 justify-center ${
-                          value === g ? 'bg-primary/10 border-primary/40' : 'bg-gray-50 border-gray-200'
+                        key={option.id}
+                        onPress={() => onChange(option.id)}
+                        className={`flex-col items-center px-3 py-3 rounded-xl border gap-2 flex-1 ${
+                          value === option.id
+                            ? 'bg-primary/10 border-primary/40'
+                            : 'bg-gray-50 border-gray-200'
                         }`}
-                        accessibilityRole="button">
-                        <ProfilePlaceholder
-                          size="xs"
-                          variant={g === 'female' ? 'female' : 'user'}
-                          borderClassName={value === g ? 'border-2 border-primary/40' : 'border border-gray-200'}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Select ${option.label}`}>
+                        <Image
+                          source={option.image}
+                          style={{ width: 48, height: 48, borderRadius: 24 }}
+                          contentFit="cover"
                         />
-                        <Text className={`text-[13px] font-semibold capitalize ${value === g ? 'text-primary' : 'text-foreground-secondary'}`}>
-                          {g}
+                        <Text
+                          className={`text-[12px] font-semibold ${value === option.id ? 'text-primary' : 'text-foreground-secondary'}`}>
+                          {option.label}
                         </Text>
                       </Pressable>
                     ))}
@@ -789,165 +672,6 @@ export function AddPersonScreen() {
             </Field>
           </View>
 
-          {/* Details & Preferences */}
-          <View className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 shadow-sm">
-            <SectionTitle title="Details & Preferences" icon={Gift} />
-
-            {/* Hobbies */}
-            <View className="mb-4">
-              <FieldLabel label="Hobbies & Interests" />
-              {hobbies.length > 0 && (
-                <View className="flex-row flex-wrap gap-2 mb-2.5">
-                  {hobbies.map((h) => (
-                    <View key={h} className="flex-row items-center bg-primary/10 rounded-full px-3 py-1.5 gap-1.5">
-                      <Text className="text-[12px] text-primary font-semibold">{h}</Text>
-                      <Pressable onPress={() => removeHobby(h)} hitSlop={8}>
-                        <X size={11} color="#7C3AED" />
-                      </Pressable>
-                    </View>
-                  ))}
-                </View>
-              )}
-              <View className="flex-row gap-2">
-                <TextInput
-                  value={hobbyInput}
-                  onChangeText={setHobbyInput}
-                  onSubmitEditing={addHobby}
-                  placeholder="Add a hobby..."
-                  placeholderTextColor="#C4B5FD"
-                  returnKeyType="done"
-                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-foreground"
-                />
-                <Pressable
-                  onPress={addHobby}
-                  className="bg-primary/10 rounded-xl px-4 items-center justify-center"
-                  accessibilityRole="button">
-                  <Plus size={18} color="#7C3AED" />
-                </Pressable>
-              </View>
-            </View>
-
-            <Field>
-              <FieldLabel label="Favorite Color" />
-              <Pressable
-                onPress={() => setShowColorPicker(true)}
-                className="flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 gap-2"
-                accessibilityRole="button">
-                <Text className={`text-[15px] flex-1 ${watch('favoriteColor') ? 'text-foreground' : 'text-foreground-muted'}`}>
-                  {watch('favoriteColor') || 'Select color'}
-                </Text>
-                <ChevronDown size={16} color="#9CA3AF" />
-              </Pressable>
-            </Field>
-
-            <Field>
-              <FieldLabel label="Favorite Cake" />
-              <Pressable
-                onPress={() => setShowCakePicker(true)}
-                className="flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 gap-2"
-                accessibilityRole="button">
-                <Text className={`text-[15px] flex-1 ${watch('favoriteCake') ? 'text-foreground' : 'text-foreground-muted'}`} numberOfLines={1}>
-                  {watch('favoriteCake') || 'Select cake'}
-                </Text>
-                <ChevronDown size={16} color="#9CA3AF" />
-              </Pressable>
-            </Field>
-
-            <Field>
-              <FieldLabel label="Notes" />
-              <Controller control={control} name="notes"
-                render={({ field: { onChange, value, onBlur } }) => (
-                  <View>
-                    <TextInput
-                      value={value} onChangeText={onChange} onBlur={onBlur}
-                      placeholder="Allergies, gift ideas, etc."
-                      placeholderTextColor="#C4B5FD"
-                      multiline numberOfLines={3} maxLength={250}
-                      textAlignVertical="top"
-                      className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-foreground"
-                      style={{ minHeight: 80 }}
-                    />
-                    <Text className="text-[10px] text-foreground-muted text-right mt-1">
-                      {(value ?? '').length}/250
-                    </Text>
-                  </View>
-                )}
-              />
-            </Field>
-          </View>
-
-          {/* Event Settings */}
-          <View className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 shadow-sm">
-            <SectionTitle title="Event Settings" icon={Bell} />
-
-            <Field>
-              <FieldLabel label="Remind Me" />
-              <Pressable
-                onPress={() => setShowReminderPicker(true)}
-                className="flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 gap-2"
-                accessibilityRole="button">
-                <Calendar size={16} color="#7C3AED" />
-                <Text className="text-[15px] text-foreground flex-1">
-                  {reminderDays === 0 ? 'On the day' : `${reminderDays} days before`}
-                </Text>
-                <ChevronDown size={16} color="#9CA3AF" />
-              </Pressable>
-            </Field>
-
-            <Field>
-              <FieldLabel label="Reminder Time" />
-              <Pressable
-                onPress={() => setShowTimePicker(true)}
-                className="flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 gap-2"
-                accessibilityRole="button">
-                <Clock size={16} color="#7C3AED" />
-                <Text className="text-[15px] text-foreground flex-1">{formatTime12(reminderTime)}</Text>
-                <ChevronDown size={16} color="#9CA3AF" />
-              </Pressable>
-            </Field>
-
-            <View className="flex-row items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5">
-              <Text className="text-[15px] text-foreground">Repeat Yearly</Text>
-              <Controller control={control} name="repeatYearly"
-                render={({ field: { value, onChange } }) => (
-                  <Switch
-                    value={value}
-                    onValueChange={onChange}
-                    trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
-                    thumbColor="#FFFFFF"
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          {/* AI Banner */}
-          <View className="rounded-2xl overflow-hidden mb-6">
-            <LinearGradient colors={['#7C3AED', '#5B21B6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Pressable
-                onPress={() => {
-                  if (personId) {
-                    router.push({ pathname: '/ai-wish', params: { personId } });
-                    return;
-                  }
-                  feedback.warning('Save first', 'Save this person to generate AI gift suggestions.');
-                }}
-                className="flex-row items-center px-5 py-4 gap-3"
-                accessibilityRole="button">
-                <Sparkles size={22} color="#FCD34D" />
-                <View className="flex-1">
-                  <Text className="text-[13px] text-white font-bold">AI Gift Suggestions</Text>
-                  <Text className="text-[11px] text-white/70 mt-0.5">
-                    Get smart gift ideas for {watch('fullName') || 'them'}
-                  </Text>
-                </View>
-                <View className="bg-white/20 rounded-full px-3.5 py-2">
-                  <Text className="text-[11px] text-white font-bold">Try</Text>
-                </View>
-              </Pressable>
-            </LinearGradient>
-          </View>
-
           {/* Actions */}
           <View className="flex-row gap-3 mb-4">
             <Pressable
@@ -980,35 +704,11 @@ export function AddPersonScreen() {
         onConfirm={(d) => { setValue('birthDate', d, { shouldValidate: true }); setShowDatePicker(false); }}
         onClose={() => setShowDatePicker(false)}
       />
-      <TimePickerModal
-        visible={showTimePicker} value={reminderTime}
-        onConfirm={(t) => { setValue('reminderTime', t); setShowTimePicker(false); }}
-        onClose={() => setShowTimePicker(false)}
-      />
       <OptionPickerModal
         visible={showRelationshipPicker} title="Select Relationship"
         options={RELATIONSHIPS.map((r) => r.label)} selected={relLabel}
         onSelect={(label) => { const r = RELATIONSHIPS.find((x) => x.label === label); if (r) setValue('relationship', r.value, { shouldValidate: true }); }}
         onClose={() => setShowRelationshipPicker(false)}
-      />
-      <OptionPickerModal
-        visible={showColorPicker} title="Favorite Color"
-        options={FAVORITE_COLORS} selected={watch('favoriteColor') ?? ''}
-        onSelect={(c) => setValue('favoriteColor', c)}
-        onClose={() => setShowColorPicker(false)}
-      />
-      <OptionPickerModal
-        visible={showCakePicker} title="Favorite Cake"
-        options={FAVORITE_CAKES} selected={watch('favoriteCake') ?? ''}
-        onSelect={(c) => setValue('favoriteCake', c)}
-        onClose={() => setShowCakePicker(false)}
-      />
-      <OptionPickerModal
-        visible={showReminderPicker} title="Remind Me Before"
-        options={REMINDER_DAYS.map((d) => (d === 0 ? 'On the Day' : `${d} Days Before`))}
-        selected={reminderDays === 0 ? 'On the Day' : `${reminderDays} Days Before`}
-        onSelect={(label) => setValue('reminderDaysBefore', label === 'On the Day' ? 0 : parseInt(label))}
-        onClose={() => setShowReminderPicker(false)}
       />
     </SafeAreaView>
   );

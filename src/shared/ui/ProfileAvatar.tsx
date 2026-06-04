@@ -2,8 +2,22 @@ import { useState } from 'react';
 import { Image } from 'expo-image';
 import { View } from 'react-native';
 
-import { getAvatarSource } from '@/shared/utils/avatar';
+import { InitialAvatar } from '@/shared/ui/InitialAvatar';
+import { getAvatarSource, hasGenderAvatar } from '@/shared/utils/avatar';
+
 import type { ProfilePlaceholderSize } from '@shared/ui/ProfilePlaceholder';
+
+export type ProfileAvatarProps = {
+  size?: ProfilePlaceholderSize;
+  /** Overrides preset size (square px). */
+  dimension?: number;
+  profileImage?: string | null;
+  name?: string | null;
+  gender?: 'male' | 'female' | 'other';
+  borderClassName?: string;
+  className?: string;
+  label?: string;
+};
 
 const SIZE_PX: Record<ProfilePlaceholderSize, number> = {
   tiny: 24,
@@ -15,43 +29,67 @@ const SIZE_PX: Record<ProfilePlaceholderSize, number> = {
   xl: 112,
 };
 
-export type ProfileAvatarProps = {
-  size?: ProfilePlaceholderSize;
-  profileImage?: string | null;
-  gender?: 'male' | 'female' | 'other';
-  borderClassName?: string;
-  className?: string;
-  label?: string;
-};
-
 export function ProfileAvatar({
   size = 'md',
+  dimension,
   profileImage,
-  gender = 'other',
+  name,
+  gender,
   borderClassName = '',
   className = '',
   label,
 }: ProfileAvatarProps) {
-  const px = SIZE_PX[size];
-  const borderRadius = px / 2;
   const [imageFailed, setImageFailed] = useState(false);
-
   const useRemote = Boolean(profileImage) && !imageFailed;
-  const source = useRemote
-    ? { uri: profileImage! }
-    : getAvatarSource(gender === 'female' ? 'female' : 'male');
+  const px = dimension ?? SIZE_PX[size];
+  const borderRadius = px / 2;
+  const containerClass = `overflow-hidden ${borderClassName} ${className}`.trim() || undefined;
+
+  if (useRemote) {
+    return (
+      <View className={containerClass} style={{ width: px, height: px, borderRadius }}>
+        <Image
+          source={{ uri: profileImage! }}
+          style={{ width: px, height: px }}
+          contentFit="cover"
+          accessibilityLabel={label ?? name ?? 'Profile photo'}
+          onError={() => setImageFailed(true)}
+        />
+      </View>
+    );
+  }
+
+  if (hasGenderAvatar(gender)) {
+    return (
+      <View className={containerClass} style={{ width: px, height: px, borderRadius }}>
+        <Image
+          source={getAvatarSource(gender)}
+          style={{ width: px, height: px }}
+          contentFit="cover"
+          accessibilityLabel={label ?? name ?? 'Profile avatar'}
+        />
+      </View>
+    );
+  }
+
+  if (name?.trim()) {
+    return (
+      <InitialAvatar
+        name={name}
+        size={size}
+        dimension={dimension}
+        borderClassName={borderClassName}
+        className={className}
+      />
+    );
+  }
 
   return (
     <View
-      className={`overflow-hidden ${borderClassName} ${className}`.trim() || undefined}
-      style={{ width: px, height: px, borderRadius }}>
-      <Image
-        source={source}
-        style={{ width: px, height: px, borderRadius }}
-        contentFit="cover"
-        accessibilityLabel={label ?? 'Profile photo'}
-        onError={() => setImageFailed(true)}
-      />
+      className={containerClass}
+      style={{ width: px, height: px, borderRadius }}
+      accessibilityLabel={label ?? 'Profile placeholder'}>
+      <InitialAvatar name={null} size={size} dimension={dimension} />
     </View>
   );
 }

@@ -3,7 +3,14 @@ import { ArrowLeft, Bell, Check, Clock, Plus, Volume2, Vibrate, X } from 'lucide
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
+import { registerForNotifications } from '@/services/notifications/local-notifications.service';
+import { ensureNotifeeAlarmChannel } from '@/services/notifications/notifee-alarm.service';
+import {
+  formatTime12Label,
+  ReminderTimePickerField,
+} from '@/shared/ui/ReminderTimePickerField';
 import { useProfileStore } from '../store/profile.store';
 import type { ReminderSettings } from '../types';
 
@@ -25,13 +32,6 @@ const TIME_PRESETS = [
   { label: '6:00 PM', value: '18:00' },
   { label: '8:00 PM', value: '20:00' },
 ];
-
-function formatTime12(time: string): string {
-  const [h, m] = time.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
-}
 
 export const ReminderSettingsScreen = () => {
   const settings = useProfileStore((s) => s.reminderSettings);
@@ -58,7 +58,7 @@ export const ReminderSettingsScreen = () => {
 
   const addFlexibleTime = (time: string) => {
     const current = settings.multipleReminderTimes;
-    if (current.includes(time) || current.length >= 3) return;
+    if (current.includes(time)) return;
     update({ multipleReminderTimes: [...current, time].sort() });
     setShowTimePicker(false);
   };
@@ -70,8 +70,22 @@ export const ReminderSettingsScreen = () => {
     });
   };
 
+  const handleBirthdayAlarmToggle = async (value: boolean) => {
+    if (value) {
+      await ensureNotifeeAlarmChannel();
+      await registerForNotifications();
+    }
+    update({ birthdayAlarm: value });
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+      <LinearGradient
+        colors={['#7C3AED18', '#FFFFFF00']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 180 }}
+      />
       <View className="flex-row items-center px-5 py-3">
         <Pressable onPress={() => router.back()} className="mr-3 h-10 w-10 rounded-full bg-surface border border-border items-center justify-center" accessibilityRole="button">
           <ArrowLeft size={20} color="#111827" />
@@ -80,6 +94,12 @@ export const ReminderSettingsScreen = () => {
       </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
+        <View className="bg-primary/5 border border-primary/15 rounded-2xl p-4 mb-5 mt-2">
+          <Text className="text-[14px] font-bold text-primary">Flexible reminders</Text>
+          <Text className="text-[13px] text-foreground-secondary mt-1 leading-5">
+            Add as many reminder times as you need — no limit. Quiet hours automatically shift notifications.
+          </Text>
+        </View>
         <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2 mt-4">Timing Mode</Text>
         <View className="flex-row gap-2 mb-5">
           <Pressable
@@ -106,23 +126,22 @@ export const ReminderSettingsScreen = () => {
             <Clock size={24} color="#7C3AED" />
             <View className="ml-3 flex-1">
               <Text className="text-[14px] font-bold text-foreground">Default Reminder Time</Text>
-              <Text className="text-[13px] text-primary font-semibold mt-0.5">{formatTime12(settings.defaultTime)}</Text>
+              <Text className="text-[13px] text-primary font-semibold mt-0.5">{formatTime12Label(settings.defaultTime)}</Text>
             </View>
           </Pressable>
         ) : (
           <View className="mb-5">
-            <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2">Reminder Times (up to 3)</Text>
+            <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-2">Reminder Times</Text>
             <View className="flex-row flex-wrap gap-2 mb-3">
               {settings.multipleReminderTimes.map((time) => (
                 <View key={time} className="flex-row items-center bg-primary/10 border border-primary rounded-xl px-3 py-2">
-                  <Text className="text-[13px] font-semibold text-primary mr-2">{formatTime12(time)}</Text>
+                  <Text className="text-[13px] font-semibold text-primary mr-2">{formatTime12Label(time)}</Text>
                   <Pressable onPress={() => removeFlexibleTime(time)} accessibilityRole="button" accessibilityLabel={`Remove ${time}`}>
                     <X size={14} color="#7C3AED" />
                   </Pressable>
                 </View>
               ))}
-              {settings.multipleReminderTimes.length < 3 && (
-                <Pressable
+              <Pressable
                   onPress={() => {
                     setPickerTime('08:00');
                     setShowTimePicker(true);
@@ -132,7 +151,6 @@ export const ReminderSettingsScreen = () => {
                   <Plus size={14} color="#7C3AED" />
                   <Text className="text-[13px] font-semibold text-primary ml-1">Add Time</Text>
                 </Pressable>
-              )}
             </View>
           </View>
         )}
@@ -188,7 +206,7 @@ export const ReminderSettingsScreen = () => {
               <Text className="text-[15px] font-medium text-foreground">Birthday Alarm</Text>
               <Text className="text-[12px] text-foreground-secondary">Full-screen alarm on birthday</Text>
             </View>
-            <Switch value={settings.birthdayAlarm} onValueChange={(v) => update({ birthdayAlarm: v })} trackColor={{ false: '#E5E7EB', true: '#7C3AED' }} thumbColor="#FFFFFF" />
+            <Switch value={settings.birthdayAlarm} onValueChange={(v) => void handleBirthdayAlarmToggle(v)} trackColor={{ false: '#E5E7EB', true: '#7C3AED' }} thumbColor="#FFFFFF" />
           </View>
         </View>
 
@@ -203,8 +221,11 @@ export const ReminderSettingsScreen = () => {
       <Modal visible={showTimePicker} transparent animationType="slide" onRequestClose={() => setShowTimePicker(false)}>
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-white rounded-t-3xl p-5">
-            <Text className="text-title font-bold text-foreground mb-4">Add Reminder Time</Text>
-            <View className="flex-row flex-wrap gap-2 mb-5">
+            <Text className="text-title font-bold text-foreground mb-1">Add Reminder Time</Text>
+            <Text className="text-[13px] text-foreground-secondary mb-4">
+              Pick any time — add 5, 10, or more reminders per day.
+            </Text>
+            <View className="flex-row flex-wrap gap-2 mb-4">
               {TIME_PRESETS.map((time) => {
                 const isSelected = pickerTime === time.value;
                 const isUsed = settings.multipleReminderTimes.includes(time.value);
@@ -215,14 +236,19 @@ export const ReminderSettingsScreen = () => {
                     disabled={isUsed}
                     className={`w-[31%] rounded-xl py-3 px-2 border items-center ${isSelected ? 'bg-primary/10 border-primary' : isUsed ? 'bg-border/20 border-border opacity-50' : 'bg-surface border-border'}`}
                     accessibilityRole="button">
-                    {isSelected && <Check size={14} color="#7C3AED" style={{ position: 'absolute', top: 6, right: 6 }} />}
+                    {isSelected ? <Check size={14} color="#7C3AED" style={{ position: 'absolute', top: 6, right: 6 }} /> : null}
                     <Text className={`text-[13px] font-semibold ${isSelected ? 'text-primary' : 'text-foreground'}`}>{time.label}</Text>
                   </Pressable>
                 );
               })}
             </View>
+            <ReminderTimePickerField
+              value={pickerTime}
+              onChange={setPickerTime}
+              label="Custom time"
+            />
             <Pressable
-              className="bg-primary rounded-2xl py-4 items-center mb-2"
+              className="bg-primary rounded-2xl py-4 items-center mt-5 mb-2"
               onPress={() => addFlexibleTime(pickerTime)}
               accessibilityRole="button">
               <Text className="text-white font-bold text-[15px]">Add Time</Text>

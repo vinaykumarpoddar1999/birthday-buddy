@@ -43,6 +43,7 @@ export function AppHeader({ userName }: AppHeaderProps) {
                 <ProfileAvatar
                   size="header"
                   profileImage={profile.profileImage}
+                  name={profile.fullName}
                   gender={profile.gender}
                   borderClassName="border-2 border-primary/25"
                   label={`${displayName} avatar`}

@@ -1,14 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Bell, Crown, Hand, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { Image } from 'expo-image';
 
 import { Colors, Shadows, scale } from '../constants/design-tokens';
 import { useNotificationStore } from '@/stores/notification.store';
 import { usePremiumEntitlement } from '@features/premium/hooks/usePremiumEntitlement';
 import { useProfileStore } from '@features/profile/store/profile.store';
 import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
-import { getAvatarSource } from '@/shared/utils/avatar';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 
 export function HomeHeader() {
   const unreadCount = useNotificationStore((s) => s.notifications.filter((n) => !n.isRead).length);
@@ -17,10 +16,6 @@ export function HomeHeader() {
   const { maskName } = usePrivacyDisplay();
   const displayName = maskName(profile.fullName || 'there');
   const firstName = displayName.split(' ')[0] || 'there';
-
-  const avatarSource = profile.profileImage
-    ? { uri: profile.profileImage }
-    : getAvatarSource(profile.gender === 'female' ? 'female' : 'male');
 
   return (
     <View style={styles.container}>
@@ -31,11 +26,12 @@ export function HomeHeader() {
           accessibilityRole="button"
           accessibilityLabel="Open profile">
           <View style={styles.avatarRing}>
-            <Image
-              source={avatarSource}
-              style={styles.avatar}
-              contentFit="cover"
-              accessibilityLabel={`${displayName} avatar`}
+            <ProfileAvatar
+              size="sm"
+              profileImage={profile.profileImage}
+              name={profile.fullName}
+              gender={profile.gender}
+              label={`${displayName} avatar`}
             />
           </View>
         </Pressable>

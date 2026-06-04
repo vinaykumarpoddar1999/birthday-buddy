@@ -56,8 +56,7 @@ export interface ReminderSettings {
 }
 
 export interface PrivacySettings {
-  faceId: boolean;
-  biometricLock: boolean;
+  systemLockEnabled: boolean;
 }
 
 export interface BackupSettings {
