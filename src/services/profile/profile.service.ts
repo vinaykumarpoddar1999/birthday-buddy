@@ -68,6 +68,12 @@ export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
   birthdayAlarm: true,
   reminderDaysBefore: [7, 3, 1, 0],
   multipleReminderTimes: ['08:00'],
+  reminderEntries: [
+    { id: 'default-7', daysBefore: 7, time: '08:00' },
+    { id: 'default-3', daysBefore: 3, time: '08:00' },
+    { id: 'default-1', daysBefore: 1, time: '08:00' },
+    { id: 'default-0', daysBefore: 0, time: '08:00' },
+  ],
   weekendRules: 'same',
   notificationSound: true,
   vibration: true,

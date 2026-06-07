@@ -1,5 +1,4 @@
 export { useAuthStore } from './auth.store';
-export type { AuthUser } from '@features/auth/types/auth.types';
 export { useThemeStore, type ThemeMode } from './theme.store';
 export { useNotificationStore } from './notification.store';
 export { useUserStore } from './user.store';

@@ -188,13 +188,6 @@ export function PersonDetailsScreen() {
                     accessibilityLabel="Create card">
                     <Gift size={scale(14)} color={theme.accent} />
                   </Pressable>
-                  <Pressable
-                    style={birthdayCardStyles.quickBtn}
-                    onPress={() => router.push({ pathname: '/surprise-link-studio', params: { personId: person.id } })}
-                    accessibilityRole="button"
-                    accessibilityLabel="Create surprise">
-                    <Sparkles size={scale(14)} color={theme.accent} />
-                  </Pressable>
                 </View>
               </View>
 

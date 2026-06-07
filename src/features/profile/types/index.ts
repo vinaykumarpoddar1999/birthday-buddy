@@ -42,6 +42,12 @@ export interface NotificationPreferences {
   activityUpdates: boolean;
 }
 
+export interface ReminderEntry {
+  id: string;
+  daysBefore: number;
+  time: string;
+}
+
 export interface ReminderSettings {
   defaultTime: string;
   quietHoursStart: string;
@@ -49,6 +55,7 @@ export interface ReminderSettings {
   birthdayAlarm: boolean;
   reminderDaysBefore: number[];
   multipleReminderTimes: string[];
+  reminderEntries: ReminderEntry[];
   weekendRules: 'same' | 'skip' | 'earlier';
   notificationSound: boolean;
   vibration: boolean;

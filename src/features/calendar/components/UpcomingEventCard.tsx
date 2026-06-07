@@ -53,19 +53,9 @@ function ActionButton({
       });
       return;
     }
-    if (label === 'Plan Surprise' || label === 'Create Surprise') {
-      router.push({
-        pathname: '/surprise-link-studio',
-        params: personId ? { personId } : undefined,
-      });
-      return;
-    }
     if (label === 'Send Wish' && personId) {
       router.push({ pathname: '/ai-wish', params: { personId } });
       return;
-    }
-    if (label === 'Gift Ideas' && personId) {
-      router.push({ pathname: '/coming-soon', params: { feature: 'gift-ideas' } });
     }
   };
 

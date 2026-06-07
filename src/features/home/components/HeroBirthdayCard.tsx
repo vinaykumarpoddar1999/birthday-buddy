@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Cake, Calendar, Gift, Heart, MapPin, Sparkles } from 'lucide-react-native';
+import { Cake, Calendar, Heart, MapPin, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { Colors, Shadows, scale } from '../constants/design-tokens';
@@ -103,16 +103,6 @@ export function HeroBirthdayCard({ person }: HeroBirthdayCardProps) {
                   label={`${person.fullName} avatar`}
                 />
               </View>
-              <Pressable
-                style={styles.giftButton}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  router.push({ pathname: '/coming-soon', params: { feature: 'gift-ideas' } });
-                }}
-                accessibilityRole="button"
-                accessibilityLabel="Send gift">
-                <Gift size={scale(18)} color="#F97316" strokeWidth={2.2} />
-              </Pressable>
             </View>
           </View>
         </LinearGradient>

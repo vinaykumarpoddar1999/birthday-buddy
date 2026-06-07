@@ -14,16 +14,12 @@ import {
   Check,
   ClipboardCopy,
   Download,
-  Link2,
   Plus,
   Share2,
 } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
-import { router } from 'expo-router';
-
 import { cardService } from '@/services/card/card.service';
-import { useSurpriseLinkStore } from '@features/surprise-link/store/surprise-link.store';
 
 import { CardStudioPrimaryButton } from '../components/common/CardStudioPrimaryButton';
 import { CardStudioSecondaryButton } from '../components/common/CardStudioSecondaryButton';
@@ -48,36 +44,6 @@ export function Step4ShareScreen() {
   const canvasFormat = useCardStudioStore((s) => s.canvasFormat);
   const preFilledPersonId = useCardStudioStore((s) => s.preFilledPersonId);
   const reset = useCardStudioStore((s) => s.reset);
-  const updateSurprisePersonalization = useSurpriseLinkStore((s) => s.updatePersonalization);
-  const updateSurpriseHero = useSurpriseLinkStore((s) => s.updateHero);
-  const setSurpriseStep = useSurpriseLinkStore((s) => s.setStep);
-  const setSurpriseOccasion = useSurpriseLinkStore((s) => s.setOccasion);
-
-  const handleTurnIntoSurprise = useCallback(() => {
-    updateSurprisePersonalization({
-      recipientName: personalization.recipientName,
-      senderName: personalization.senderName,
-      relationship: personalization.relationship,
-    });
-    updateSurpriseHero({
-      welcomeMessage: `A surprise card for ${personalization.recipientName || 'you'} ❤️`,
-      heroImageUri: personalization.photoUri,
-      coverImageUri: personalization.photoUri ?? undefined,
-    });
-    setSurpriseOccasion(personalization.eventType === 'anniversary' ? 'anniversary' : 'birthday');
-    setSurpriseStep(4);
-    router.push({
-      pathname: '/surprise-link-studio',
-      params: preFilledPersonId ? { personId: preFilledPersonId, fromCard: '1' } : { fromCard: '1' },
-    });
-  }, [
-    personalization,
-    preFilledPersonId,
-    updateSurprisePersonalization,
-    updateSurpriseHero,
-    setSurpriseStep,
-    setSurpriseOccasion,
-  ]);
 
   const exportRef = useRef<ViewShotCaptureHandle>(null);
   const fallbackRef = useRef<View>(null);
@@ -336,23 +302,6 @@ export function Step4ShareScreen() {
             <Text className="text-[13px] font-semibold text-primary">Create New Card</Text>
           </Pressable>
 
-          <Pressable
-            onPress={handleTurnIntoSurprise}
-            className="overflow-hidden rounded-2xl"
-            accessibilityRole="button"
-            accessibilityLabel="Turn card into surprise experience">
-            <LinearGradient
-              colors={['#EC4899', '#7C3AED']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}>
-              <View
-                className="flex-row items-center justify-center gap-2"
-                style={{ minHeight: studioTokens.touchMin, paddingVertical: 14 }}>
-                <Link2 size={17} color="#FFF" />
-                <Text className="text-[14px] font-bold text-white">Turn Card Into Surprise</Text>
-              </View>
-            </LinearGradient>
-          </Pressable>
         </View>
       </ScrollView>
     </View>

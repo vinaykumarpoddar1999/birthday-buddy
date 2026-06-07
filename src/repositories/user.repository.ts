@@ -1,5 +1,22 @@
 import { BaseRepository } from './base-repository';
-import type { AccountStatus, AuthUser } from '@features/auth/types/auth.types';
+
+type AccountStatus = 'active' | 'locked' | 'pending_deletion' | 'deleted';
+
+type AuthUser = {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  fullName: string;
+  nickname: string;
+  profilePhoto: string | null;
+  dateOfBirth: string;
+  gender: string;
+  country: string;
+  timezone: string;
+  preferredLanguage: string;
+  accountStatus: AccountStatus;
+  lastLoginAt: string | null;
+};
 
 interface UserRow {
   uuid: string;

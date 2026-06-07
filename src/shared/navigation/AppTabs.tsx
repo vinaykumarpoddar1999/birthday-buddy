@@ -15,7 +15,6 @@ export default function AppTabs() {
       <Tabs.Screen name="contacts" options={{ title: 'People' }} />
       <Tabs.Screen name="profile" options={{ href: null }} />
       <Tabs.Screen name="explore" options={{ href: null }} />
-      <Tabs.Screen name="premium" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
     </Tabs>
   );

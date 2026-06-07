@@ -1,6 +1,6 @@
 import { hydrateAppStores } from '@/database/store-hydration';
 import { DatabaseManager } from '@/database/database-manager';
-import { authService } from '@/services/auth/auth.service';
+import { setOnboardingComplete } from '@/lib/onboarding-storage';
 import { cancelAllScheduledBirthdayNotifications } from '@/services/notifications/local-notifications.service';
 import { profileService } from '@/services/profile/profile.service';
 import { appNotificationService } from '@/services/notifications/app-notification.service';
@@ -33,18 +33,13 @@ export class AccountService {
         await DatabaseManager.run(`DELETE FROM ${table}`);
       }
     });
-    await authService.wipeAllAuthData();
+    await setOnboardingComplete(false);
     await profileService.resetToDefaults();
     await appNotificationService.clearAll();
     await appNotificationService.seedWelcomeIfEmpty();
     await hydrateAppStores();
     useAuthStore.setState({
-      user: null,
-      session: null,
-      securityPreferences: null,
       authState: 'setup_required',
-      isLocked: false,
-      hasAccount: false,
       onboardingComplete: false,
     });
   }

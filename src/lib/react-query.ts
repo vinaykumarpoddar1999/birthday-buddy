@@ -11,11 +11,7 @@ export const queryKeys = {
   wish: (id: string) => ['wishes', id] as const,
   reminders: ['reminders'] as const,
   cards: ['cards'] as const,
-  gifts: ['gifts'] as const,
   memories: ['memories'] as const,
-  referrals: ['referrals'] as const,
-  premium: ['premium'] as const,
-  subscription: (userId: string) => ['premium', 'subscription', userId] as const,
   deviceTokens: ['device-tokens'] as const,
 } as const;
 

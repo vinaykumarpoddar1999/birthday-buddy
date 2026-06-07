@@ -1,3 +1,1 @@
-import { ReminderSettingsScreen } from '@features/profile/screens/ReminderSettingsScreen';
-
-export default ReminderSettingsScreen;
+export { ReminderSettingsScreen as default } from '@features/profile/screens/ReminderSettingsScreen';

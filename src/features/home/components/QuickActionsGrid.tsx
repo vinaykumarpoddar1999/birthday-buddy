@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Gift, Link2, Sparkles, Star, Wand2 } from 'lucide-react-native';
+import { Sparkles, Star, Wand2 } from 'lucide-react-native';
 import { router, type Href } from 'expo-router';
 import type { LucideIcon } from 'lucide-react-native';
 
@@ -12,21 +12,10 @@ type QuickAction = {
   iconBg: string;
   title: string;
   subtitle: string;
-  badge?: string;
   href: Href;
 };
 
 const QUICK_ACTIONS: QuickAction[] = [
-  {
-    id: 'surprise-link',
-    icon: Link2,
-    iconColor: '#7C3AED',
-    iconBg: '#F5F3FF',
-    title: 'Surprise Link',
-    subtitle: 'Share magic links with your loved ones',
-    badge: 'POPULAR',
-    href: '/surprise-link-studio',
-  },
   {
     id: 'wish-gen',
     icon: Wand2,
@@ -45,33 +34,21 @@ const QUICK_ACTIONS: QuickAction[] = [
     subtitle: 'Design & share beautiful cards',
     href: '/card-studio',
   },
- 
-  {
-    id: 'gift-ideas',
-    icon: Gift,
-    iconColor: '#F59E0B',
-    iconBg: '#FFFBEB',
-    title: 'Gift Ideas',
-    subtitle: 'Perfect picks  by your loved ones',
-    href: { pathname: '/coming-soon', params: { feature: 'gift-ideas' } },
-  },
 ];
 
 export function QuickActionsGrid() {
   return (
     <View style={styles.container}>
-      {/* Section Header */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Quick Actions</Text>
           <Star size={scale(16)} color="#F59E0B" fill="#F59E0B" style={{ marginLeft: 6 }} />
         </View>
         <Text style={styles.subtitle}>
-          Wishes, cards, surprises, and gift inspiration in one place
+          Wishes and cards in one place
         </Text>
       </View>
 
-      {/* Grid */}
       <View style={styles.grid}>
         {QUICK_ACTIONS.map((action) => {
           const Icon = action.icon;
@@ -86,11 +63,6 @@ export function QuickActionsGrid() {
                 <View style={[styles.cardIcon, { backgroundColor: action.iconBg }]}>
                   <Icon size={scale(22)} color={action.iconColor} strokeWidth={2} />
                 </View>
-                {action.badge && (
-                  <View style={styles.badgeContainer}>
-                    <Text style={styles.badgeText}>{action.badge}</Text>
-                  </View>
-                )}
                 <Text style={styles.cardTitle} numberOfLines={1}>{action.title}</Text>
                 <Text style={styles.cardSubtitle}>{action.subtitle}</Text>
               </View>
@@ -149,21 +121,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: scale(10),
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: scale(12),
-    right: scale(12),
-    backgroundColor: '#10B981',
-    paddingHorizontal: scale(6),
-    paddingVertical: scale(2),
-    borderRadius: scale(6),
-  },
-  badgeText: {
-    fontSize: scale(8),
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   cardTitle: {
     fontSize: scale(13),

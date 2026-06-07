@@ -3,15 +3,11 @@ import { settingsRepository } from '@/repositories/settings.repository';
 import type { SearchResult } from '@/types/entities';
 
 const SETTINGS_SEARCH: { key: string; title: string; routeKey: string }[] = [
-  { key: 'notification', title: 'Notification Preferences', routeKey: 'notification-prefs' },
-  { key: 'reminder', title: 'Reminder Settings', routeKey: 'reminder-settings' },
-  { key: 'reminder-time', title: 'Reminder Time', routeKey: 'reminder-time' },
+  { key: 'reminder-settings', title: 'Reminder Settings', routeKey: 'reminder-settings' },
   { key: 'backup', title: 'Backup & Restore', routeKey: 'backup-restore' },
   { key: 'import', title: 'Import Data', routeKey: 'import-data' },
-  { key: 'calendar', title: 'Calendar Sync', routeKey: 'calendar-sync' },
-  { key: 'help', title: 'Help & FAQ', routeKey: 'help-faq' },
-  { key: 'privacy', title: 'Privacy & Security', routeKey: 'privacy-security' },
-  { key: 'export', title: 'Export Data', routeKey: 'export-data' },
+  { key: 'help', title: 'FAQ', routeKey: 'help-faq' },
+  { key: 'personal-info', title: 'Personal Information', routeKey: 'personal-info' },
 ];
 
 export class SearchService {
@@ -41,20 +37,23 @@ export class SearchService {
     const matches: SearchResult[] = [];
 
     for (const item of SETTINGS_SEARCH) {
-      if (
-        q.includes(item.key) ||
-        item.title.toLowerCase().includes(q) ||
-        String(settings[item.key as keyof typeof settings] ?? '')
-          .toLowerCase()
-          .includes(q)
-      ) {
+      if (item.title.toLowerCase().includes(q) || item.key.includes(q)) {
         matches.push({
           entityType: 'settings',
-          entityUuid: item.routeKey,
+          entityUuid: item.key,
           title: item.title,
           body: item.routeKey,
         });
       }
+    }
+
+    if (settings.reminderTime && 'reminder'.includes(q)) {
+      matches.push({
+        entityType: 'settings',
+        entityUuid: 'reminder-settings',
+        title: 'Reminder Settings',
+        body: 'reminder-settings',
+      });
     }
 
     return matches;

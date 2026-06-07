@@ -8,6 +8,7 @@ import {
   DEFAULT_PRIVACY_SETTINGS,
   DEFAULT_REMINDER_SETTINGS,
 } from '@/services/profile/profile.service';
+import { normalizeReminderSettings } from '@features/profile/utils/reminder-settings.utils';
 import { useThemeStore } from '@/stores/theme.store';
 import type {
   AppearanceSettings,
@@ -111,7 +112,10 @@ export const useSettingsStore = create<SettingsStoreState>()((set) => ({
       if (partial.appearanceSettings?.theme) {
         useThemeStore.getState().setMode(partial.appearanceSettings.theme);
       }
-      return { ...s, ...partial };
+      const reminderSettings = partial.reminderSettings
+        ? normalizeReminderSettings({ ...DEFAULT_REMINDER_SETTINGS, ...partial.reminderSettings })
+        : s.reminderSettings;
+      return { ...s, ...partial, reminderSettings };
     }),
   reset: () => {
     useThemeStore.getState().setMode('system');

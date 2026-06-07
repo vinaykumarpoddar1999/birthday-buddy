@@ -15,7 +15,6 @@ import { UpcomingBirthdaySection } from '../components/UpcomingBirthdaySection';
 import { StatsSection } from '../components/StatsSection';
 import { SpecialCardsBanner } from '../components/SpecialCardsBanner';
 import { QuickActionsGrid } from '../components/QuickActionsGrid';
-import { ShareAppSection } from '../components/ShareAppSection';
 import { MadeWithLoveFooter } from '../components/MadeWithLoveFooter';
 import { Colors, scale } from '../constants/design-tokens';
 
@@ -108,8 +107,6 @@ export function HomeDashboardScreen() {
 
         {/* Quick Actions Grid */}
         <QuickActionsGrid />
-
-        <ShareAppSection />
 
         <MadeWithLoveFooter />
       </ScrollView>

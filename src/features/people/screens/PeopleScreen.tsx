@@ -40,7 +40,7 @@ export function PeopleScreen() {
   const [showAddMenu, setShowAddMenu] = useState(false);
 
   const handleImportContacts = () => {
-    router.push('/contact-import');
+    void openSelectFromContact();
   };
 
   const allContacts = useMemo(

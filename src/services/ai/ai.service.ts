@@ -22,10 +22,6 @@ export async function generateWish(input: GenerateWishInput): Promise<{ text: st
   return { text: wish.text };
 }
 
-export async function suggestGift(): Promise<{ suggestions: string[] }> {
-  return { suggestions: ['Flowers', 'Chocolate', 'Gift card'] };
-}
-
 export async function createCard(): Promise<{ imageUrl: string }> {
   return { imageUrl: '' };
 }

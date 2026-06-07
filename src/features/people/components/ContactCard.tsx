@@ -52,10 +52,6 @@ export function ContactCard({ item }: ContactCardProps) {
           onPress: () => router.push({ pathname: '/ai-wish', params: { personId: item.id } }),
         },
         {
-          label: 'Create Surprise',
-          onPress: () => router.push({ pathname: '/surprise-link-studio', params: { personId: item.id } }),
-        },
-        {
           label: 'Create Card',
           onPress: () => router.push({ pathname: '/card-studio', params: { personId: item.id } }),
         },

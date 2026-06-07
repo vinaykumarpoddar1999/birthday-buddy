@@ -13,18 +13,11 @@ import type { SearchResult } from '../types';
 
 const SETTINGS_ITEMS = [
   { id: 'personal-info', title: 'Personal Information', subtitle: 'Update your details', route: '/personal-info' },
-  { id: 'privacy-security', title: 'Privacy & Security', subtitle: 'Manage access and security', route: '/privacy-security' },
-  { id: 'notification-prefs', title: 'Notification Preferences', subtitle: 'Manage notifications', route: '/notification-prefs' },
-  { id: 'reminder-settings', title: 'Reminder Settings', subtitle: 'Set reminder timing', route: '/reminder-settings' },
-  { id: 'reminder-time', title: 'Reminder Time', subtitle: 'Set default reminder time', route: '/reminder-time' },
+  { id: 'reminder-settings', title: 'Reminder Settings', subtitle: 'Manage reminder schedules', route: '/reminder-settings' },
   { id: 'backup-restore', title: 'Backup & Restore', subtitle: 'Manage backups', route: '/backup-restore' },
-  { id: 'export-data', title: 'Export Data', subtitle: 'Export JSON or CSV', route: '/export-data' },
   { id: 'import-data', title: 'Import Data', subtitle: 'Import JSON backup', route: '/import-data' },
-  { id: 'contact-import', title: 'Import Contacts', subtitle: 'Import birthdays from phone', route: '/contact-import' },
-  { id: 'calendar-sync', title: 'Calendar Sync', subtitle: 'Sync birthdays to calendar', route: '/calendar-sync' },
-  { id: 'privacy-policy', title: 'Privacy Policy', subtitle: 'Data usage and permissions', route: '/privacy-policy' },
-  { id: 'terms-conditions', title: 'Terms & Conditions', subtitle: 'User agreement', route: '/terms-conditions' },
-  { id: 'help-faq', title: 'Help & FAQ', subtitle: 'Get help', route: '/help-faq' },
+  { id: 'help-faq', title: 'FAQ', subtitle: 'Get help', route: '/help-faq' },
+  { id: 'about', title: 'About', subtitle: 'App information', route: '/about' },
 ];
 
 const SETTINGS_ROUTE_MAP: Record<string, string> = Object.fromEntries(

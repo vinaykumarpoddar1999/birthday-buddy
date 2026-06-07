@@ -23,8 +23,6 @@ async function hydrateAuthStoreSafely(): Promise<void> {
     useAuthStore.setState({
       authState: 'setup_required',
       isHydrated: true,
-      isLocked: false,
-      hasAccount: false,
       onboardingComplete: false,
     });
   }
@@ -123,13 +121,6 @@ export async function hydrateAppStores(): Promise<void> {
   }
 
   try {
-    const { syncDeviceCalendarIfEnabled } = await import('@/services/calendar/device-calendar.service');
-    await syncDeviceCalendarIfEnabled();
-  } catch {
-    /* calendar sync on startup is best-effort */
-  }
-
-  try {
     const refreshedNotifications = await appNotificationService.list();
     useNotificationStore.getState().hydrateNotifications(refreshedNotifications);
     useActivityStore.setState({ notifications: refreshedNotifications });
@@ -137,22 +128,6 @@ export async function hydrateAppStores(): Promise<void> {
     // Keep previously loaded notifications.
   }
 
-  try {
-    const { usePremiumStore } = await import('@/stores/premium.store');
-    const { useReferralStore } = await import('@/stores/referral.store');
-    await Promise.all([usePremiumStore.getState().hydrate(), useReferralStore.getState().hydrate()]);
-  } catch {
-    /* monetization hydrate is optional */
-  }
-
   await hydrateAuthStoreSafely();
 
-  try {
-    const { runWeeklyForegroundBackupIfDue } = await import(
-      '@/services/backup/weekly-foreground-backup.service'
-    );
-    void runWeeklyForegroundBackupIfDue();
-  } catch {
-    /* optional */
-  }
 }

@@ -1,12 +1,11 @@
 import { router } from 'expo-router';
-import { Camera, Crown } from 'lucide-react-native';
+import { Camera } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
 import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
-import { useAuth } from '@features/auth';
 
 import { useProfileStore } from '../store/profile.store';
 
@@ -25,7 +24,6 @@ export function ProfileSummaryCard({
   const updateProfile = useProfileStore((s) => s.updateProfile);
   const profileCompletion = useProfileStore((s) => s.profileCompletion);
   const { maskName, maskEmail, shouldMask } = usePrivacyDisplay();
-  const { isAuthenticated, isGuest } = useAuth();
   const { showImagePicker } = useProfileImagePicker((uri) => updateProfile({ profileImage: uri }));
 
   const handleEditProfile = onEditProfilePress ?? (() => router.push('/edit-profile'));
@@ -50,8 +48,6 @@ export function ProfileSummaryCard({
             shouldMask={shouldMask}
             maskName={maskName}
             maskEmail={maskEmail}
-            isAuthenticated={isAuthenticated}
-            isGuest={isGuest}
             profileCompletion={profileCompletion}
             showImagePicker={showImagePicker}
             handleEditProfile={handleEditProfile}
@@ -66,8 +62,6 @@ export function ProfileSummaryCard({
             shouldMask={shouldMask}
             maskName={maskName}
             maskEmail={maskEmail}
-            isAuthenticated={isAuthenticated}
-            isGuest={isGuest}
             profileCompletion={profileCompletion}
             showImagePicker={showImagePicker}
             handleEditProfile={handleEditProfile}
@@ -85,8 +79,6 @@ type CardContentProps = {
   shouldMask: boolean;
   maskName: (name: string) => string;
   maskEmail: (email: string) => string;
-  isAuthenticated: boolean;
-  isGuest: boolean;
   profileCompletion: number;
   showImagePicker: () => void;
   handleEditProfile: () => void;
@@ -99,8 +91,6 @@ function CardContent({
   shouldMask,
   maskName,
   maskEmail,
-  isAuthenticated,
-  isGuest,
   profileCompletion,
   showImagePicker,
   handleEditProfile,
@@ -126,23 +116,11 @@ function CardContent({
           </View>
         </Pressable>
         <View className="flex-1 ml-4 min-w-0">
-          <View className="flex-row items-center flex-wrap gap-x-2 gap-y-1">
-            <Text className="text-title text-foreground font-bold shrink" numberOfLines={1}>
-              {maskName(profile.fullName || 'Your Profile')}
-            </Text>
-            {profile.isPremium && (
-              <View className="flex-row items-center bg-primary/10 rounded-full px-2 py-0.5 shrink-0 gap-0.5">
-                <Crown size={10} color="#7C3AED" />
-                <Text className="text-[10px] font-bold text-primary">Premium</Text>
-              </View>
-            )}
-          </View>
+          <Text className="text-title text-foreground font-bold shrink" numberOfLines={1}>
+            {maskName(profile.fullName || 'Your Profile')}
+          </Text>
           <Text className="text-caption text-foreground-secondary mt-0.5" numberOfLines={1}>
-            {isAuthenticated
-              ? maskEmail(profile.email || 'Add your email')
-              : isGuest
-                ? 'Guest mode — sign in to sync your profile'
-                : maskEmail(profile.email || 'Add your email')}
+            {maskEmail(profile.email || 'Add your email')}
           </Text>
           <Pressable onPress={handleEditProfile} className="mt-2" accessibilityRole="button" accessibilityLabel="Edit profile">
             <Text className="text-[11px] font-bold text-primary">{editProfileLabel}</Text>

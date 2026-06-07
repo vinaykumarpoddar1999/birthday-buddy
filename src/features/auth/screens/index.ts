@@ -1,12 +1,4 @@
 export { OnboardingScreen } from './OnboardingScreen';
-export { WelcomeScreen } from './WelcomeScreen';
-export { LoginScreen } from './LoginScreen';
-export { RegisterScreen } from './RegisterScreen';
-export { ForgotPasswordScreen } from './ForgotPasswordScreen';
-export { PinSetupScreen } from './PinSetupScreen';
-export { LockScreen } from './LockScreen';
-export { BiometricSetupScreen } from './BiometricSetupScreen';
+export { ProfileSetupScreen } from './ProfileSetupScreen';
 export { PermissionSetupScreen } from './PermissionSetupScreen';
-export { SecurityCenterScreen } from './SecurityCenterScreen';
-export { SecurityPreferencesScreen } from './SecurityPreferencesScreen';
-export { SessionRecoveryScreen } from './SessionRecoveryScreen';
+export { AnimatedSplashScreen } from './AnimatedSplashScreen';

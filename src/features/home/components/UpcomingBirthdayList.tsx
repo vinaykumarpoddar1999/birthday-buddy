@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Cake, ChevronRight, Clock, Gift, Link2, Sparkles, User } from 'lucide-react-native';
+import { Cake, ChevronRight, Clock, Gift, Sparkles, User } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -145,16 +145,6 @@ function ListItem({ person, index }: { person: Person; index: number }) {
                 accessibilityRole="button">
                 <Sparkles size={14} color="#7C3AED" />
                 <Text className="text-[11px] font-bold text-primary">Wish</Text>
-              </Pressable>
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation?.();
-                  router.push({ pathname: '/surprise-link-studio', params: { personId: person.id } });
-                }}
-                className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl bg-primary/5 border border-primary/15"
-                accessibilityRole="button">
-                <Link2 size={14} color="#7C3AED" />
-                <Text className="text-[11px] font-bold text-primary">Surprise</Text>
               </Pressable>
               <Pressable
                 onPress={(e) => {

@@ -3,26 +3,19 @@
     "name": "BirthdayBuddy",
     "slug": "birthday-buddy",
     "version": "1.0.0",
-    "description": "Never forget a birthday. AI wishes, premium cards, reminders, and surprise links.",
+    "description": "Never forget a birthday. AI wishes, beautiful cards, and smart reminders.",
     "orientation": "portrait",
-    "icon": "./assets/images/expo-logo.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "birthdaybuddy",
     "userInterfaceStyle": "automatic",
     "runtimeVersion": {
       "policy": "appVersion"
-    },
-    "updates": {
-      "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 30000,
-      "url": "https://u.expo.dev/e1c5520d-5e5e-4d9b-8315-3652331f1017"
     },
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.birthdaybuddy.app",
       "infoPlist": {
         "NSContactsUsageDescription": "BirthdayBuddy uses your contacts to import birthdays and phone numbers.",
-        "NSCalendarsUsageDescription": "BirthdayBuddy syncs birthdays to your device calendar.",
         "NSPhotoLibraryUsageDescription": "BirthdayBuddy lets you add photos to birthday cards and profiles.",
         "NSPhotoLibraryAddUsageDescription": "BirthdayBuddy saves your created birthday cards to your photo library.",
         "NSCameraUsageDescription": "BirthdayBuddy uses the camera for profile and card photos."
@@ -32,9 +25,8 @@
       "package": "com.birthdaybuddy.app",
       "allowBackup": false,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "permissions": [
@@ -47,8 +39,6 @@
         "android.permission.WAKE_LOCK",
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS",
-        "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR",
         "android.permission.USE_FULL_SCREEN_INTENT",
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE"
@@ -64,7 +54,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#9F4CFF",
+          "backgroundColor": "#FFFFFF",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
@@ -74,27 +64,18 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/expo-badge-white.png",
-          "color": "#9F4CFF"
+          "icon": "./assets/images/splash-icon.png",
+          "color": "#7C3AED"
         }
       ],
-      "expo-secure-store",
       "expo-font",
       "expo-sqlite",
-      "expo-background-fetch",
       [
         "expo-contacts",
         {
           "contactsPermission": "Allow BirthdayBuddy to import birthdays from your contacts."
         }
       ],
-      [
-        "expo-calendar",
-        {
-          "calendarPermission": "Allow BirthdayBuddy to sync birthdays with your device calendar."
-        }
-      ],
-      "expo-audio",
       "@react-native-community/datetimepicker",
       [
         "expo-media-library",

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Cake, ChevronRight, Link2, Sparkles, Wand2 } from 'lucide-react-native';
+import { Cake, ChevronRight, Sparkles, Wand2 } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
@@ -55,14 +55,6 @@ export function SelectedDateEvents({ year, month, day, people }: SelectedDateEve
             <ChevronRight size={16} color="#9CA3AF" style={{ marginLeft: 4 }} />
           </Pressable>
           <View className="flex-row gap-2 mt-1.5">
-            <Pressable
-              onPress={() => router.push({ pathname: '/surprise-link-studio', params: { personId: person.id } })}
-              className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10"
-              accessibilityRole="button"
-              accessibilityLabel="Create Surprise">
-              <Link2 size={13} color="#7C3AED" />
-              <Text className="text-[11px] font-bold text-primary">Surprise</Text>
-            </Pressable>
             <Pressable
               onPress={() => router.push({ pathname: '/ai-wish', params: { personId: person.id } })}
               className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/10"

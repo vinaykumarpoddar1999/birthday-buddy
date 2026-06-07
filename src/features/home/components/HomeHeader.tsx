@@ -1,10 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Bell, Crown, Hand, Sparkles } from 'lucide-react-native';
+import { Bell, Hand, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { Colors, Shadows, scale } from '../constants/design-tokens';
 import { useNotificationStore } from '@/stores/notification.store';
-import { usePremiumEntitlement } from '@features/premium/hooks/usePremiumEntitlement';
 import { useProfileStore } from '@features/profile/store/profile.store';
 import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
@@ -12,7 +11,6 @@ import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 export function HomeHeader() {
   const unreadCount = useNotificationStore((s) => s.notifications.filter((n) => !n.isRead).length);
   const profile = useProfileStore((s) => s.profile);
-  const { isActive: isPremium } = usePremiumEntitlement();
   const { maskName } = usePrivacyDisplay();
   const displayName = maskName(profile.fullName || 'there');
   const firstName = displayName.split(' ')[0] || 'there';
@@ -52,13 +50,6 @@ export function HomeHeader() {
         </View>
 
         <View style={styles.actionsRow}>
-          <Pressable
-            style={[styles.actionButton, styles.premiumButton]}
-            onPress={() => router.push('/premium-upgrade')}
-            accessibilityRole="button"
-            accessibilityLabel={isPremium ? 'Premium active' : 'Upgrade to Premium'}>
-            <Crown size={scale(18)} color={isPremium ? '#D97706' : '#7C3AED'} fill={isPremium ? '#FBBF24' : 'transparent'} />
-          </Pressable>
           <View>
             <Pressable
               style={styles.actionButton}
@@ -100,11 +91,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 6,
-  },
-  avatar: {
-    width: scale(44),
-    height: scale(44),
-    borderRadius: scale(22),
   },
   greetingContainer: {
     flex: 1,
@@ -149,11 +135,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.button,
-  },
-  premiumButton: {
-    backgroundColor: '#FEF3C7',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
   },
   badge: {
     position: 'absolute',

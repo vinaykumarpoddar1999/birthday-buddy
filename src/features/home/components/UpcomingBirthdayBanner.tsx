@@ -55,13 +55,8 @@ function buildQuickActions(personId: string): QuickActionCardProps[] {
 
     if (qa.title === 'Create Card') {
       onPress = () => router.push({ pathname: '/card-studio', params: { personId } });
-    } else if (qa.title === 'Surprise Link') {
-      onPress = () => router.push({ pathname: '/surprise-link-studio', params: { personId } });
     } else if (qa.title === 'AI Wish') {
       onPress = () => router.push({ pathname: '/ai-wish', params: { personId } });
-    } else if (qa.title === 'Gift Ideas') {
-      onPress = () =>
-        router.push({ pathname: '/coming-soon', params: { feature: 'gift-ideas' } });
     }
 
     return { ...qa, onPress };

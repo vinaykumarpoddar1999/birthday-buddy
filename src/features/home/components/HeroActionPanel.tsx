@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Gift, Link2, Sparkles, Wand2 } from 'lucide-react-native';
+import { Sparkles, Wand2 } from 'lucide-react-native';
 import { router, type Href } from 'expo-router';
 import type { LucideIcon } from 'lucide-react-native';
 
@@ -30,22 +30,6 @@ const ACTIONS: ActionItem[] = [
     title: 'Create Card',
     subtitle: '',
     href: '/card-studio',
-  },
-  {
-    id: 'surprise-link',
-    icon: Link2,
-    iconColor: '#7C3AED',
-    title: 'Surprise Link',
-    subtitle: '',
-    href: '/surprise-link-studio',
-  },
-  {
-    id: 'gift-ideas',
-    icon: Gift,
-    iconColor: '#EC4899',
-    title: 'Gift Ideas',
-    subtitle: '',
-    href: { pathname: '/coming-soon', params: { feature: 'gift-ideas' } },
   },
 ];
 

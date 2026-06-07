@@ -1,5 +1,5 @@
-import { ReminderTimeScreen } from '@features/profile/screens/ReminderTimeScreen';
+import { Redirect } from 'expo-router';
 
 export default function ReminderTimeRoute() {
-  return <ReminderTimeScreen />;
+  return <Redirect href="/reminder-settings" />;
 }

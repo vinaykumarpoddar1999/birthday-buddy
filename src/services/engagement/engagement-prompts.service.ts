@@ -4,7 +4,6 @@ import { Linking, Platform } from 'react-native';
 import { settingsRepository } from '@/repositories/settings.repository';
 import { peopleService } from '@/services/people/people.service';
 import { useModalStore } from '@/stores/modal.store';
-import { usePremiumStore } from '@/stores/premium.store';
 import { useAuthStore } from '@/stores/auth.store';
 
 import {
@@ -15,7 +14,6 @@ import {
 } from './engagement-context';
 
 const KEYS = {
-  lastPremiumPrompt: 'engagement_last_premium_prompt',
   lastRatePrompt: 'engagement_last_rate_prompt',
   lastUpdatePrompt: 'engagement_last_update_prompt',
   lastAnyPrompt: 'engagement_last_any_prompt',
@@ -24,15 +22,14 @@ const KEYS = {
   promptRotationIndex: 'engagement_prompt_rotation_index',
 } as const;
 
-const MIN_DAYS_PREMIUM = 1;
 const MIN_DAYS_RATE = 1;
 const MIN_DAYS_UPDATE = 7;
 const MIN_DAYS_BETWEEN_ANY = 1;
 const MIN_PEOPLE_COUNT = 2;
 
-type PromptType = 'premium' | 'rate' | 'update';
+type PromptType = 'rate' | 'update';
 
-const PROMPT_ROTATION: PromptType[] = ['premium', 'rate', 'update'];
+const PROMPT_ROTATION: PromptType[] = ['rate', 'update'];
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -113,11 +110,7 @@ export async function recordMainAppEntry(): Promise<void> {
 
 function shouldSkipEngagement(): boolean {
   const authState = useAuthStore.getState().authState;
-  if (
-    authState === 'setup_required' ||
-    authState === 'unauthenticated' ||
-    authState === 'session_recovery'
-  ) {
+  if (authState === 'setup_required') {
     return true;
   }
   if (isOnAuthRoute()) return true;
@@ -142,14 +135,6 @@ async function isRateSuppressed(): Promise<boolean> {
 }
 
 async function isTypeEligible(type: PromptType): Promise<boolean> {
-  const isPremium = usePremiumStore.getState().isPremium;
-
-  if (type === 'premium') {
-    if (isPremium) return false;
-    const lastPremium = await settingsRepository.get(KEYS.lastPremiumPrompt);
-    return isEligibleForType(lastPremium, MIN_DAYS_PREMIUM);
-  }
-
   if (type === 'rate') {
     if (await isRateSuppressed()) return false;
     const lastRate = await settingsRepository.get(KEYS.lastRatePrompt);
@@ -167,7 +152,6 @@ async function isTypeEligible(type: PromptType): Promise<boolean> {
 
 async function showPrompt(type: PromptType): Promise<void> {
   useModalStore.getState().openModal(type);
-  if (type === 'premium') await markShownToday(KEYS.lastPremiumPrompt);
   if (type === 'rate') await markShownToday(KEYS.lastRatePrompt);
   if (type === 'update') await markShownToday(KEYS.lastUpdatePrompt);
   await markAnyShownToday();

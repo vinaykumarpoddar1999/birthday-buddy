@@ -1,10 +1,9 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Check, Cloud, Download, HardDrive, Trash2, Upload } from 'lucide-react-native';
+import { ArrowLeft, Check, Download, Trash2, Upload } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { syncBackupScheduler } from '@/services/backup/backup-scheduler.service';
 import { backupService, type BackupHistoryEntry } from '@/services/backup/backup.service';
 import { useFeedback } from '@/shared/hooks/useFeedback';
 import { getSaveSuccessMessage } from '@/utils/file-download';
@@ -26,10 +25,6 @@ export const BackupRestoreScreen = () => {
   useEffect(() => {
     void loadHistory();
   }, [loadHistory]);
-
-  useEffect(() => {
-    void syncBackupScheduler(backup.autoBackup);
-  }, [backup.autoBackup]);
 
   const handleBackup = useCallback(async () => {
     if (busy) return;
@@ -146,7 +141,7 @@ export const BackupRestoreScreen = () => {
             disabled={busy}
             accessibilityRole="button">
             <Download size={18} color="#7C3AED" />
-            <Text className="text-[15px] font-bold text-primary">Restore</Text>
+            <Text className="text-[15px] font-bold text-primary">Restore Backup</Text>
           </Pressable>
         </View>
 
@@ -156,49 +151,6 @@ export const BackupRestoreScreen = () => {
           accessibilityRole="button">
           <Text className="text-[14px] font-semibold text-primary">Import Data with Preview →</Text>
         </Pressable>
-
-        <View className="bg-surface rounded-2xl px-4 border border-border/60 mt-6">
-          <View className="flex-row items-center py-3.5">
-            <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#DBEAFE]">
-              <Cloud size={18} color="#3B82F6" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[15px] font-medium text-foreground">Cloud Backup</Text>
-              <Text className="text-[12px] text-foreground-secondary mt-0.5">Coming with sync</Text>
-            </View>
-            <Switch value={backup.cloudBackup} onValueChange={(v) => update({ cloudBackup: v })} trackColor={{ false: '#E5E7EB', true: '#7C3AED' }} thumbColor="#FFFFFF" />
-          </View>
-          <View className="h-[0.5px] bg-border/60 ml-12" />
-          <View className="flex-row items-center py-3.5">
-            <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#FEF3C7]">
-              <HardDrive size={18} color="#F59E0B" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[15px] font-medium text-foreground">Local Backup</Text>
-              <Text className="text-[12px] text-foreground-secondary mt-0.5">Export JSON to device</Text>
-            </View>
-            <Switch value={backup.localBackup} onValueChange={(v) => update({ localBackup: v })} trackColor={{ false: '#E5E7EB', true: '#7C3AED' }} thumbColor="#FFFFFF" />
-          </View>
-          <View className="h-[0.5px] bg-border/60 ml-12" />
-          <View className="flex-row items-center py-3.5">
-            <View className="h-9 w-9 rounded-xl items-center justify-center mr-3 bg-[#DCFCE7]">
-              <Check size={18} color="#22C55E" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[15px] font-medium text-foreground">Auto Backup</Text>
-              <Text className="text-[12px] text-foreground-secondary mt-0.5">Weekly automatic backup</Text>
-            </View>
-            <Switch
-              value={backup.autoBackup}
-              onValueChange={(v) => {
-                update({ autoBackup: v });
-                void syncBackupScheduler(v);
-              }}
-              trackColor={{ false: '#E5E7EB', true: '#7C3AED' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-        </View>
 
         {history.length > 0 && (
           <View className="mt-6">

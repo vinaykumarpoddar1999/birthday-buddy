@@ -30,18 +30,13 @@ export default function RootLayout() {
         <Stack.Screen name="add-person" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="person-details" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="card-studio" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="surprise-link-studio" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="surprise-experience/[slug]" options={{ animation: 'fade' }} />
-        <Stack.Screen name="surprise-analytics" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="ai-wish" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="personal-info" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="privacy-security" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="backup-restore" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="export-data" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="delete-account" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="notification-prefs" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="reminder-settings" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="reminder-time" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="quiet-hours" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="notification-detail" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="search" options={{ animation: 'fade' }} />
@@ -55,13 +50,8 @@ export default function RootLayout() {
         <Stack.Screen name="open-source-licenses" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="edit-profile" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="import-data" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="contact-import" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="contact-picker" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="contact-details-queue" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="calendar-sync" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="premium-upgrade" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="refer-earn" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="reminder-settings" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="coming-soon" options={{ animation: 'slide_from_right' }} />
       </Stack>
     </AppProviders>

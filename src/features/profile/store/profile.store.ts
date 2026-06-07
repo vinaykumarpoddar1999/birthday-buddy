@@ -78,6 +78,7 @@ function snapshotForPersistence() {
       ...settings.reminderSettings,
       reminderDaysBefore: [...settings.reminderSettings.reminderDaysBefore],
       multipleReminderTimes: [...settings.reminderSettings.multipleReminderTimes],
+      reminderEntries: [...(settings.reminderSettings.reminderEntries ?? [])],
     },
     privacySettings: { ...settings.privacySettings },
     backupSettings: { ...settings.backupSettings },

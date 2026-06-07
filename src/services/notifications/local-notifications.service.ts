@@ -307,69 +307,88 @@ export async function scheduleBirthdayReminders(
   await ensureBirthdayAlarmNotificationCategory();
   await ensureAndroidChannels(reminderSettings);
 
-  const globalOffsets = reminderSettings.reminderDaysBefore.length
-    ? reminderSettings.reminderDaysBefore
-    : [7, 3, 1, 0];
   const personOffsets = input.reminderDaysBefore ?? [];
-  const offsets = [...new Set([...globalOffsets, ...personOffsets, 0])].sort((a, b) => b - a);
-
-  const notifyTime = input.notifyTime ?? reminderSettings.defaultTime;
-  const advanceTimes =
-    reminderSettings.timingMode === 'flexible' && reminderSettings.multipleReminderTimes.length > 0
-      ? reminderSettings.multipleReminderTimes
-      : [notifyTime];
   const scheduledIds: string[] = [];
   const scheduledKeys = new Set<string>();
   const { AndroidNotificationPriority } = Notifications;
 
+  type SchedulePair = { daysBefore: number; time: string };
+
+  const globalPairs: SchedulePair[] =
+    reminderSettings.reminderEntries?.length > 0
+      ? reminderSettings.reminderEntries.map((entry) => ({
+          daysBefore: entry.daysBefore,
+          time: entry.time,
+        }))
+      : (reminderSettings.reminderDaysBefore.length
+          ? reminderSettings.reminderDaysBefore
+          : [7, 3, 1, 0]
+        ).flatMap((daysBefore) => {
+          const times =
+            reminderSettings.timingMode === 'flexible' &&
+            reminderSettings.multipleReminderTimes.length > 0
+              ? reminderSettings.multipleReminderTimes
+              : [input.notifyTime ?? reminderSettings.defaultTime];
+          return times.map((time) => ({ daysBefore, time }));
+        });
+
+  const personPairs: SchedulePair[] = personOffsets.map((daysBefore) => ({
+    daysBefore,
+    time: input.notifyTime ?? reminderSettings.defaultTime,
+  }));
+
+  const schedulePairs = [...globalPairs, ...personPairs, { daysBefore: 0, time: reminderSettings.defaultTime }];
+
   try {
-    for (const daysBefore of offsets) {
+    for (const pair of schedulePairs) {
+      const { daysBefore } = pair;
+      let time = shiftTimeOutOfQuietHours(
+        pair.time,
+        reminderSettings.quietHoursStart,
+        reminderSettings.quietHoursEnd,
+      );
+
       let triggerMonthDay = subtractDays(birth.month, birth.day, daysBefore);
       const adjusted = adjustForWeekendRules(triggerMonthDay, reminderSettings.weekendRules);
       if (!adjusted) continue;
       triggerMonthDay = adjusted;
 
-      for (let time of advanceTimes) {
-        time = shiftTimeOutOfQuietHours(
-          time,
-          reminderSettings.quietHoursStart,
-          reminderSettings.quietHoursEnd,
-        );
-        const key = `${triggerMonthDay.month}-${triggerMonthDay.day}-${time}-advance-${daysBefore}`;
-        if (scheduledKeys.has(key)) continue;
-        scheduledKeys.add(key);
+      const key = `${triggerMonthDay.month}-${triggerMonthDay.day}-${time}-advance-${daysBefore}`;
+      if (scheduledKeys.has(key)) continue;
+      scheduledKeys.add(key);
 
-        const content = buildAdvanceContent(
-          input.contactName,
+      const content = buildAdvanceContent(
+        input.contactName,
+        daysBefore,
+        reminderSettings,
+        AndroidNotificationPriority,
+      );
+      const channelId =
+        daysBefore === 0 && reminderSettings.birthdayAlarm ? 'birthday-alarms' : 'birthday-reminders';
+
+      const id = await scheduleCalendarNotification(
+        content,
+        triggerMonthDay,
+        time,
+        channelId,
+        {
+          contactId: input.contactId,
+          contactName: input.contactName,
           daysBefore,
-          reminderSettings,
-          AndroidNotificationPriority,
-        );
-        const channelId =
-          daysBefore === 0 && reminderSettings.birthdayAlarm ? 'birthday-alarms' : 'birthday-reminders';
-
-        const id = await scheduleCalendarNotification(
-          content,
-          triggerMonthDay,
-          time,
-          channelId,
-          {
-            contactId: input.contactId,
-            contactName: input.contactName,
-            daysBefore,
-            type: daysBefore === 0 ? 'day_of' : 'advance',
-            alarm: reminderSettings.birthdayAlarm,
-          },
-        );
-        if (id) scheduledIds.push(id);
-      }
+          type: daysBefore === 0 ? 'day_of' : 'advance',
+          alarm: reminderSettings.birthdayAlarm,
+        },
+      );
+      if (id) scheduledIds.push(id);
     }
 
     if (reminderSettings.birthdayAlarm) {
       const alarmTimes =
-        reminderSettings.multipleReminderTimes.length > 0
-          ? reminderSettings.multipleReminderTimes
-          : [notifyTime];
+        reminderSettings.reminderEntries?.length > 0
+          ? [...new Set(reminderSettings.reminderEntries.filter((e) => e.daysBefore === 0).map((e) => e.time))]
+          : reminderSettings.multipleReminderTimes.length > 0
+            ? reminderSettings.multipleReminderTimes
+            : [input.notifyTime ?? reminderSettings.defaultTime];
 
       for (let alarmTime of alarmTimes) {
         alarmTime = shiftTimeOutOfQuietHours(

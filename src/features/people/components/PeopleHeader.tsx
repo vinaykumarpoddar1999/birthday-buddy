@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react-native';
+import { Plus, Users } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
 
 import { TabScreenHeader } from '@shared/ui/TabScreenHeader';
@@ -11,6 +11,7 @@ export function PeopleHeader({ onAddPress }: PeopleHeaderProps) {
   return (
     <TabScreenHeader
       title="People"
+      icon={Users}
       rightAction={
         <Pressable
           accessibilityRole="button"

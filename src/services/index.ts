@@ -18,12 +18,6 @@ export { feedbackService, FeedbackService } from './feedback/feedback.service';
 export { appIconService, AppIconService } from './app-icon/app-icon.service';
 export type { SetAppIconResult } from './app-icon/app-icon.service';
 export {
-  deviceCalendarService,
-  DeviceCalendarService,
-  googleCalendarProvider,
-} from './calendar/device-calendar.service';
-export type { GoogleCalendarProvider } from './calendar/device-calendar.service';
-export {
   syncBackupScheduler,
   initializeBackupScheduler,
   BACKGROUND_BACKUP_TASK,

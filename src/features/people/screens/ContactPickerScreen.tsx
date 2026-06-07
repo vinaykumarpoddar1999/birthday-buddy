@@ -14,7 +14,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
-import { EmptyState, ErrorState, Loader } from '@shared/ui';
+import { EmptyState, ErrorState } from '@shared/ui';
+import { ContactLoadingView } from '@/shared/ui/loaders/ContactLoadingView';
 import { listDeviceContacts, preparePickedContact } from '@/services/contacts/contacts-import.service';
 import { openContactDetailsFlow } from '@/shared/navigation/quick-add-actions';
 import type { DeviceContactPreview } from '@/stores/contacts.store';
@@ -113,7 +114,7 @@ export function ContactPickerScreen() {
       </View>
 
       {loading ? (
-        <Loader fullScreen />
+        <ContactLoadingView />
       ) : permissionDenied ? (
         <EmptyState
           icon={Contact}
