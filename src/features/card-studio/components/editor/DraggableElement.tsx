@@ -240,7 +240,9 @@ export function DraggableElement({ element, scale, canvasFormat, isSelected, onS
         style={animatedStyle}
         accessibilityRole="button"
         accessibilityLabel={`${element.type} element${isSelected ? ', selected' : ''}`}>
-        <Pressable onPress={handleSelect} style={{ flex: 1, overflow: 'hidden' }}>
+        <Pressable
+          onPress={handleSelect}
+          style={{ flex: 1, overflow: element.type === 'text' ? 'visible' : 'hidden' }}>
           <ElementContent element={element} scale={scale} />
         </Pressable>
 

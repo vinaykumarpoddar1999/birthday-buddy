@@ -5,7 +5,6 @@ export { useUserStore } from './user.store';
 export { useSettingsStore } from './settings.store';
 export { useCalendarStore } from './calendar.store';
 export { useContactsStore } from './contacts.store';
-export { usePermissionsStore } from './permissions.store';
 export { useBirthdayStore } from './birthday.store';
 export { useModalStore } from './modal.store';
 export { useUiStore } from './ui.store';

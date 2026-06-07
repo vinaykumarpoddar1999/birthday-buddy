@@ -1,14 +1,13 @@
-import type { NotificationPermissionsStatus } from 'expo-notifications';
+type NotificationPermissionRecord = {
+  granted?: boolean;
+  status?: string;
+};
 
 /** Cross-platform check for notification permission (SDK 54+). */
 export function isNotificationPermissionGranted(
-  permissions: NotificationPermissionsStatus,
+  permissions: NotificationPermissionRecord,
 ): boolean {
-  const record = permissions as NotificationPermissionsStatus & {
-    granted?: boolean;
-    status?: string;
-  };
-  if (record.granted === true) return true;
-  if (record.status === 'granted') return true;
+  if (permissions.granted === true) return true;
+  if (permissions.status === 'granted') return true;
   return false;
 }

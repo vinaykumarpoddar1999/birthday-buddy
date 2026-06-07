@@ -126,6 +126,15 @@ export const ProfileSettingsScreen = () => {
         <View className="px-5 mt-6">
           <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-1">Reminders</Text>
           <View className="bg-surface rounded-2xl px-4">
+            <SettingsRow
+              icon={Bell}
+              iconBg="#FEE2E2"
+              iconColor="#EF4444"
+              title="Notification Settings"
+              description="Enable alerts and manage notification permissions"
+              onPress={() => router.push(ROUTES.notificationSettings as Href)}
+            />
+            <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Clock} iconBg="#DBEAFE" iconColor="#3B82F6" title="Reminder Settings" description="Manage timing and notification schedules" value={reminderValue} onPress={() => router.push('/reminder-settings')} />
           </View>
         </View>

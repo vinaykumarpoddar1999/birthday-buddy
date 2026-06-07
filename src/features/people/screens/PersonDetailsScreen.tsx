@@ -199,15 +199,6 @@ export function PersonDetailsScreen() {
           <DetailRow icon={Cake} label="Birthday" value={safeFormatBirthdayLong(person.birthDate)} />
           <DetailRow icon={User} label="Age" value={`${age} years old · Turns ${nextAge} next`} />
           <DetailRow icon={Bell} label="Event" value={eventLabel} />
-          <DetailRow
-            icon={Bell}
-            label="Reminder"
-            value={
-              person.reminderDaysBefore === 0
-                ? `On the day at ${person.reminderTime}`
-                : `${person.reminderDaysBefore} day(s) before at ${person.reminderTime}`
-            }
-          />
         </View>
 
         {(person.phone || person.email) && (

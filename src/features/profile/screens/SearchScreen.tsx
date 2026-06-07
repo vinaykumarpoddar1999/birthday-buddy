@@ -13,6 +13,7 @@ import type { SearchResult } from '../types';
 
 const SETTINGS_ITEMS = [
   { id: 'personal-info', title: 'Personal Information', subtitle: 'Update your details', route: '/personal-info' },
+  { id: 'notification-settings', title: 'Notification Settings', subtitle: 'Manage alerts and permissions', route: '/notification-settings' },
   { id: 'reminder-settings', title: 'Reminder Settings', subtitle: 'Manage reminder schedules', route: '/reminder-settings' },
   { id: 'backup-restore', title: 'Backup & Restore', subtitle: 'Manage backups', route: '/backup-restore' },
   { id: 'import-data', title: 'Import Data', subtitle: 'Import JSON backup', route: '/import-data' },

@@ -16,7 +16,6 @@ import {
   CalendarTimelineView,
   CalendarToolbar,
   EventLegend,
-  SelectedDateEvents,
   UpcomingSection,
 } from '../components';
 import type { CalendarViewMode } from '../types';
@@ -133,11 +132,6 @@ export function CalendarScreen() {
     navigateForDate(targetYear, targetMonth, date);
   };
 
-  const selectedDayPeople = useMemo(
-    () => getPeopleForCalendarDay(allPeople, month, selectedDate),
-    [allPeople, month, selectedDate],
-  );
-
   const hasMonthEvents = upcomingEvents.length > 0 || Object.keys(calendarEvents).length > 0;
   const hasAnyPeople = allPeople.length > 0;
   const showGlobalEmpty = !peopleLoading && !peopleFetching && !hasAnyPeople;
@@ -191,12 +185,9 @@ export function CalendarScreen() {
                 onSelectOverflowDate={handleSelectOverflowDate}
               />
               <EventLegend />
-              <SelectedDateEvents
-                year={year}
-                month={month}
-                day={selectedDate}
-                people={selectedDayPeople}
-              />
+              {hasMonthEvents ? (
+                <UpcomingSection monthLabel={shortMonthLabel} events={upcomingEvents} />
+              ) : null}
             </>
           ) : upcomingEvents.length > 0 ? (
             <CalendarTimelineView events={upcomingEvents} />
@@ -218,8 +209,6 @@ export function CalendarScreen() {
               primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
               className="mt-4 bg-primary/5 border border-primary/15 rounded-2xl"
             />
-          ) : hasMonthEvents ? (
-            <UpcomingSection monthLabel={shortMonthLabel} events={upcomingEvents} />
           ) : null}
         </ScrollView>
       </View>

@@ -9,6 +9,7 @@ import { AuthGate } from '@/shared/providers/AuthGate';
 import { FontScaleProvider } from '@/shared/providers/FontScaleProvider';
 import { StartupGate } from '@/shared/providers/StartupGate';
 import { ThemeProvider } from '@/shared/providers/ThemeProvider';
+import { EngagementPromptHost } from '@/shared/ui/engagement/EngagementPromptHost';
 import { FeedbackHost } from '@/shared/ui/feedback/FeedbackHost';
 
 type AppProvidersProps = {
@@ -29,6 +30,7 @@ export function AppProviders({ children }: AppProvidersProps) {
                   <AuthGate>{children}</AuthGate>
                 </StartupGate>
                 <FeedbackHost />
+                <EngagementPromptHost />
               </FontScaleProvider>
             </ThemeProvider>
           </QueryClientProvider>

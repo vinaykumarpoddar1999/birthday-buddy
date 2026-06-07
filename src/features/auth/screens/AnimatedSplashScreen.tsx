@@ -86,10 +86,10 @@ type AnimatedSplashScreenProps = {
 };
 
 export function AnimatedSplashScreen({ onReady, onFinish }: AnimatedSplashScreenProps) {
-  const [typedText, setTypedText] = useState('');
   const logoScale = useSharedValue(0.4);
   const logoOpacity = useSharedValue(0);
-  const textProgress = useSharedValue(0);
+  const titleOpacity = useSharedValue(0);
+  const titleTranslateY = useSharedValue(12);
   const containerOpacity = useSharedValue(1);
   const [visible, setVisible] = useState(true);
 
@@ -102,16 +102,8 @@ export function AnimatedSplashScreen({ onReady, onFinish }: AnimatedSplashScreen
     onReady?.();
     logoOpacity.value = withTiming(1, { duration: 500 });
     logoScale.value = withSpring(1, { damping: 12, stiffness: 120 });
-    textProgress.value = withDelay(400, withTiming(1, { duration: 1200 }));
-
-    let index = 0;
-    const typingInterval = setInterval(() => {
-      index += 1;
-      setTypedText(APP_NAME.slice(0, index));
-      if (index >= APP_NAME.length) {
-        clearInterval(typingInterval);
-      }
-    }, 80);
+    titleOpacity.value = withDelay(350, withTiming(1, { duration: 600 }));
+    titleTranslateY.value = withDelay(350, withSpring(0, { damping: 14, stiffness: 140 }));
 
     const exitTimer = setTimeout(() => {
       containerOpacity.value = withTiming(0, { duration: 400 }, (finished) => {
@@ -122,10 +114,9 @@ export function AnimatedSplashScreen({ onReady, onFinish }: AnimatedSplashScreen
     }, 2800);
 
     return () => {
-      clearInterval(typingInterval);
       clearTimeout(exitTimer);
     };
-  }, [containerOpacity, logoOpacity, logoScale, onReady, textProgress]);
+  }, [containerOpacity, logoOpacity, logoScale, onReady, titleOpacity, titleTranslateY]);
 
   const logoStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
@@ -136,9 +127,14 @@ export function AnimatedSplashScreen({ onReady, onFinish }: AnimatedSplashScreen
     opacity: containerOpacity.value,
   }));
 
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslateY.value }],
+  }));
+
   const rainbowLetters = useMemo(
     () =>
-      typedText.split('').map((char, index) => {
+      APP_NAME.split('').map((char, index) => {
         const color = RAINBOW[index % RAINBOW.length];
         return (
           <Text key={`${char}-${index}`} style={[styles.rainbowChar, { color }]}>
@@ -146,7 +142,7 @@ export function AnimatedSplashScreen({ onReady, onFinish }: AnimatedSplashScreen
           </Text>
         );
       }),
-    [typedText],
+    [],
   );
 
   if (!visible) {
@@ -179,10 +175,12 @@ export function AnimatedSplashScreen({ onReady, onFinish }: AnimatedSplashScreen
       </FloatingDeco>
 
       <Animated.View style={[styles.logoWrap, logoStyle]}>
-        <Image source={LOGO} style={styles.logo} contentFit="cover" />
+        <View style={styles.logoShadow}>
+          <Image source={LOGO} style={styles.logo} contentFit="cover" />
+        </View>
       </Animated.View>
 
-      <View style={styles.titleRow}>{rainbowLetters}</View>
+      <Animated.View style={[styles.titleRow, titleStyle]}>{rainbowLetters}</Animated.View>
       <Text style={styles.tagline}>Celebrate every special moment</Text>
     </Animated.View>
   );
@@ -197,17 +195,20 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   logoWrap: {
-    marginBottom: 24,
+    marginBottom: 28,
+  },
+  logoShadow: {
+    borderRadius: 44,
     shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    elevation: 14,
   },
   logo: {
-    width: 140,
-    height: 140,
-    borderRadius: 32,
+    width: 180,
+    height: 180,
+    borderRadius: 44,
   },
   titleRow: {
     flexDirection: 'row',
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   rainbowChar: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
     letterSpacing: -0.5,
   },

@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { type TextStyle, Text, View } from 'react-native';
 
 import {
   emojiToIconKey,
@@ -6,7 +6,7 @@ import {
   isIconStickerContent,
   parseIconStickerContent,
 } from '@shared/utils/lucide-icons';
-import type { CardElement } from '@features/card-studio/types';
+import type { CardElement, FontWeight, TextPreset } from '@features/card-studio/types';
 
 function toFiniteNumber(
   value: number | undefined,
@@ -19,6 +19,55 @@ function toFiniteNumber(
   if (typeof min === 'number') next = Math.max(min, next);
   if (typeof max === 'number') next = Math.min(max, next);
   return next;
+}
+
+const FONT_WEIGHT_MAP: Record<string, TextStyle['fontWeight']> = {
+  normal: '400',
+  bold: '700',
+  '300': '300',
+  '400': '400',
+  '500': '500',
+  '600': '600',
+  '700': '700',
+  '800': '800',
+};
+
+function mapFontWeight(weight?: FontWeight | string): TextStyle['fontWeight'] {
+  if (!weight) return '400';
+  return FONT_WEIGHT_MAP[String(weight)] ?? '400';
+}
+
+function resolveFontStyle(preset?: TextPreset): TextStyle['fontStyle'] {
+  if (preset === 'signature' || preset === 'quote') return 'italic';
+  return 'normal';
+}
+
+function resolveTextEffects(el: CardElement): Pick<TextStyle, 'textShadowColor' | 'textShadowOffset' | 'textShadowRadius'> {
+  if (el.textShadowColor) {
+    return {
+      textShadowColor: el.textShadowColor,
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: toFiniteNumber(el.textShadowRadius, 4, 0),
+    };
+  }
+
+  if (el.textPreset === 'headline') {
+    return {
+      textShadowColor: 'rgba(0,0,0,0.12)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+    };
+  }
+
+  if (el.textPreset === 'subheading') {
+    return {
+      textShadowColor: 'rgba(0,0,0,0.08)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
+    };
+  }
+
+  return {};
 }
 
 export function getElementPosition(el: CardElement, scale = 1) {
@@ -72,25 +121,26 @@ export function CardIconContent({
   );
 }
 
+function computeNumberOfLines(content: string, boxHeight: number, lineHeight: number, padding: number): number {
+  const explicitLines = Math.max(1, content.split('\n').length);
+  const maxLinesFromHeight = Math.max(1, Math.floor((boxHeight - padding * 2) / lineHeight));
+  return Math.min(explicitLines, maxLinesFromHeight);
+}
+
 export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: number }) {
   const content = el.content || '';
   const pos = getElementPosition(el, scale);
   const baseFontSize = toFiniteNumber(el.fontSize, 16, 8);
   const fontSize = baseFontSize * scale;
-  const baseLineHeight = toFiniteNumber(el.lineHeight, baseFontSize * 1.35, 8);
+  const baseLineHeight = toFiniteNumber(el.lineHeight, Math.round(baseFontSize * 1.3), 8);
   const lineHeight = baseLineHeight * scale;
   const baseLetterSpacing = toFiniteNumber(el.letterSpacing, 0);
-  const textShadowRadius = toFiniteNumber(el.textShadowRadius, 0, 0);
   const strokeWidth = toFiniteNumber(el.strokeWidth, 1, 0);
   const boxHeight = toFiniteNumber(el.height, 24, 1) * scale;
   const boxWidth = toFiniteNumber(el.width, 24, 1) * scale;
-  const padding = Math.max(2, fontSize * 0.12);
-  const explicitLines = Math.max(1, content.split('\n').length);
-  const maxLinesFromHeight = Math.max(
-    1,
-    Math.floor((boxHeight - padding * 2) / lineHeight),
-  );
-  const numberOfLines = Math.max(explicitLines, maxLinesFromHeight);
+  const padding = Math.max(4, fontSize * 0.08);
+  const numberOfLines = computeNumberOfLines(content, boxHeight, lineHeight, padding);
+  const textWidth = Math.max(1, boxWidth - padding * 2);
 
   if (shouldRenderContentAsIcon(content)) {
     return (
@@ -104,24 +154,36 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
     );
   }
 
-  const textStyle = {
+  const textStyle: TextStyle = {
     fontSize,
-    fontWeight: (el.fontWeight as '400' | '700') || '400',
+    fontWeight: mapFontWeight(el.fontWeight),
+    fontStyle: resolveFontStyle(el.textPreset),
     color: el.color || '#000',
-    textAlign: el.textAlign || ('center' as const),
+    textAlign: el.textAlign || 'center',
     lineHeight,
     letterSpacing: baseLetterSpacing * scale,
-    textShadowColor: el.textShadowColor,
-    textShadowOffset: el.textShadowColor ? { width: 0, height: 1 } : undefined,
-    textShadowRadius,
     includeFontPadding: false,
+    ...resolveTextEffects(el),
   };
+
+  const horizontalAlign =
+    el.textAlign === 'left' ? 'flex-start' : el.textAlign === 'right' ? 'flex-end' : 'center';
 
   const containerStyle = {
     ...pos,
     justifyContent: 'center' as const,
-    padding,
+    alignItems: horizontalAlign as 'flex-start' | 'flex-end' | 'center',
+    paddingHorizontal: padding,
+    paddingVertical: padding,
     overflow: 'visible' as const,
+  };
+
+  const textProps = {
+    adjustsFontSizeToFit: true as const,
+    minimumFontScale: 0.4,
+    numberOfLines,
+    ellipsizeMode: 'tail' as const,
+    allowFontScaling: false,
   };
 
   if (el.strokeColor && el.strokeWidth) {
@@ -132,14 +194,11 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
             ...textStyle,
             position: 'absolute',
             color: el.strokeColor,
+            width: textWidth,
             left: padding - strokeWidth,
-            right: padding + strokeWidth,
             top: padding,
-            width: boxWidth - padding * 2,
           }}
-          adjustsFontSizeToFit
-          minimumFontScale={0.35}
-          numberOfLines={numberOfLines}>
+          {...textProps}>
           {content}
         </Text>
         <Text
@@ -147,21 +206,14 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
             ...textStyle,
             position: 'absolute',
             color: el.strokeColor,
+            width: textWidth,
             left: padding + strokeWidth,
-            right: padding - strokeWidth,
             top: padding,
-            width: boxWidth - padding * 2,
           }}
-          adjustsFontSizeToFit
-          minimumFontScale={0.35}
-          numberOfLines={numberOfLines}>
+          {...textProps}>
           {content}
         </Text>
-        <Text
-          style={[textStyle, { width: '100%' }]}
-          adjustsFontSizeToFit
-          minimumFontScale={0.35}
-          numberOfLines={numberOfLines}>
+        <Text style={[textStyle, { width: textWidth, maxWidth: textWidth }]} {...textProps}>
           {content}
         </Text>
       </View>
@@ -170,12 +222,7 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
 
   return (
     <View style={containerStyle}>
-      <Text
-        style={[textStyle, { width: '100%', flexShrink: 1 }]}
-        adjustsFontSizeToFit
-        minimumFontScale={0.35}
-        numberOfLines={numberOfLines}
-        ellipsizeMode="tail">
+      <Text style={[textStyle, { width: textWidth, maxWidth: textWidth }]} {...textProps}>
         {content}
       </Text>
     </View>
@@ -242,11 +289,11 @@ export function CardShapeElement({ el, scale = 1 }: { el: CardElement; scale?: n
 }
 
 export const TEXT_PRESETS = {
-  headline: { fontSize: 32, fontWeight: '800' as const, textPreset: 'headline' as const },
-  subheading: { fontSize: 22, fontWeight: '600' as const, textPreset: 'subheading' as const },
-  body: { fontSize: 16, fontWeight: '400' as const, textPreset: 'body' as const },
+  headline: { fontSize: 28, fontWeight: '800' as const, textPreset: 'headline' as const },
+  subheading: { fontSize: 20, fontWeight: '600' as const, textPreset: 'subheading' as const },
+  body: { fontSize: 15, fontWeight: '500' as const, textPreset: 'body' as const },
   signature: { fontSize: 14, fontWeight: '500' as const, textPreset: 'signature' as const, fontStyle: 'italic' as const },
-  quote: { fontSize: 18, fontWeight: '400' as const, textPreset: 'quote' as const, fontStyle: 'italic' as const },
+  quote: { fontSize: 17, fontWeight: '400' as const, textPreset: 'quote' as const, fontStyle: 'italic' as const },
 };
 
 export const FONT_COLORS = [

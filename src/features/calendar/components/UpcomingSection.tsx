@@ -14,7 +14,7 @@ export function UpcomingSection({ monthLabel, events }: UpcomingSectionProps) {
   return (
     <View className="mb-4">
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-title text-foreground font-bold">Upcoming ({monthLabel})</Text>
+        <Text className="text-title text-foreground font-bold">Upcoming event ({monthLabel})</Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="View all upcoming events"
