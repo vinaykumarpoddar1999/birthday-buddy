@@ -13,9 +13,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { usePeople } from '@features/people/hooks/usePeople';
-import { useQuery } from '@tanstack/react-query';
-import { wishService } from '@/services/wish/wish.service';
+import { usePeople, useHomeInsights } from '@features/people/hooks/usePeople';
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
 
@@ -49,13 +47,8 @@ export function ProfileScreen() {
   const profile = useProfileStore((s) => s.profile);
   const { maskName } = usePrivacyDisplay();
   const { data: people = [] } = usePeople();
-  const { data: wishCount = 0 } = useQuery({
-    queryKey: ['wish-history-count'],
-    queryFn: async () => {
-      const history = await wishService.listAllRecent(500);
-      return history.length;
-    },
-  });
+  const { data: homeInsights } = useHomeInsights();
+  const birthdaysWished = homeInsights?.streakDays ?? 0;
 
   const joinedLabel = profile.joinedAt
     ? `Member since ${format(new Date(profile.joinedAt), 'MMM yyyy')}`
@@ -119,7 +112,7 @@ export function ProfileScreen() {
 
         <Animated.View entering={FadeInDown.delay(120).duration(500)} className="flex-row gap-3 mt-4">
           <StatCard icon={Users} iconColor="#7C3AED" iconBg="#EDE9FE" value={people.length} label="People" />
-          <StatCard icon={Wand2} iconColor="#EC4899" iconBg="#FCE7F3" value={wishCount} label="Wishes" />
+          <StatCard icon={Wand2} iconColor="#EC4899" iconBg="#FCE7F3" value={birthdaysWished} label="Birthdays Wished" />
         </Animated.View>
 
         <Animated.View

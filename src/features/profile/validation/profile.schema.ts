@@ -22,14 +22,11 @@ export type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export const profileEditSchema = z.object({
   fullName: z.string().min(1, 'Name is required').max(100),
-  email: z.string().email('Invalid email').or(z.literal('')),
-  phone: z.string().max(20).optional().or(z.literal('')),
   gender: z.enum(['male', 'female', 'other']),
   birthday: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD format')
     .or(z.literal('')),
-  bio: z.string().max(500).optional().or(z.literal('')),
 });
 
 export type ProfileEditFormValues = z.infer<typeof profileEditSchema>;

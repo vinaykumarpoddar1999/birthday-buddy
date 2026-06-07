@@ -41,6 +41,7 @@ export interface Person {
   reminderTime: string;
   repeatYearly: boolean;
   eventType: EventType;
+  customEventName?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +63,7 @@ export interface CreatePersonInput {
   reminderTime?: string;
   repeatYearly?: boolean;
   eventType?: EventType;
+  customEventName?: string;
 }
 
 export interface UpdatePersonInput extends Partial<CreatePersonInput> {

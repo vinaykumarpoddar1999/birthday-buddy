@@ -26,6 +26,14 @@ export class ReminderRepository extends BaseRepository {
     return rows.map((r) => r.notification_id).filter((id): id is string => Boolean(id));
   }
 
+  async getAllActiveNotificationIds(): Promise<string[]> {
+    const rows = await this.getAll<{ notification_id: string | null }>(
+      `SELECT notification_id FROM reminders
+       WHERE ${this.notDeletedClause()} AND notification_id IS NOT NULL`,
+    );
+    return rows.map((r) => r.notification_id).filter((id): id is string => Boolean(id));
+  }
+
   async softDeleteByEventIds(eventIds: number[]): Promise<void> {
     if (eventIds.length === 0) return;
     const now = this.now();

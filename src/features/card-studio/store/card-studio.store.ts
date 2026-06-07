@@ -135,7 +135,23 @@ export const useCardStudioStore = create<CardStudioState>()((set, get) => ({
 
   prevStep: () => {
     const { currentStep } = get();
-    if (currentStep > 1) set({ currentStep: (currentStep - 1) as 1 | 2 | 3 | 4 });
+    if (currentStep <= 1) return;
+    const newStep = (currentStep - 1) as 1 | 2 | 3 | 4;
+    if (newStep === 1) {
+      set({
+        currentStep: 1,
+        selectedTemplate: null,
+        selectedTemplatePreviewId: null,
+        elements: [],
+        history: [],
+        historyIndex: -1,
+        selectedElementId: null,
+        customBackground: null,
+        activePanel: 'content',
+      });
+      return;
+    }
+    set({ currentStep: newStep });
   },
 
   selectTemplate: (template) => {

@@ -97,7 +97,9 @@ function persistState(): void {
   persistQueue = persistQueue
     .then(() => profileService.saveBundle(snapshot))
     .catch((error) => {
-      console.warn('[ProfileStore] Failed to persist settings to SQLite:', error);
+      if (__DEV__) {
+        console.warn('[ProfileStore] Failed to persist settings to SQLite:', error);
+      }
     });
 }
 

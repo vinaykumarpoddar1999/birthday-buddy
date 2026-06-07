@@ -11,8 +11,14 @@ let cachedModule: NotificationsModule | null = null;
  * Lazy-loads expo-notifications to avoid push auto-registration at app startup.
  * In Expo Go, local scheduling may still work after first load; push is unsupported.
  */
-export async function getNotificationsModule(): Promise<NotificationsModule | null> {
-  if (cachedModule) return cachedModule;
+export async function getNotificationsModule(forceReload = false): Promise<NotificationsModule | null> {
+  if (cachedModule && !forceReload) return cachedModule;
+
+  if (forceReload) {
+    modulePromise = null;
+    cachedModule = null;
+  }
+
   if (!modulePromise) {
     modulePromise = (async () => {
       try {
@@ -23,12 +29,13 @@ export async function getNotificationsModule(): Promise<NotificationsModule | nu
         if (__DEV__) {
           console.warn('[notifications] Failed to load expo-notifications:', error);
         }
+        modulePromise = null;
         return null;
       }
     })();
   }
-  const mod = await modulePromise;
-  return mod;
+
+  return modulePromise;
 }
 
 export function isExpoGoNotifications(): boolean {

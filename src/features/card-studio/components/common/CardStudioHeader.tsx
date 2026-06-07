@@ -11,6 +11,8 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 type Props = {
   onBack: () => void;
   title?: string;
+  titleIcon?: React.ReactNode;
+  alignTitle?: 'center' | 'left';
   rightElement?: React.ReactNode;
   showUndoRedo?: boolean;
   onUndo?: () => void;
@@ -91,6 +93,8 @@ function HeaderPrimaryAction({ label, onPress }: { label: string; onPress: () =>
 export function CardStudioHeader({
   onBack,
   title = 'Create Card',
+  titleIcon,
+  alignTitle = 'center',
   rightElement,
   showUndoRedo,
   onUndo,
@@ -100,6 +104,15 @@ export function CardStudioHeader({
   primaryAction,
   hideTitleIcon = false,
 }: Props) {
+  const isLeftAligned = alignTitle === 'left';
+  const resolvedTitleIcon =
+    titleIcon ??
+    (!hideTitleIcon ? (
+      <View className="h-7 w-7 rounded-lg bg-primary/10 items-center justify-center">
+        <Sparkles size={15} color={studioTokens.colors.primary} strokeWidth={2.2} />
+      </View>
+    ) : null);
+
   return (
     <View className="px-5 pt-2 pb-3 border-b border-border/60 bg-background">
       <Animated.View entering={FadeInDown.duration(350)} className="flex-row items-center min-h-[44px]">
@@ -109,26 +122,34 @@ export function CardStudioHeader({
           </HeaderIconButton>
         </View>
 
-        <View
-          className="absolute left-0 right-0 flex-row items-center justify-center gap-2 px-14 pointer-events-none"
-          style={{ zIndex: 0 }}>
-          {!hideTitleIcon ? (
-            <View className="h-8 w-8 rounded-xl bg-primary/10 items-center justify-center">
-              <Sparkles size={17} color={studioTokens.colors.primary} strokeWidth={2.2} />
-            </View>
-          ) : null}
-          <Text
-            className="text-heading text-foreground tracking-tight"
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={{ maxWidth: '70%' }}>
-            {title}
-          </Text>
-        </View>
+        {isLeftAligned ? (
+          <View className="flex-1 flex-row items-center gap-2 px-2" style={{ zIndex: 0 }}>
+            {resolvedTitleIcon}
+            <Text
+              className="text-[17px] font-bold text-foreground tracking-tight"
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {title}
+            </Text>
+          </View>
+        ) : (
+          <View
+            className="absolute left-0 right-0 flex-row items-center justify-center gap-2 px-14 pointer-events-none"
+            style={{ zIndex: 0 }}>
+            {resolvedTitleIcon}
+            <Text
+              className="text-[17px] font-bold text-foreground tracking-tight"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{ maxWidth: '70%' }}>
+              {title}
+            </Text>
+          </View>
+        )}
 
         <View
           style={{
-            marginLeft: 'auto',
+            marginLeft: isLeftAligned ? 0 : 'auto',
             zIndex: 1,
             flexDirection: 'row',
             alignItems: 'center',

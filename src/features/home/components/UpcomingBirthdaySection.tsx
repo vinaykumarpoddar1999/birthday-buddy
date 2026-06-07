@@ -1,26 +1,23 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import {
   Cake,
-  ChevronRight,
   Calendar,
-  Gift,
-  MessageCircle,
-  MapPin,
-  Sparkles,
+  ChevronRight,
+  Sparkles
 } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, Shadows, scale } from '../constants/design-tokens';
-import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import type { Person } from '@/types/entities';
+import { getBirthdayCardTheme } from '@features/people/utils/birthday-card-theme';
 import {
-  getDaysUntilBirthday,
-  getAgeAtNextBirthday,
   formatBirthdayShort,
   formatRelationship,
+  getAgeAtNextBirthday,
+  getDaysUntilBirthday,
 } from '@features/people/utils/birthday-utils';
-import { getBirthdayCardTheme } from '@features/people/utils/birthday-card-theme';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
+import { Colors, scale } from '../constants/design-tokens';
 
 const AVATAR_RING = scale(64);
 const AVATAR_FILL = scale(58);
@@ -115,7 +112,7 @@ export function UpcomingBirthdaySection({ people }: UpcomingBirthdaySectionProps
       {/* Section Header */}
       <View style={styles.sectionHeader}>
         <View style={styles.titleRow}>
-          <Text style={styles.sectionTitle}>Upcoming Birthdays</Text>
+          <Text style={styles.sectionTitle}>Upcoming Events</Text>
           <Text style={styles.partyEmoji}> </Text>
           <Cake size={scale(20)} color="#8B5CF6" />
         </View>

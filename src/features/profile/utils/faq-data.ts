@@ -117,7 +117,7 @@ export const FAQ_DATA: FAQItem[] = [
     id: 'faq-17',
     question: 'What if I miss a notification?',
     answer:
-      'Open the app to see upcoming birthdays on the home screen and calendar. Check that notifications are enabled in Settings.',
+      'Open the app to see upcoming birthdays/events on the home screen and calendar. Check that notifications are enabled in Settings.',
     category: 'Support',
   },
 ];

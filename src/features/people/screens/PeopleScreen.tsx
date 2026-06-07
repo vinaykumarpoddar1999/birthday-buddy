@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState, ErrorState, ListSkeleton } from '@shared/ui';
 import { usePeople } from '@features/people/hooks/usePeople';
-import { feedback } from '@/shared/feedback';
 import {
   sortByUpcoming,
   toBirthdayEvent,
@@ -36,7 +35,6 @@ export function PeopleScreen() {
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('all');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [filterActive, setFilterActive] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
   const handleImportContacts = () => {
@@ -81,24 +79,6 @@ export function PeopleScreen() {
     });
   }, [allContacts, searchText, selectedCategory]);
 
-  const handleFilterPress = () => {
-    if (filterActive) {
-      setSelectedCategory('all');
-      setSearchText('');
-      setFilterActive(false);
-    } else {
-      setFilterActive(true);
-      feedback.actionSheet({
-        title: 'Filter Options',
-        options: [
-          { label: 'Friends Only', onPress: () => setSelectedCategory('friend') },
-          { label: 'Family Only', onPress: () => setSelectedCategory('family') },
-          { label: 'All People', onPress: () => setSelectedCategory('all') },
-        ],
-      });
-    }
-  };
-
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -124,12 +104,7 @@ export function PeopleScreen() {
           showsVerticalScrollIndicator={false}>
           <PeopleHeader onAddPress={() => setShowAddMenu(true)} />
 
-          <SearchBar
-            value={searchText}
-            onChangeText={setSearchText}
-            onFilterPress={handleFilterPress}
-            filterActive={filterActive}
-          />
+          <SearchBar value={searchText} onChangeText={setSearchText} />
 
           <CategoryTabs
             categories={categoriesWithCounts}
@@ -171,7 +146,6 @@ export function PeopleScreen() {
                     onPress: () => {
                       setSearchText('');
                       setSelectedCategory('all');
-                      setFilterActive(false);
                     },
                   }}
                   className="py-6"

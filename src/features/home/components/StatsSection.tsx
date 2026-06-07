@@ -1,19 +1,18 @@
-import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, Flame, PartyPopper, TrendingUp } from 'lucide-react-native';
+import { Cake, Flame, PartyPopper, TrendingUp } from 'lucide-react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { Colors, Shadows, scale } from '../constants/design-tokens';
+import { Shadows, scale } from '../constants/design-tokens';
 
 type StatsSectionProps = {
-  remindersToday: number;
+  birthdaysThisMonth: number;
   streakDays: number;
   upcomingThisWeek: number;
 };
 
-export function StatsSection({ remindersToday, streakDays, upcomingThisWeek }: StatsSectionProps) {
+export function StatsSection({ birthdaysThisMonth, streakDays, upcomingThisWeek }: StatsSectionProps) {
   return (
     <View style={styles.container}>
-      {/* Reminders Card */}
       <View style={styles.cardWrapper}>
         <LinearGradient
           colors={['#FFA64D', '#FF7A59']}
@@ -22,20 +21,20 @@ export function StatsSection({ remindersToday, streakDays, upcomingThisWeek }: S
           style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.iconBg}>
-              <Bell size={scale(18)} color="#FFFFFF" strokeWidth={2.2} />
+              <Cake size={scale(18)} color="#FFFFFF" strokeWidth={2.2} />
             </View>
-            <Text style={styles.cardLabel}>Today&apos;s Reminders</Text>
+            <Text style={styles.cardLabel}>Events This Month</Text>
           </View>
-          <Text style={styles.cardValue}>{remindersToday}</Text>
-          <Text style={styles.cardSubtext}>{upcomingThisWeek} upcoming birthdays in 7 days</Text>
-          {/* Decoration */}
+          <Text style={styles.cardValue}>{birthdaysThisMonth}</Text>
+          <Text style={styles.cardSubtext}>
+            {upcomingThisWeek} more in the next 7 days, plan your wishes
+          </Text>
           <View style={styles.decoration}>
             <PartyPopper size={scale(36)} color="rgba(255,255,255,0.2)" />
           </View>
         </LinearGradient>
       </View>
 
-      {/* Streak Card */}
       <View style={styles.cardWrapper}>
         <LinearGradient
           colors={['#4F46E5', '#9333EA']}
@@ -52,7 +51,6 @@ export function StatsSection({ remindersToday, streakDays, upcomingThisWeek }: S
             <Text style={styles.cardValue}>{streakDays}</Text>
           </View>
           <Text style={styles.cardSubtext}>Total birthdays you have celebrated so far</Text>
-          {/* Decoration */}
           <View style={styles.decorationRight}>
             <TrendingUp size={scale(40)} color="rgba(255,255,255,0.15)" />
           </View>

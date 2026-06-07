@@ -407,6 +407,199 @@ export const candyShopTemplate = buildTemplate({
   accentIcons: ['icon:cake', 'icon:gift', 'icon:sparkles'],
 });
 
+export const balloonBashTemplate = buildTemplate({
+  id: 'tpl-balloon-bash',
+  name: 'Balloon Bash',
+  category: 'birthday',
+  tags: ['birthday', 'balloons', 'party', 'fun'],
+  background: {
+    type: 'gradient',
+    value: ['#38BDF8', '#818CF8', '#F472B6'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
+  colors: { primary: '#6366F1', secondary: '#38BDF8', text: '#FFFFFF', accent: '#E0E7FF' },
+  headline: 'Let\'s\nCelebrate',
+  headlineColor: '#FFFFFF',
+  nameColor: '#E0E7FF',
+  messageColor: '#FCE7F3',
+  accentIcons: ['icon:gift', 'icon:sparkles'],
+});
+
+export const silverJubileeTemplate = buildTemplate({
+  id: 'tpl-silver-jubilee',
+  name: 'Silver Jubilee',
+  category: 'anniversary',
+  tags: ['anniversary', 'silver', 'elegant', 'milestone'],
+  background: {
+    type: 'gradient',
+    value: ['#1E293B', '#64748B', '#CBD5E1'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
+  colors: { primary: '#64748B', secondary: '#94A3B8', text: '#F8FAFC', accent: '#E2E8F0' },
+  headline: 'Silver\nAnniversary',
+  subline: 'Years of love',
+  headlineColor: '#F1F5F9',
+  nameColor: '#FFFFFF',
+  messageColor: '#E2E8F0',
+  accentIcons: ['icon:heart', 'icon:sparkles'],
+});
+
+export const moonlightLoveTemplate = buildTemplate({
+  id: 'tpl-moonlight-love',
+  name: 'Moonlight Love',
+  category: 'romantic',
+  tags: ['love', 'romantic', 'moon', 'night'],
+  background: {
+    type: 'gradient',
+    value: ['#1E1B4B', '#4338CA', '#6366F1'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
+  colors: { primary: '#4338CA', secondary: '#818CF8', text: '#FFFFFF', accent: '#C7D2FE' },
+  headline: 'Under the\nMoon',
+  headlineColor: '#E0E7FF',
+  nameColor: '#FFFFFF',
+  messageColor: '#C7D2FE',
+  accentIcons: ['icon:heart', 'icon:star'],
+});
+
+export const adventureBuddyTemplate = buildTemplate({
+  id: 'tpl-adventure-buddy',
+  name: 'Adventure Buddy',
+  category: 'friend',
+  tags: ['friend', 'adventure', 'travel', 'fun'],
+  background: {
+    type: 'gradient',
+    value: ['#059669', '#10B981', '#34D399'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 0 },
+  },
+  colors: { primary: '#059669', secondary: '#34D399', text: '#FFFFFF', accent: '#D1FAE5' },
+  headline: 'Adventure\nAwaits',
+  headlineColor: '#FFFFFF',
+  nameColor: '#ECFDF5',
+  messageColor: '#D1FAE5',
+  accentIcons: ['icon:sparkles'],
+});
+
+export const milestoneProTemplate = buildTemplate({
+  id: 'tpl-milestone-pro',
+  name: 'Career Milestone',
+  category: 'professional',
+  tags: ['professional', 'career', 'milestone', 'success'],
+  background: {
+    type: 'gradient',
+    value: ['#0F172A', '#1D4ED8', '#3B82F6'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
+  colors: { primary: '#1D4ED8', secondary: '#3B82F6', text: '#FFFFFF', accent: '#BFDBFE' },
+  headline: 'Well\nDone',
+  subline: 'A milestone worth celebrating',
+  headlineColor: '#FFFFFF',
+  nameColor: '#BFDBFE',
+  messageColor: '#DBEAFE',
+  accentIcons: ['icon:sparkles', 'icon:gift'],
+});
+
+export const heartfeltThanksTemplate = buildTemplate({
+  id: 'tpl-heartfelt-thanks',
+  name: 'Heartfelt Thanks',
+  category: 'thank-you',
+  tags: ['thank you', 'gratitude', 'warm', 'heart'],
+  background: {
+    type: 'gradient',
+    value: ['#FEF3C7', '#FDE68A', '#FBBF24'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
+  colors: { primary: '#D97706', secondary: '#F59E0B', text: '#78350F', accent: '#FFFBEB' },
+  headline: 'So\nGrateful',
+  headlineColor: '#92400E',
+  nameColor: '#78350F',
+  messageColor: '#92400E',
+  accentIcons: ['icon:heart', 'icon:flower'],
+});
+
+export const festivalLightsTemplate = buildTemplate({
+  id: 'tpl-festival-lights',
+  name: 'Festival Lights',
+  category: 'festival',
+  tags: ['festival', 'lights', 'celebration', 'holiday'],
+  background: {
+    type: 'gradient',
+    value: ['#450A0A', '#B91C1C', '#F59E0B'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
+  colors: { primary: '#DC2626', secondary: '#F59E0B', text: '#FFFFFF', accent: '#FDE68A' },
+  headline: 'Festival\nCheers',
+  headlineColor: '#FDE68A',
+  nameColor: '#FFFFFF',
+  messageColor: '#FEF3C7',
+  accentIcons: ['icon:star', 'icon:sparkles', 'icon:gift'],
+});
+
+export const cyberFutureTemplate = buildTemplate({
+  id: 'tpl-cyber-future',
+  name: 'Cyber Future',
+  category: 'modern',
+  tags: ['modern', 'cyber', 'tech', 'future'],
+  background: {
+    type: 'gradient',
+    value: ['#020617', '#0891B2', '#22D3EE'],
+    gradientStart: { x: 0, y: 1 },
+    gradientEnd: { x: 1, y: 0 },
+  },
+  colors: { primary: '#0891B2', secondary: '#22D3EE', text: '#FFFFFF', accent: '#A5F3FC' },
+  headline: 'Future\nLooks Bright',
+  subline: 'Keep innovating',
+  headlineColor: '#A5F3FC',
+  nameColor: '#FFFFFF',
+  messageColor: '#CFFAFE',
+  accentIcons: ['icon:sparkles'],
+});
+
+export const cozyHomeTemplate = buildTemplate({
+  id: 'tpl-cozy-home',
+  name: 'Cozy Home',
+  category: 'family',
+  tags: ['family', 'cozy', 'home', 'warm'],
+  background: {
+    type: 'gradient',
+    value: ['#FFEDD5', '#FDBA74', '#FB923C'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 1, y: 1 },
+  },
+  colors: { primary: '#EA580C', secondary: '#FB923C', text: '#7C2D12', accent: '#FFEDD5' },
+  headline: 'Home\nSweet Home',
+  headlineColor: '#9A3412',
+  nameColor: '#7C2D12',
+  messageColor: '#78350F',
+  accentIcons: ['icon:heart', 'icon:flower'],
+});
+
+export const cleanSlateTemplate = buildTemplate({
+  id: 'tpl-clean-slate',
+  name: 'Clean Slate',
+  category: 'minimal',
+  tags: ['minimal', 'clean', 'simple', 'modern'],
+  background: {
+    type: 'gradient',
+    value: ['#FAFAFA', '#F5F5F5', '#E5E5E5'],
+    gradientStart: { x: 0, y: 0 },
+    gradientEnd: { x: 0, y: 1 },
+  },
+  colors: { primary: '#171717', secondary: '#737373', text: '#171717', accent: '#E5E5E5' },
+  headline: 'Just\nBecause',
+  headlineColor: '#171717',
+  nameColor: '#404040',
+  messageColor: '#525252',
+  accentIcons: [],
+});
+
 export const ALL_TEMPLATES: CardTemplate[] = [
   birthdayTemplate,
   anniversaryTemplate,
@@ -429,4 +622,14 @@ export const ALL_TEMPLATES: CardTemplate[] = [
   retroPopTemplate,
   elegantScriptTemplate,
   candyShopTemplate,
+  balloonBashTemplate,
+  silverJubileeTemplate,
+  moonlightLoveTemplate,
+  adventureBuddyTemplate,
+  milestoneProTemplate,
+  heartfeltThanksTemplate,
+  festivalLightsTemplate,
+  cyberFutureTemplate,
+  cozyHomeTemplate,
+  cleanSlateTemplate,
 ];

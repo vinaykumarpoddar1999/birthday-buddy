@@ -9,11 +9,8 @@ export const calcProfileCompletion = (profile: UserProfile): number => {
     profile.fullName,
     profile.birthday,
     profile.preferences,
-    profile.email,
-    profile.phone,
     profile.gender !== 'other' ? profile.gender : '',
     profile.location,
-    profile.bio,
     profile.timezone,
     profile.country,
   ];

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { Activity, ArrowLeft, Bell, BellRing, CheckCheck, Clock, Crown, Gift, Palette, Trash2 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { Activity, ArrowLeft, Bell, BellRing, CheckCheck, Clock, Gift, Trash2 } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { LucideIcon } from 'lucide-react-native';
@@ -11,17 +11,13 @@ import { useFeedback } from '@/shared/hooks/useFeedback';
 import { useNotificationStore } from '@/stores/notification.store';
 import type { AppNotification } from '../types';
 
-const FILTERS = ['All', 'Birthdays', 'Reminders', 'Wishes', 'Cards', 'System'] as const;
-type FilterType = (typeof FILTERS)[number];
+const VISIBLE_TYPES: AppNotification['type'][] = ['system', 'birthday', 'reminder'];
 
 const TYPE_CONFIG: Partial<Record<AppNotification['type'], { icon: LucideIcon; color: string; bg: string }>> = {
   birthday: { icon: Gift, color: '#EC4899', bg: '#FCE7F3' },
-  wish: { icon: BellRing, color: '#7C3AED', bg: '#EDE9FE' },
   reminder: { icon: Clock, color: '#F59E0B', bg: '#FEF3C7' },
   system: { icon: Bell, color: '#3B82F6', bg: '#DBEAFE' },
-  premium: { icon: Crown, color: '#F59E0B', bg: '#FEF3C7' },
   activity: { icon: Activity, color: '#22C55E', bg: '#DCFCE7' },
-  card: { icon: Palette, color: '#8B5CF6', bg: '#EDE9FE' },
 };
 
 const getRelativeTime = (ts: string) => {
@@ -34,28 +30,27 @@ const getRelativeTime = (ts: string) => {
   return `${days}d ago`;
 };
 
+const isWelcomeNotification = (notification: AppNotification): boolean =>
+  notification.type === 'system' && notification.title.toLowerCase().includes('welcome');
+
 export const NotificationCenterScreen = () => {
   const notifications = useNotificationStore((s) => s.notifications);
   const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
   const deleteNotification = useNotificationStore((s) => s.deleteNotification);
   const clearAllNotifications = useNotificationStore((s) => s.clearAllNotifications);
-  const [filter, setFilter] = useState<FilterType>('All');
   const { showDeleteConfirm } = useFeedback();
 
-  const filtered = useMemo(() => {
-    if (filter === 'All') return notifications;
-    const map: Record<string, string[]> = {
-      Birthdays: ['birthday'],
-      Reminders: ['reminder'],
-      Wishes: ['wish'],
-      Cards: ['card'],
-      System: ['system', 'premium', 'activity'],
-    };
-    const types = map[filter] ?? [];
-    return notifications.filter((n) => types.includes(n.type));
-  }, [notifications, filter]);
+  const filtered = useMemo(
+    () =>
+      notifications.filter(
+        (n) =>
+          VISIBLE_TYPES.includes(n.type) &&
+          (n.type !== 'system' || isWelcomeNotification(n)),
+      ),
+    [notifications],
+  );
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = filtered.filter((n) => !n.isRead).length;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -71,7 +66,7 @@ export const NotificationCenterScreen = () => {
             <Text className="text-[11px] text-foreground-secondary mt-0.5">All caught up</Text>
           )}
         </View>
-        {notifications.length > 0 && (
+        {filtered.length > 0 && (
           <Pressable
             onPress={() =>
               showDeleteConfirm({
@@ -93,41 +88,7 @@ export const NotificationCenterScreen = () => {
         )}
       </View>
 
-      <View className="px-5 pb-2">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, alignItems: 'center', paddingVertical: 4 }}>
-          {FILTERS.map((f) => (
-            <Pressable
-              key={f}
-              onPress={() => setFilter(f)}
-              style={{
-                height: 32,
-                paddingHorizontal: 14,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: filter === f ? '#7C3AED' : '#E5E7EB',
-                backgroundColor: filter === f ? '#7C3AED' : '#FFFFFF',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              accessibilityRole="button">
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: filter === f ? '#FFFFFF' : '#6B7280',
-                  lineHeight: 16,
-                }}>
-                {f}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
-
-      <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1 px-5 pt-3" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         {unreadCount > 0 && (
           <View className="bg-primary/8 rounded-2xl px-4 py-3 mb-4 border border-primary/15 flex-row items-center">
             <View className="h-10 w-10 rounded-xl bg-primary/15 items-center justify-center mr-3">

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import { Pencil } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -38,10 +39,11 @@ export function CardStudioScreen() {
   const { data: person } = usePerson(params.personId);
 
   useEffect(() => {
+    resetStore();
     if (params.personId) {
       setPreFilledPersonId(params.personId);
     }
-  }, [params.personId, setPreFilledPersonId]);
+  }, [params.personId, resetStore, setPreFilledPersonId]);
 
   useEffect(() => {
     if (!person || !params.personId || personPrefillApplied) return;
@@ -66,10 +68,15 @@ export function CardStudioScreen() {
   const handleBack = () => {
     if (step > 1) {
       prevStep();
-    } else {
-      resetStore();
-      router.back();
+      return;
     }
+
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/(tabs)');
   };
 
   const renderStep = () => {
@@ -92,6 +99,14 @@ export function CardStudioScreen() {
       <CardStudioHeader
         onBack={handleBack}
         title={TITLES[step]}
+        alignTitle={step === 2 ? 'left' : 'center'}
+        titleIcon={
+          step === 2 ? (
+            <View className="h-7 w-7 rounded-lg bg-primary/10 items-center justify-center">
+              <Pencil size={15} color="#7C3AED" strokeWidth={2.2} />
+            </View>
+          ) : undefined
+        }
         hideTitleIcon={step === 2}
         showUndoRedo={step === 2}
         onUndo={undo}

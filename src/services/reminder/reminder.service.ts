@@ -1,6 +1,7 @@
 import { peopleRepository } from '@/repositories/people.repository';
 import { eventRepository } from '@/repositories/event.repository';
 import { reminderRepository } from '@/repositories/reminder.repository';
+import { scheduleEngagementReminder } from '@/services/notifications/engagement-reminder.service';
 import {
   cancelScheduledNotifications,
   registerForNotifications,
@@ -27,7 +28,10 @@ export class ReminderService {
       contactId: person.id,
       contactName: person.fullName,
       birthDate: person.birthDate,
-      reminderDaysBefore: [person.reminderDaysBefore],
+      reminderDaysBefore:
+        person.reminderDaysBefore !== undefined && person.reminderDaysBefore !== null
+          ? [person.reminderDaysBefore]
+          : undefined,
       notifyTime: person.reminderTime,
       repeatYearly: person.repeatYearly,
     });
@@ -56,6 +60,8 @@ export class ReminderService {
       await this.cancelForPersonUuid(person.id);
       await this.scheduleForPerson(person);
     }
+
+    await scheduleEngagementReminder();
   }
 
   private async cancelForEventIds(eventIds: number[]): Promise<void> {

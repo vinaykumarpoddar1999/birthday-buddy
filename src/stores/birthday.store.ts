@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 
 interface BirthdayStoreState {
-  remindersToday: number;
+  birthdaysThisMonth: number;
   streakDays: number;
   upcomingThisWeek: number;
   hydratedAt: string | null;
   setInsights: (insights: {
-    remindersToday: number;
+    birthdaysThisMonth: number;
     streakDays: number;
     upcomingThisWeek: number;
   }) => void;
@@ -14,7 +14,7 @@ interface BirthdayStoreState {
 }
 
 export const useBirthdayStore = create<BirthdayStoreState>()((set) => ({
-  remindersToday: 0,
+  birthdaysThisMonth: 0,
   streakDays: 0,
   upcomingThisWeek: 0,
   hydratedAt: null,
@@ -23,5 +23,5 @@ export const useBirthdayStore = create<BirthdayStoreState>()((set) => ({
     set({ ...insights, hydratedAt: new Date().toISOString() }),
 
   reset: () =>
-    set({ remindersToday: 0, streakDays: 0, upcomingThisWeek: 0, hydratedAt: null }),
+    set({ birthdaysThisMonth: 0, streakDays: 0, upcomingThisWeek: 0, hydratedAt: null }),
 }));

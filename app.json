@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "BirthdayBuddy",
-    "slug": "birthday-buddy",
+    "slug": "birthday-buddy-2026",
     "version": "1.0.0",
     "description": "Never forget a birthday. AI wishes, beautiful cards, and smart reminders.",
     "orientation": "portrait",
@@ -35,13 +35,20 @@
         "SCHEDULE_EXACT_ALARM",
         "USE_EXACT_ALARM",
         "POST_NOTIFICATIONS",
-        "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.WAKE_LOCK",
+        "WAKE_LOCK",
+        "READ_CONTACTS",
+        "WRITE_CONTACTS",
+        "USE_FULL_SCREEN_INTENT",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS",
-        "android.permission.USE_FULL_SCREEN_INTENT",
-        "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -55,9 +62,16 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 140,
+          "resizeMode": "contain",
           "android": {
             "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+            "imageWidth": 140
+          },
+          "ios": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 140
           }
         }
       ],
@@ -102,8 +116,12 @@
       },
       "latestVersion": "1.0.1",
       "eas": {
-        "projectId": "e1c5520d-5e5e-4d9b-8315-3652331f1017"
+        "projectId": "aeadd2a3-646c-4e7f-a0c2-7b668da26029"
       }
-    }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/aeadd2a3-646c-4e7f-a0c2-7b668da26029"
+    },
+    "owner": "mailtovinay1999"
   }
 }

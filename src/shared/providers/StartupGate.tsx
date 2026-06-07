@@ -1,5 +1,5 @@
 import * as SplashScreen from 'expo-splash-screen';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useState } from 'react';
 import { View } from 'react-native';
 
 import { useDatabaseReady } from '@/database/database-provider';
@@ -20,24 +20,27 @@ export function StartupGate({ children }: StartupGateProps) {
 
   const isAppReady = isDatabaseReady && isAuthHydrated;
 
-  useEffect(() => {
-    if (isAppReady && !nativeSplashHidden) {
-      void SplashScreen.hideAsync()
-        .catch(() => undefined)
-        .finally(() => setNativeSplashHidden(true));
-    }
-  }, [isAppReady, nativeSplashHidden]);
-
   const handleAnimatedSplashFinish = useCallback(() => {
     setAnimatedSplashDone(true);
   }, []);
 
-  const showAnimatedSplash = isAppReady && nativeSplashHidden && !animatedSplashDone;
+  const showAnimatedSplash = isAppReady && !animatedSplashDone;
 
   return (
     <View style={{ flex: 1 }}>
-      {children}
-      {showAnimatedSplash ? <AnimatedSplashScreen onFinish={handleAnimatedSplashFinish} /> : null}
+      {nativeSplashHidden ? children : null}
+      {showAnimatedSplash ? (
+        <AnimatedSplashScreen
+          onReady={() => {
+            if (!nativeSplashHidden) {
+              void SplashScreen.hideAsync()
+                .catch(() => undefined)
+                .finally(() => setNativeSplashHidden(true));
+            }
+          }}
+          onFinish={handleAnimatedSplashFinish}
+        />
+      ) : null}
     </View>
   );
 }

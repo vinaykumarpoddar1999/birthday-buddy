@@ -4,17 +4,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CalendarSkeleton, EmptyState, ErrorState } from '@shared/ui';
+import { useCalendarMonth } from '@features/calendar/hooks/useCalendar';
 import { usePeople } from '@features/people/hooks/usePeople';
 import { getPeopleForCalendarDay } from '@features/people/utils/birthday-utils';
-import { useCalendarMonth } from '@features/calendar/hooks/useCalendar';
+import { CalendarSkeleton, EmptyState, ErrorState } from '@shared/ui';
 import {
   AddEventButton,
   CalendarGrid,
   CalendarHeader,
   CalendarSwitcher,
-  CalendarToolbar,
   CalendarTimelineView,
+  CalendarToolbar,
   EventLegend,
   SelectedDateEvents,
   UpcomingSection,
@@ -85,26 +85,52 @@ export function CalendarScreen() {
     setSelectedDate(now.getDate());
   };
 
+  const navigateForDate = useCallback(
+    (targetYear: number, targetMonth: number, date: number) => {
+      const clamped = clampSelectedDate(targetYear, targetMonth, date);
+      setSelectedDate(clamped);
+
+      const peopleOnDay = getPeopleForCalendarDay(allPeople, targetMonth, clamped);
+      if (peopleOnDay.length === 1) {
+        router.push({ pathname: '/person-details', params: { personId: peopleOnDay[0].id } });
+        return;
+      }
+
+      if (peopleOnDay.length > 1) {
+        return;
+      }
+
+      const dateStr = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(clamped).padStart(2, '0')}`;
+      router.push({ pathname: '/add-person', params: { prefillBirthDate: dateStr } });
+    },
+    [allPeople, clampSelectedDate],
+  );
+
   const handleSelectDate = (date: number) => {
-    const clamped = clampSelectedDate(year, month, date);
-    setSelectedDate(clamped);
+    navigateForDate(year, month, date);
   };
 
   const handleSelectOverflowDate = (direction: -1 | 1, date: number) => {
+    let targetYear = year;
+    let targetMonth = month;
+
     if (direction < 0) {
       if (month === 1) {
-        setYear((y) => y - 1);
-        setMonth(12);
+        targetYear = year - 1;
+        targetMonth = 12;
       } else {
-        setMonth((m) => m - 1);
+        targetMonth = month - 1;
       }
     } else if (month === 12) {
-      setYear((y) => y + 1);
-      setMonth(1);
+      targetYear = year + 1;
+      targetMonth = 1;
     } else {
-      setMonth((m) => m + 1);
+      targetMonth = month + 1;
     }
-    setSelectedDate(date);
+
+    setYear(targetYear);
+    setMonth(targetMonth);
+    navigateForDate(targetYear, targetMonth, date);
   };
 
   const selectedDayPeople = useMemo(
@@ -178,7 +204,7 @@ export function CalendarScreen() {
             <EmptyState
               icon={CalendarDays}
               title="No timeline events"
-              subtitle="Upcoming birthdays will show here once you add people."
+              subtitle="Upcoming birthdays/Events will show here once you add people."
               primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
               className="py-8"
             />

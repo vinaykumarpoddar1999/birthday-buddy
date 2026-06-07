@@ -2,6 +2,7 @@ import type { NotificationContentInput } from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { settingsRepository } from '@/repositories/settings.repository';
+import { reminderRepository } from '@/repositories/reminder.repository';
 import { handleApiError } from '@shared/errors';
 import type { NotificationPreferences, ReminderSettings } from '@features/profile/types';
 import {
@@ -12,6 +13,7 @@ import {
 import { isNotificationPermissionGranted } from './permission-utils';
 import { ensureNotificationHandler } from './notification-init.utils';
 import { getNotificationsModule } from './notifications-api';
+import { scheduleEngagementReminder } from './engagement-reminder.service';
 
 export type ScheduleBirthdayRemindersInput = {
   contactId: string;
@@ -440,10 +442,28 @@ export async function cancelScheduledNotifications(ids: string[]): Promise<void>
   );
 }
 
-export async function cancelAllScheduledBirthdayNotifications(): Promise<void> {
+export async function cancelEveryScheduledNotification(): Promise<void> {
   const Notifications = await getNotificationsModule();
   if (!Notifications) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+export async function cancelAllScheduledBirthdayNotifications(): Promise<void> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
+
+  const trackedIds = await reminderRepository.getAllActiveNotificationIds();
+  await cancelScheduledNotifications(trackedIds);
+
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const birthdayIds = scheduled
+    .filter((entry) => {
+      const data = entry.content.data as Record<string, unknown> | undefined;
+      return data?.type !== 'engagement-reminder';
+    })
+    .map((entry) => entry.identifier);
+
+  await cancelScheduledNotifications(birthdayIds);
 }
 
 export async function getAllScheduledNotificationIds(): Promise<string[]> {
@@ -466,7 +486,10 @@ export async function rescheduleAllBirthdayReminders(
   await cancelAllScheduledBirthdayNotifications();
 
   for (const person of people) {
-    const offsets = person.reminderDaysBefore !== undefined ? [person.reminderDaysBefore] : undefined;
+    const offsets =
+      person.reminderDaysBefore !== undefined && person.reminderDaysBefore !== null
+        ? [person.reminderDaysBefore]
+        : undefined;
     await scheduleBirthdayReminders({
       contactId: person.id,
       contactName: person.fullName,
@@ -476,4 +499,6 @@ export async function rescheduleAllBirthdayReminders(
       repeatYearly: person.repeatYearly !== false,
     });
   }
+
+  await scheduleEngagementReminder();
 }

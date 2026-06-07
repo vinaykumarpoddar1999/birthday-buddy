@@ -80,7 +80,7 @@ export async function hydrateAppStores(): Promise<void> {
     cardPrefs = { favoriteTemplateIds: [], recentTemplateIds: [], drafts: [] };
     aiTemplates = [];
     feedbacks = [];
-    homeInsights = { remindersToday: 0, streakDays: 0, upcomingThisWeek: 0 };
+    homeInsights = { birthdaysThisMonth: 0, streakDays: 0, upcomingThisWeek: 0 };
   }
 
   hydrateProfileDomains(profileBundle);
@@ -103,7 +103,7 @@ export async function hydrateAppStores(): Promise<void> {
   });
 
   useBirthdayStore.getState().setInsights({
-    remindersToday: homeInsights.remindersToday,
+    birthdaysThisMonth: homeInsights.birthdaysThisMonth,
     streakDays: homeInsights.streakDays,
     upcomingThisWeek: homeInsights.upcomingThisWeek,
   });

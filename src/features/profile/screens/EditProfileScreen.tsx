@@ -26,11 +26,8 @@ export const EditProfileScreen = () => {
   const { toast, showError } = useFeedback();
 
   const [name, setName] = useState(profile.fullName);
-  const [email, setEmail] = useState(profile.email);
-  const [phone, setPhone] = useState(profile.phone);
   const [gender, setGender] = useState(profile.gender);
   const [birthday, setBirthday] = useState(profile.birthday);
-  const [bio, setBio] = useState(profile.bio);
   const [profileImage, setProfileImage] = useState(profile.profileImage);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -40,15 +37,15 @@ export const EditProfileScreen = () => {
     try {
       const validated = profileEditSchema.parse({
         fullName: name,
-        email,
-        phone,
         gender,
         birthday,
-        bio,
       });
       updateProfile({
         ...validated,
         profileImage,
+        email: profile.email,
+        phone: profile.phone,
+        bio: profile.bio,
         location: profile.location,
         country: profile.country,
         timezone: profile.timezone,
@@ -109,8 +106,6 @@ export const EditProfileScreen = () => {
 
         <View className="gap-3">
           <FieldInput label="Full Name" value={name} onChangeText={setName} placeholder="Your name" />
-          <FieldInput label="Email" value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" />
-          <FieldInput label="Phone" value={phone} onChangeText={setPhone} placeholder="Phone" keyboardType="phone-pad" />
 
           <View>
             <Text className="text-[13px] font-medium text-foreground-secondary mb-2">Gender</Text>
@@ -139,8 +134,6 @@ export const EditProfileScreen = () => {
               <ChevronRight size={18} color="#9CA3AF" />
             </Pressable>
           </View>
-
-          <FieldInput label="Bio" value={bio} onChangeText={setBio} placeholder="Tell us about yourself..." multiline numberOfLines={3} />
         </View>
 
         <Pressable className="bg-primary rounded-2xl py-4 mt-6 items-center" onPress={handleSave} accessibilityRole="button">
@@ -166,12 +159,9 @@ type FieldInputProps = {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  keyboardType?: 'default' | 'email-address' | 'phone-pad';
-  multiline?: boolean;
-  numberOfLines?: number;
 };
 
-const FieldInput = ({ label, value, onChangeText, placeholder, keyboardType, multiline, numberOfLines }: FieldInputProps) => (
+const FieldInput = ({ label, value, onChangeText, placeholder }: FieldInputProps) => (
   <View>
     <Text className="text-[13px] font-medium text-foreground-secondary mb-1.5">{label}</Text>
     <TextInput
@@ -179,11 +169,7 @@ const FieldInput = ({ label, value, onChangeText, placeholder, keyboardType, mul
       onChangeText={onChangeText}
       placeholder={placeholder}
       placeholderTextColor="#9CA3AF"
-      keyboardType={keyboardType}
-      multiline={multiline}
-      numberOfLines={numberOfLines}
-      className={`bg-surface border border-border rounded-xl px-4 py-3 text-[15px] text-foreground ${multiline ? 'min-h-[80px]' : ''}`}
-      style={multiline ? { textAlignVertical: 'top' } : undefined}
+      className="bg-surface border border-border rounded-xl px-4 py-3 text-[15px] text-foreground"
     />
   </View>
 );

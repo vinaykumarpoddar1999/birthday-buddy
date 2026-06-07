@@ -1,22 +1,22 @@
+import { ConfettiBurst } from '@/shared/ui/ConfettiBurst';
 import { router } from 'expo-router';
 import { Cake, UserPlus } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ConfettiBurst } from '@/shared/ui/ConfettiBurst';
-import { useBirthdayConfetti } from '../hooks/useBirthdayConfetti';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBirthdayConfetti } from '../hooks/useBirthdayConfetti';
 
+import { useHomeInsights, useUpcomingPeople } from '@features/people/hooks/usePeople';
 import { EmptyState, PageSkeleton } from '@shared/ui';
-import { useUpcomingPeople, useHomeInsights } from '@features/people/hooks/usePeople';
-import { HomeHeader } from '../components/HomeHeader';
-import { HeroBirthdayCard } from '../components/HeroBirthdayCard';
 import { HeroActionPanel } from '../components/HeroActionPanel';
-import { UpcomingBirthdaySection } from '../components/UpcomingBirthdaySection';
-import { StatsSection } from '../components/StatsSection';
-import { SpecialCardsBanner } from '../components/SpecialCardsBanner';
-import { QuickActionsGrid } from '../components/QuickActionsGrid';
+import { HeroBirthdayCard } from '../components/HeroBirthdayCard';
+import { HomeHeader } from '../components/HomeHeader';
 import { MadeWithLoveFooter } from '../components/MadeWithLoveFooter';
 import { NotificationPermissionModal } from '../components/NotificationPermissionModal';
+import { QuickActionsGrid } from '../components/QuickActionsGrid';
+import { SpecialCardsBanner } from '../components/SpecialCardsBanner';
+import { StatsSection } from '../components/StatsSection';
+import { UpcomingBirthdaySection } from '../components/UpcomingBirthdaySection';
 import { Colors, scale } from '../constants/design-tokens';
 
 export function HomeDashboardScreen() {
@@ -78,7 +78,7 @@ export function HomeDashboardScreen() {
           <View style={styles.emptyHero}>
             <EmptyState
               icon={Cake}
-              title="No upcoming birthdays"
+              title="No upcoming birthdays/events"
               subtitle="Add people to see upcoming celebrations and live countdowns here."
               primaryAction={{ label: 'Add Person', onPress: () => router.push('/add-person') }}
             />
@@ -91,14 +91,14 @@ export function HomeDashboardScreen() {
         ) : (
           <EmptyState
             icon={UserPlus}
-            title="No birthdays yet"
-            subtitle="Your upcoming birthday cards will appear here."
+            title="No birthdays/events yet"
+            subtitle="Your upcoming birthday/event cards will appear here."
           />
         )}
 
         {/* Stats Section */}
         <StatsSection
-          remindersToday={homeInsights?.remindersToday ?? 0}
+          birthdaysThisMonth={homeInsights?.birthdaysThisMonth ?? 0}
           streakDays={homeInsights?.streakDays ?? 0}
           upcomingThisWeek={homeInsights?.upcomingThisWeek ?? 0}
         />

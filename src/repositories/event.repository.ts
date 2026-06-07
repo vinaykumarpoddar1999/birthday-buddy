@@ -12,6 +12,8 @@ export class EventRepository extends BaseRepository {
     const eventType = input.eventType ?? 'birthday';
     const reminderDays = JSON.stringify([input.reminderDaysBefore ?? 3]);
     const repeatYearly = input.repeatYearly !== false ? 1 : 0;
+    const eventNotes =
+      eventType === 'custom' ? (input.customEventName?.trim() || null) : null;
 
     await this.run(
       `INSERT INTO events (
@@ -28,7 +30,7 @@ export class EventRepository extends BaseRepository {
         input.birthDate,
         reminderDays,
         repeatYearly,
-        input.notes ?? null,
+        eventNotes,
       ],
     );
   }
@@ -56,6 +58,15 @@ export class EventRepository extends BaseRepository {
     if (input.repeatYearly !== undefined) {
       fields.push('repeat_yearly = ?');
       params.push(input.repeatYearly ? 1 : 0);
+    }
+    if (input.eventType === 'custom' || input.customEventName !== undefined) {
+      const eventType = input.eventType;
+      const customName =
+        eventType === 'custom'
+          ? input.customEventName?.trim() || null
+          : null;
+      fields.push('notes = ?');
+      params.push(customName);
     }
 
     await this.run(

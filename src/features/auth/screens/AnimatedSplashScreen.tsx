@@ -81,10 +81,11 @@ function CakeIcon() {
 }
 
 type AnimatedSplashScreenProps = {
+  onReady?: () => void;
   onFinish: () => void;
 };
 
-export function AnimatedSplashScreen({ onFinish }: AnimatedSplashScreenProps) {
+export function AnimatedSplashScreen({ onReady, onFinish }: AnimatedSplashScreenProps) {
   const [typedText, setTypedText] = useState('');
   const logoScale = useSharedValue(0.4);
   const logoOpacity = useSharedValue(0);
@@ -98,6 +99,7 @@ export function AnimatedSplashScreen({ onFinish }: AnimatedSplashScreenProps) {
   };
 
   useEffect(() => {
+    onReady?.();
     logoOpacity.value = withTiming(1, { duration: 500 });
     logoScale.value = withSpring(1, { damping: 12, stiffness: 120 });
     textProgress.value = withDelay(400, withTiming(1, { duration: 1200 }));
@@ -123,7 +125,7 @@ export function AnimatedSplashScreen({ onFinish }: AnimatedSplashScreenProps) {
       clearInterval(typingInterval);
       clearTimeout(exitTimer);
     };
-  }, [containerOpacity, logoOpacity, logoScale, textProgress]);
+  }, [containerOpacity, logoOpacity, logoScale, onReady, textProgress]);
 
   const logoStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
@@ -203,9 +205,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   logo: {
-    width: 116,
-    height: 116,
-    borderRadius: 28,
+    width: 140,
+    height: 140,
+    borderRadius: 32,
   },
   titleRow: {
     flexDirection: 'row',

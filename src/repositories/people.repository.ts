@@ -22,6 +22,7 @@ interface PersonRow {
   created_at: string;
   updated_at: string;
   event_type: string | null;
+  event_notes: string | null;
   reminder_days: string | null;
   repeat_yearly: number | null;
 }
@@ -63,6 +64,10 @@ export class PeopleRepository extends BaseRepository {
       reminderTime: '08:00',
       repeatYearly: (row.repeat_yearly ?? 1) === 1,
       eventType: eventTypeParsed.success ? eventTypeParsed.data : 'birthday',
+      customEventName:
+        eventTypeParsed.success && eventTypeParsed.data === 'custom'
+          ? row.event_notes ?? undefined
+          : undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -73,7 +78,7 @@ export class PeopleRepository extends BaseRepository {
       SELECT p.uuid, p.full_name, p.nickname, p.gender, p.birth_date, p.relationship,
         p.phone, p.email, p.favorite_color, p.favorite_cake, p.hobbies, p.notes, p.avatar_uri,
         p.created_at, p.updated_at,
-        e.event_type, e.reminder_days, e.repeat_yearly
+        e.event_type, e.notes as event_notes, e.reminder_days, e.repeat_yearly
       FROM people p
       LEFT JOIN events e ON e.person_id = p.id AND e.is_deleted = 0
         AND e.id = (

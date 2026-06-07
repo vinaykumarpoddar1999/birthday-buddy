@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
-import { Linking, Pressable, Text, View } from 'react-native';
 import { Ellipsis, MessageCircle, Phone } from 'lucide-react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 
 import { feedback } from '@/shared/feedback';
-import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { usePersonMutations } from '@features/people/hooks/usePeople';
-import { RelationshipBadge } from './RelationshipBadge';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import type { Contact } from '../types';
+import { RelationshipBadge } from './RelationshipBadge';
 
 type ContactCardProps = {
   item: Contact;
@@ -48,7 +48,7 @@ export function ContactCard({ item }: ContactCardProps) {
           onPress: () => router.push({ pathname: '/add-person', params: { personId: item.id } }),
         },
         {
-          label: 'AI Wish',
+          label: 'Generate Wish',
           onPress: () => router.push({ pathname: '/ai-wish', params: { personId: item.id } }),
         },
         {

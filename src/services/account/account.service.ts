@@ -1,7 +1,7 @@
 import { hydrateAppStores } from '@/database/store-hydration';
 import { DatabaseManager } from '@/database/database-manager';
 import { setOnboardingComplete } from '@/lib/onboarding-storage';
-import { cancelAllScheduledBirthdayNotifications } from '@/services/notifications/local-notifications.service';
+import { cancelEveryScheduledNotification } from '@/services/notifications/local-notifications.service';
 import { profileService } from '@/services/profile/profile.service';
 import { appNotificationService } from '@/services/notifications/app-notification.service';
 import { useAuthStore } from '@/stores/auth.store';
@@ -27,7 +27,7 @@ const WIPE_TABLES = [
 
 export class AccountService {
   async wipeLocalData(): Promise<void> {
-    await cancelAllScheduledBirthdayNotifications();
+    await cancelEveryScheduledNotification();
     await DatabaseManager.withTransaction(async () => {
       for (const table of WIPE_TABLES) {
         await DatabaseManager.run(`DELETE FROM ${table}`);

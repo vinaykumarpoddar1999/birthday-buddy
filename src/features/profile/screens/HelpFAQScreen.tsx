@@ -51,7 +51,7 @@ export const HelpFAQScreen = () => {
           accessibilityRole="button">
           <ArrowLeft size={20} color="#111827" />
         </Pressable>
-        <Text className="text-title text-foreground font-bold">Help & FAQ</Text>
+        <Text className="text-title text-foreground font-bold">FAQ</Text>
       </View>
 
       <View className="px-5 mb-2">
@@ -67,24 +67,38 @@ export const HelpFAQScreen = () => {
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="px-5 mb-2"
-        contentContainerClassName="gap-2">
-        {CATEGORIES.map((c) => (
-          <Pressable
-            key={c}
-            onPress={() => setCategory(c)}
-            className={`rounded-full px-3.5 py-1.5 ${category === c ? 'bg-primary' : 'bg-surface'}`}
-            accessibilityRole="button">
-            <Text
-              className={`text-[12px] font-semibold ${category === c ? 'text-white' : 'text-foreground-secondary'}`}>
-              {c}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <View className="px-5 mb-2">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{ gap: 8, alignItems: 'center', paddingVertical: 2 }}>
+          {CATEGORIES.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setCategory(c)}
+              style={{
+                height: 32,
+                paddingHorizontal: 14,
+                borderRadius: 16,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: category === c ? '#7C3AED' : '#F3F4F6',
+              }}
+              accessibilityRole="button">
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  lineHeight: 16,
+                  color: category === c ? '#FFFFFF' : '#6B7280',
+                }}>
+                {c}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32" showsVerticalScrollIndicator={false}>
         {filtered.length === 0 ? (

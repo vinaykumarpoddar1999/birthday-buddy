@@ -15,7 +15,7 @@ import type { Person } from '@/types/entities';
 import type { BirthdayEvent, Contact } from '@features/people/types';
 
 export type HomeInsights = {
-  remindersToday: number;
+  birthdaysThisMonth: number;
   streakDays: number;
   upcomingThisWeek: number;
 };
@@ -23,6 +23,15 @@ export type HomeInsights = {
 async function computeBirthdaysWished(): Promise<number> {
   const history = await wishRepository.findHistory(undefined, 5000);
   return history.filter((entry) => entry.action === 'shared').length;
+}
+
+function isBirthdayInCurrentMonth(birthDate: string): boolean {
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const parts = birthDate.trim().split('-');
+  const month =
+    parts.length >= 3 ? parseInt(parts[parts.length - 2]!, 10) : parseInt(parts[0]!, 10);
+  return month === currentMonth;
 }
 
 export class BirthdayService {
@@ -51,18 +60,19 @@ export class BirthdayService {
       computeBirthdaysWished(),
     ]);
 
-    const remindersToday = people.filter((person) => {
-      const days = getDaysUntilBirthday(person.birthDate);
-      return days === 0 || days === 1;
-    }).length;
+    const birthdaysThisMonth = people.filter((person) => isBirthdayInCurrentMonth(person.birthDate)).length;
 
     const upcomingThisWeek = people.filter((person) => getDaysUntilBirthday(person.birthDate) <= 7).length;
 
     return {
-      remindersToday,
+      birthdaysThisMonth,
       streakDays: birthdaysWished,
       upcomingThisWeek,
     };
+  }
+
+  async getBirthdaysWishedCount(): Promise<number> {
+    return computeBirthdaysWished();
   }
 
   async getHomeCards(limit = 10): Promise<HomeUpcomingCardData[]> {

@@ -1,11 +1,11 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Camera } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
-import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
-import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
 import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
+import { useProfileImagePicker } from '@/shared/hooks/useProfileImagePicker';
+import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
 
 import { useProfileStore } from '../store/profile.store';
 
@@ -17,7 +17,7 @@ type ProfileSummaryCardProps = {
 
 export function ProfileSummaryCard({
   variant = 'default',
-  editProfileLabel = 'View Profile →',
+  editProfileLabel = 'Edit Profile →',
   onEditProfilePress,
 }: ProfileSummaryCardProps) {
   const profile = useProfileStore((s) => s.profile);
@@ -120,25 +120,11 @@ function CardContent({
             {maskName(profile.fullName || 'Your Profile')}
           </Text>
           <Text className="text-caption text-foreground-secondary mt-0.5" numberOfLines={1}>
-            {maskEmail(profile.email || 'Add your email')}
+            {maskEmail(profile.email || '')}
           </Text>
           <Pressable onPress={handleEditProfile} className="mt-2" accessibilityRole="button" accessibilityLabel="Edit profile">
             <Text className="text-[11px] font-bold text-primary">{editProfileLabel}</Text>
           </Pressable>
-        </View>
-      </View>
-      <View className="mt-3">
-        <View className="flex-row items-center justify-between mb-1">
-          <Text className="text-[11px] text-foreground-secondary">Profile completion</Text>
-          <Text className="text-[11px] font-bold text-primary">{profileCompletion}%</Text>
-        </View>
-        <View className="h-2 bg-border/40 rounded-full overflow-hidden">
-          <LinearGradient
-            colors={['#7C3AED', '#A855F7']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ width: `${profileCompletion}%`, height: '100%', borderRadius: 999 }}
-          />
         </View>
       </View>
     </>

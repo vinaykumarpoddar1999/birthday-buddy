@@ -78,9 +78,19 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
   const baseFontSize = toFiniteNumber(el.fontSize, 16, 8);
   const fontSize = baseFontSize * scale;
   const baseLineHeight = toFiniteNumber(el.lineHeight, baseFontSize * 1.35, 8);
+  const lineHeight = baseLineHeight * scale;
   const baseLetterSpacing = toFiniteNumber(el.letterSpacing, 0);
   const textShadowRadius = toFiniteNumber(el.textShadowRadius, 0, 0);
   const strokeWidth = toFiniteNumber(el.strokeWidth, 1, 0);
+  const boxHeight = toFiniteNumber(el.height, 24, 1) * scale;
+  const boxWidth = toFiniteNumber(el.width, 24, 1) * scale;
+  const padding = Math.max(2, fontSize * 0.12);
+  const explicitLines = Math.max(1, content.split('\n').length);
+  const maxLinesFromHeight = Math.max(
+    1,
+    Math.floor((boxHeight - padding * 2) / lineHeight),
+  );
+  const numberOfLines = Math.max(explicitLines, maxLinesFromHeight);
 
   if (shouldRenderContentAsIcon(content)) {
     return (
@@ -99,24 +109,37 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
     fontWeight: (el.fontWeight as '400' | '700') || '400',
     color: el.color || '#000',
     textAlign: el.textAlign || ('center' as const),
-    lineHeight: baseLineHeight * scale,
+    lineHeight,
     letterSpacing: baseLetterSpacing * scale,
     textShadowColor: el.textShadowColor,
     textShadowOffset: el.textShadowColor ? { width: 0, height: 1 } : undefined,
     textShadowRadius,
+    includeFontPadding: false,
+  };
+
+  const containerStyle = {
+    ...pos,
+    justifyContent: 'center' as const,
+    padding,
+    overflow: 'visible' as const,
   };
 
   if (el.strokeColor && el.strokeWidth) {
     return (
-      <View style={pos}>
+      <View style={containerStyle}>
         <Text
           style={{
             ...textStyle,
             position: 'absolute',
             color: el.strokeColor,
-            left: -strokeWidth,
-            top: 0,
-          }}>
+            left: padding - strokeWidth,
+            right: padding + strokeWidth,
+            top: padding,
+            width: boxWidth - padding * 2,
+          }}
+          adjustsFontSizeToFit
+          minimumFontScale={0.35}
+          numberOfLines={numberOfLines}>
           {content}
         </Text>
         <Text
@@ -124,25 +147,34 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
             ...textStyle,
             position: 'absolute',
             color: el.strokeColor,
-            left: strokeWidth,
-            top: 0,
-          }}>
+            left: padding + strokeWidth,
+            right: padding - strokeWidth,
+            top: padding,
+            width: boxWidth - padding * 2,
+          }}
+          adjustsFontSizeToFit
+          minimumFontScale={0.35}
+          numberOfLines={numberOfLines}>
           {content}
         </Text>
-        <Text style={textStyle}>{content}</Text>
+        <Text
+          style={[textStyle, { width: '100%' }]}
+          adjustsFontSizeToFit
+          minimumFontScale={0.35}
+          numberOfLines={numberOfLines}>
+          {content}
+        </Text>
       </View>
     );
   }
 
-  const lineCount = Math.max(1, content.split('\n').length);
-
   return (
-    <View style={[pos, { overflow: 'hidden' }]}>
+    <View style={containerStyle}>
       <Text
-        style={[textStyle, { width: '100%' }]}
+        style={[textStyle, { width: '100%', flexShrink: 1 }]}
         adjustsFontSizeToFit
-        minimumFontScale={0.4}
-        numberOfLines={lineCount}
+        minimumFontScale={0.35}
+        numberOfLines={numberOfLines}
         ellipsizeMode="tail">
         {content}
       </Text>

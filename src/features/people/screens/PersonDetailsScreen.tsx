@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { EmptyState, PageSkeleton } from '@shared/ui';
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { usePerson } from '@features/people/hooks/usePeople';
+import { getPersonEventLabel } from '../utils/event-label';
 import {
   formatBirthdayShort,
   formatRelationship,
@@ -92,14 +93,7 @@ export function PersonDetailsScreen() {
   const age = getAge(person.birthDate);
   const nextAge = getAgeAtNextBirthday(person.birthDate);
   const dateLabel = formatBirthdayShort(person.birthDate);
-  const eventLabel =
-    person.eventType === 'birthday'
-      ? 'Birthday'
-      : person.eventType === 'anniversary'
-        ? 'Anniversary'
-        : person.eventType === 'wedding_anniversary'
-          ? 'Wedding Anniversary'
-          : 'Custom Event';
+  const eventLabel = getPersonEventLabel(person);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>

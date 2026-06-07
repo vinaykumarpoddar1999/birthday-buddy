@@ -14,7 +14,6 @@ import {
   Heart,
   HeartHandshake,
   ImagePlus,
-  Gem,
   Star,
   User,
   X,
@@ -55,25 +54,28 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-type PersonEventType = 'birthday' | 'anniversary' | 'wedding' | 'custom';
+type PersonEventType = 'birthday' | 'anniversary' | 'custom';
 
 const EVENT_TABS: { id: PersonEventType; label: string; Icon: LucideIcon }[] = [
   { id: 'birthday', label: 'Birthday', Icon: Cake },
   { id: 'anniversary', label: 'Anniversary', Icon: Heart },
-  { id: 'wedding', label: 'Wedding', Icon: Gem },
-  { id: 'custom', label: 'Custom', Icon: Star },
+  { id: 'custom', label: 'Custom Event', Icon: Star },
 ];
 
 function mapEventType(type: PersonEventType): EventType {
-  if (type === 'wedding') return 'wedding_anniversary';
   return type;
 }
 
 function eventTypeFromPerson(type: EventType): PersonEventType {
-  if (type === 'wedding_anniversary') return 'wedding';
   if (type === 'custom') return 'custom';
-  if (type === 'anniversary') return 'anniversary';
+  if (type === 'anniversary' || type === 'wedding_anniversary') return 'anniversary';
   return 'birthday';
+}
+
+function getDateFieldLabel(eventType: PersonEventType): string {
+  if (eventType === 'anniversary') return 'Anniversary Date';
+  if (eventType === 'custom') return 'Event Date';
+  return 'Date of Birth';
 }
 
 function personToFormValues(person: Person): FormValues {
@@ -289,6 +291,7 @@ export function AddPersonScreen() {
   const reminderSettings = useProfileStore((s) => s.reminderSettings);
 
   const [eventType, setEventType] = useState<PersonEventType>('birthday');
+  const [customEventName, setCustomEventName] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRelationshipPicker, setShowRelationshipPicker] = useState(false);
@@ -322,6 +325,7 @@ export function AddPersonScreen() {
     }
     reset(values);
     setEventType(eventTypeFromPerson(existingPerson.eventType));
+    setCustomEventName(existingPerson.customEventName ?? '');
     if (existingPerson.avatarUri) setProfileImage(existingPerson.avatarUri);
   }, [existingPerson, reset]);
 
@@ -363,6 +367,11 @@ export function AddPersonScreen() {
 
   const onSubmit = useCallback(
     async (data: FormValues) => {
+      if (eventType === 'custom' && !customEventName.trim()) {
+        feedback.error('Event name required', 'Please enter a name for your custom event.');
+        return;
+      }
+
       const defaultReminderDay = reminderSettings.reminderDaysBefore[0] ?? 3;
       const defaultReminderTime = reminderSettings.defaultTime;
 
@@ -383,6 +392,7 @@ export function AddPersonScreen() {
         reminderTime: defaultReminderTime,
         repeatYearly: true,
         eventType: mapEventType(eventType),
+        customEventName: eventType === 'custom' ? customEventName.trim() : undefined,
       };
 
       if (isEditing && personId) {
@@ -420,6 +430,7 @@ export function AddPersonScreen() {
       updatePerson,
       profileImage,
       eventType,
+      customEventName,
       isEditing,
       personId,
       isQueueFlow,
@@ -467,32 +478,7 @@ export function AddPersonScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
 
-        {/* Event Type */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerClassName="px-5 py-3 gap-2">
-          {EVENT_TABS.map((tab) => {
-            const TabIcon = tab.Icon;
-            const isActive = eventType === tab.id;
-            return (
-            <Pressable
-              key={tab.id}
-              onPress={() => setEventType(tab.id)}
-              className={`flex-row items-center px-4 py-2.5 rounded-full gap-1.5 ${
-                isActive ? 'bg-primary' : 'bg-white border border-gray-100'
-              }`}
-              accessibilityRole="button">
-              <TabIcon size={14} color={isActive ? '#FFFFFF' : '#7C3AED'} strokeWidth={2} />
-              <Text className={`text-[12px] font-semibold ${isActive ? 'text-white' : 'text-foreground-secondary'}`}>
-                {tab.label}
-              </Text>
-            </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <View className="px-5">
+        <View className="px-5 pt-3">
           {/* Photo */}
           <View className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 shadow-sm">
             <View className="flex-row items-center gap-4">
@@ -562,7 +548,7 @@ export function AddPersonScreen() {
             </Field>
 
             <Field error={errors.birthDate?.message}>
-              <FieldLabel label="Date of Birth" required />
+              <FieldLabel label={getDateFieldLabel(eventType)} required />
               <Controller control={control} name="birthDate"
                 render={({ field: { value } }) => (
                   <Pressable
@@ -580,7 +566,7 @@ export function AddPersonScreen() {
               />
             </Field>
 
-            {computedAge !== null && (
+            {eventType === 'birthday' && computedAge !== null && (
               <View className="bg-primary/5 rounded-xl px-4 py-3 mb-4 flex-row items-center justify-between">
                 <Text className="text-[13px] text-foreground-secondary">Age</Text>
                 <Text className="text-[15px] font-bold text-primary">{computedAge} years</Text>
@@ -670,6 +656,48 @@ export function AddPersonScreen() {
                 )}
               />
             </Field>
+          </View>
+
+          {/* Event Type */}
+          <View className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 shadow-sm">
+            <SectionTitle title="Event Type" icon={Calendar} />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="gap-2">
+              {EVENT_TABS.map((tab) => {
+                const TabIcon = tab.Icon;
+                const isActive = eventType === tab.id;
+                return (
+                  <Pressable
+                    key={tab.id}
+                    onPress={() => setEventType(tab.id)}
+                    className={`flex-row items-center px-4 py-2.5 rounded-full gap-1.5 ${
+                      isActive ? 'bg-primary' : 'bg-gray-50 border border-gray-200'
+                    }`}
+                    accessibilityRole="button">
+                    <TabIcon size={14} color={isActive ? '#FFFFFF' : '#7C3AED'} strokeWidth={2} />
+                    <Text className={`text-[12px] font-semibold ${isActive ? 'text-white' : 'text-foreground-secondary'}`}>
+                      {tab.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            {eventType === 'custom' && (
+              <View className="mt-4">
+                <FieldLabel label="Custom Event Name" required />
+                <TextInput
+                  value={customEventName}
+                  onChangeText={setCustomEventName}
+                  placeholder="e.g. Graduation Day"
+                  placeholderTextColor="#C4B5FD"
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-foreground"
+                  accessibilityLabel="Custom event name"
+                />
+              </View>
+            )}
           </View>
 
           {/* Actions */}
