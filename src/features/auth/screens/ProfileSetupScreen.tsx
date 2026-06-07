@@ -8,9 +8,11 @@ import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
+import { useAuth } from '@features/auth';
 import { CelebrationBackground } from '@features/auth/components/CelebrationBackground';
 import { useProfileStore } from '@features/profile/store/profile.store';
 import { ROUTES } from '@/constants/routes';
+import { registerForNotifications } from '@/services/notifications/local-notifications.service';
 import { Button } from '@shared/ui';
 
 const BOY_IMAGE = require('../../../../assets/images/boy.png');
@@ -144,6 +146,7 @@ function DatePickerModal({
 }
 
 export function ProfileSetupScreen() {
+  const { completeOnboarding } = useAuth();
   const updateProfile = useProfileStore((s) => s.updateProfile);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -171,7 +174,9 @@ export function ProfileSetupScreen() {
         gender: values.gender,
         joinedAt: new Date().toISOString(),
       });
-      router.replace(ROUTES.permissions);
+      await registerForNotifications();
+      await completeOnboarding();
+      router.replace(ROUTES.home);
     } finally {
       setSaving(false);
     }

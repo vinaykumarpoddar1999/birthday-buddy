@@ -53,6 +53,7 @@ export class ReminderService {
 
     const people = await peopleRepository.findAll(500, 0);
     for (const person of people) {
+      await this.cancelForPersonUuid(person.id);
       await this.scheduleForPerson(person);
     }
   }

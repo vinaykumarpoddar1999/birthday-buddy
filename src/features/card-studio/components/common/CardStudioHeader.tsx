@@ -18,6 +18,7 @@ type Props = {
   canUndo?: boolean;
   canRedo?: boolean;
   primaryAction?: { label: string; onPress: () => void };
+  hideTitleIcon?: boolean;
 };
 
 function HeaderIconButton({
@@ -97,6 +98,7 @@ export function CardStudioHeader({
   canUndo,
   canRedo,
   primaryAction,
+  hideTitleIcon = false,
 }: Props) {
   return (
     <View className="px-5 pt-2 pb-3 border-b border-border/60 bg-background">
@@ -110,9 +112,11 @@ export function CardStudioHeader({
         <View
           className="absolute left-0 right-0 flex-row items-center justify-center gap-2 px-14 pointer-events-none"
           style={{ zIndex: 0 }}>
-          <View className="h-8 w-8 rounded-xl bg-primary/10 items-center justify-center">
-            <Sparkles size={17} color={studioTokens.colors.primary} strokeWidth={2.2} />
-          </View>
+          {!hideTitleIcon ? (
+            <View className="h-8 w-8 rounded-xl bg-primary/10 items-center justify-center">
+              <Sparkles size={17} color={studioTokens.colors.primary} strokeWidth={2.2} />
+            </View>
+          ) : null}
           <Text
             className="text-heading text-foreground tracking-tight"
             numberOfLines={1}

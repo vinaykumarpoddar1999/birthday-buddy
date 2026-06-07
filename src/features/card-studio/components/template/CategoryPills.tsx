@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { LayoutAnimation, Platform, Pressable, ScrollView, Text, UIManager, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { useCardStudioStore } from '../../store/card-studio.store';
 import { TEMPLATE_CATEGORIES, type TemplateCategoryFilter } from '../../types';
@@ -23,7 +22,7 @@ export function CategoryPills() {
   );
 
   return (
-    <View className="bg-background border-b border-border/50 pb-2">
+    <View className="bg-background pb-2">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -38,24 +37,24 @@ export function CategoryPills() {
               accessibilityLabel={`Filter by ${cat.label}`}
               accessibilityState={{ selected: active }}
               style={({ pressed }) => ({ opacity: pressed ? 0.88 : 1 })}>
-              {active ? (
-                <View className="rounded-full overflow-hidden">
-                  <LinearGradient
-                    colors={[...studioTokens.colors.gradientPrimary]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}>
-                    <View className="px-4 py-2">
-                      <Text className="text-[12px] font-bold text-white">{cat.label}</Text>
-                    </View>
-                  </LinearGradient>
-                </View>
-              ) : (
-                <View className="px-4 py-2 rounded-full bg-surface border border-border">
-                  <Text className="text-[12px] font-semibold text-foreground-secondary">
-                    {cat.label}
-                  </Text>
-                </View>
-              )}
+              <View
+                className={`px-4 py-2 rounded-full ${active ? 'bg-primary' : 'bg-surface'}`}
+                style={
+                  active
+                    ? {
+                        shadowColor: studioTokens.colors.primary,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 8,
+                        elevation: 3,
+                      }
+                    : undefined
+                }>
+                <Text
+                  className={`text-[12px] font-bold ${active ? 'text-white' : 'text-foreground-secondary'}`}>
+                  {cat.label}
+                </Text>
+              </View>
             </Pressable>
           );
         })}

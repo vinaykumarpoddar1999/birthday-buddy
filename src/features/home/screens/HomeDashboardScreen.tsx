@@ -16,6 +16,7 @@ import { StatsSection } from '../components/StatsSection';
 import { SpecialCardsBanner } from '../components/SpecialCardsBanner';
 import { QuickActionsGrid } from '../components/QuickActionsGrid';
 import { MadeWithLoveFooter } from '../components/MadeWithLoveFooter';
+import { NotificationPermissionModal } from '../components/NotificationPermissionModal';
 import { Colors, scale } from '../constants/design-tokens';
 
 export function HomeDashboardScreen() {
@@ -98,7 +99,7 @@ export function HomeDashboardScreen() {
         {/* Stats Section */}
         <StatsSection
           remindersToday={homeInsights?.remindersToday ?? 0}
-          streakDays={homeInsights?.streakDays ?? 2}
+          streakDays={homeInsights?.streakDays ?? 0}
           upcomingThisWeek={homeInsights?.upcomingThisWeek ?? 0}
         />
 
@@ -110,6 +111,7 @@ export function HomeDashboardScreen() {
 
         <MadeWithLoveFooter />
       </ScrollView>
+      <NotificationPermissionModal active />
     </SafeAreaView>
   );
 }

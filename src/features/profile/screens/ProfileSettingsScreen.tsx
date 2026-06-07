@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import * as Linking from 'expo-linking';
 import {
   Bell,
@@ -17,6 +17,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EXTERNAL_LINKS } from '@/constants/links';
+import { ROUTES } from '@/constants/routes';
 import { TabScreenHeader } from '@shared/ui/TabScreenHeader';
 
 import { ProfileSummaryCard } from '../components/ProfileSummaryCard';
@@ -107,7 +108,7 @@ export const ProfileSettingsScreen = () => {
         <View className="px-5 mt-5 mb-2">
           <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerClassName="pr-4">
             <QuickAction icon={User} label="Profile" color="#7C3AED" bg="#EDE9FE" onPress={() => router.push('/edit-profile')} />
-            <QuickAction icon={Bell} label="Notifications" color="#EF4444" bg="#FEE2E2" onPress={() => router.push('/notifications')} />
+            <QuickAction icon={Bell} label="Notifications" color="#EF4444" bg="#FEE2E2" onPress={() => router.push(ROUTES.notificationSettings as Href)} />
             <QuickAction icon={Clock} label="Reminders" color="#F59E0B" bg="#FEF3C7" onPress={() => router.push('/reminder-settings')} />
             <QuickAction icon={Download} label="Backup" color="#22C55E" bg="#DCFCE7" onPress={() => router.push('/backup-restore')} />
           </ScrollView>
@@ -115,8 +116,8 @@ export const ProfileSettingsScreen = () => {
 
         <View className="px-5 mt-5">
           <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-1">Account & Data</Text>
-          <View className="bg-surface rounded-2xl px-4 border border-border/60">
-            <SettingsRow icon={User} iconBg="#EDE9FE" iconColor="#7C3AED" title="Personal Information" description="Update name, birthday, and gender" onPress={() => router.push('/personal-info')} />
+          <View className="bg-surface rounded-2xl px-4">
+            <SettingsRow icon={User} iconBg="#EDE9FE" iconColor="#7C3AED" title="Edit Profile" description="Update name, photo, and personal details" onPress={() => router.push('/edit-profile')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow icon={Download} iconBg="#DCFCE7" iconColor="#22C55E" title="Backup & Restore" description="Backup, restore, and import data" onPress={() => router.push('/backup-restore')} />
           </View>
@@ -124,14 +125,14 @@ export const ProfileSettingsScreen = () => {
 
         <View className="px-5 mt-6">
           <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-1">Reminders</Text>
-          <View className="bg-surface rounded-2xl px-4 border border-border/60">
+          <View className="bg-surface rounded-2xl px-4">
             <SettingsRow icon={Clock} iconBg="#DBEAFE" iconColor="#3B82F6" title="Reminder Settings" description="Manage timing and notification schedules" value={reminderValue} onPress={() => router.push('/reminder-settings')} />
           </View>
         </View>
 
         <View className="px-5 mt-6">
           <Text className="text-[11px] font-bold text-foreground-secondary tracking-wider uppercase mb-1">Help & Legal</Text>
-          <View className="bg-surface rounded-2xl px-4 border border-border/60">
+          <View className="bg-surface rounded-2xl px-4">
             <SettingsRow icon={HelpCircle} iconBg="#DBEAFE" iconColor="#3B82F6" title="FAQ" description="Answers to common questions" onPress={() => router.push('/help-faq')} />
             <View className="h-[0.5px] bg-border/60 ml-12" />
             <SettingsRow

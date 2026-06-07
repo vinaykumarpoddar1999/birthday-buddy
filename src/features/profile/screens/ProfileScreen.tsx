@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePeople } from '@features/people/hooks/usePeople';
 import { useQuery } from '@tanstack/react-query';
 import { wishService } from '@/services/wish/wish.service';
-import { ProfileAvatar } from '@/shared/ui/ProfileAvatar';
+import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
 import { usePrivacyDisplay } from '@/shared/hooks/usePrivacyDisplay';
 
 import { useProfileStore } from '../store/profile.store';
@@ -35,7 +35,7 @@ function StatCard({
   label: string;
 }) {
   return (
-    <View className="flex-1 bg-surface rounded-2xl p-4 border border-border/60">
+    <View className="flex-1 bg-surface rounded-2xl p-4">
       <View className="h-10 w-10 rounded-xl items-center justify-center mb-3" style={{ backgroundColor: iconBg }}>
         <Icon size={20} color={iconColor} />
       </View>
@@ -67,29 +67,22 @@ export function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <View className="px-5 pt-3 pb-4 border-b border-border/50 bg-surface">
+      <View className="px-5 pt-3 pb-4 bg-surface">
         <View className="flex-row items-center">
           <Pressable
             onPress={() => router.replace('/(tabs)')}
-            className="mr-3 h-10 w-10 rounded-full bg-background border border-border items-center justify-center"
+            className="mr-3 h-10 w-10 rounded-full bg-background items-center justify-center"
             accessibilityRole="button"
             accessibilityLabel="Go back">
             <ArrowLeft size={20} color="#111827" />
           </Pressable>
           <Text className="text-title text-foreground font-bold flex-1">Profile</Text>
-          <Pressable
-            onPress={() => router.push('/(tabs)/settings')}
-            className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center"
-            accessibilityRole="button"
-            accessibilityLabel="Open settings">
-            <Settings size={20} color="#7C3AED" />
-          </Pressable>
         </View>
       </View>
 
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-32 pt-6" showsVerticalScrollIndicator={false}>
         <Animated.View entering={FadeInDown.duration(500)} className="items-center">
-          <View className="rounded-full p-1 bg-surface border-2 border-primary/20 shadow-sm">
+          <View className="rounded-full p-1 bg-surface shadow-sm">
             <ProfileAvatar
               size="xl"
               profileImage={profile.profileImage}
@@ -105,7 +98,7 @@ export function ProfileScreen() {
 
         <Animated.View
           entering={FadeInDown.delay(80).duration(500)}
-          className="bg-surface rounded-2xl border border-border/60 p-4 mt-6">
+          className="bg-surface rounded-2xl p-4 mt-6">
           <View className="flex-row items-center gap-3">
             <View className="h-10 w-10 rounded-xl bg-primary/10 items-center justify-center">
               <Cake size={18} color="#7C3AED" />
@@ -115,7 +108,7 @@ export function ProfileScreen() {
               <Text className="text-[15px] font-semibold text-foreground mt-0.5">{birthdayLabel}</Text>
             </View>
             {profile.gender ? (
-              <View className="rounded-full bg-background px-3 py-1.5 border border-border/60">
+              <View className="rounded-full bg-background px-3 py-1.5">
                 <Text className="text-[12px] font-semibold text-foreground-secondary capitalize">
                   {profile.gender}
                 </Text>
@@ -131,7 +124,7 @@ export function ProfileScreen() {
 
         <Animated.View
           entering={FadeInDown.delay(180).duration(500)}
-          className="bg-surface rounded-2xl border border-border/60 mt-5 overflow-hidden">
+          className="bg-surface rounded-2xl mt-5 overflow-hidden">
           <Pressable
             className="flex-row items-center py-4 px-4"
             onPress={() => router.push('/edit-profile')}
@@ -146,22 +139,7 @@ export function ProfileScreen() {
             </View>
             <ChevronRight size={18} color="#9CA3AF" />
           </Pressable>
-          <View className="h-[0.5px] bg-border/60 mx-4" />
-          <Pressable
-            className="flex-row items-center py-4 px-4"
-            onPress={() => router.push('/personal-info')}
-            accessibilityRole="button"
-            accessibilityLabel="Personal information">
-            <View className="h-10 w-10 rounded-xl bg-primary/10 items-center justify-center mr-3">
-              <Cake size={18} color="#7C3AED" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[15px] font-medium text-foreground">Personal Information</Text>
-              <Text className="text-[12px] text-foreground-secondary mt-0.5">Name, birthday, and gender</Text>
-            </View>
-            <ChevronRight size={18} color="#9CA3AF" />
-          </Pressable>
-          <View className="h-[0.5px] bg-border/60 mx-4" />
+          <View className="h-[0.5px] bg-border/40 mx-4" />
           <Pressable
             className="flex-row items-center py-4 px-4"
             onPress={() => router.push('/(tabs)/settings')}

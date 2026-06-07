@@ -25,7 +25,7 @@ export function AuthGate({ children }: AuthGateProps) {
 
   if (authState === 'guest' && inAuthGroup) {
     const currentRoute = segments[1] as string | undefined;
-    const allowedRoutes = ['onboarding', 'profile-setup', 'permissions'];
+    const allowedRoutes = ['onboarding', 'profile-setup'];
     if (currentRoute && !allowedRoutes.includes(currentRoute)) {
       return <Redirect href={ROUTES.home} />;
     }

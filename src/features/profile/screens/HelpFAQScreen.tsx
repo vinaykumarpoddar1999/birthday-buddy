@@ -8,7 +8,20 @@ import { EmptyState } from '@shared/ui/EmptyState';
 
 import { FAQ_DATA } from '../utils/faq-data';
 
-const CATEGORIES = ['All', 'Birthdays', 'Notifications', 'Calendar', 'Contacts', 'Account', 'Getting Started', 'Data', 'Support'];
+const CATEGORIES = [
+  'All',
+  'Getting Started',
+  'Birthdays',
+  'Notifications',
+  'Calendar',
+  'Contacts',
+  'Wishes',
+  'Cards',
+  'Data',
+  'Privacy',
+  'Account',
+  'Support',
+];
 
 export const HelpFAQScreen = () => {
   const [query, setQuery] = useState('');
@@ -22,7 +35,9 @@ export const HelpFAQScreen = () => {
     }
     if (query.trim()) {
       const q = query.toLowerCase();
-      items = items.filter((f) => f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q));
+      items = items.filter(
+        (f) => f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q),
+      );
     }
     return items;
   }, [query, category]);
@@ -30,15 +45,17 @@ export const HelpFAQScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="flex-row items-center px-5 py-3">
-        <Pressable onPress={() => router.back()} className="mr-3 h-10 w-10 rounded-full bg-surface border border-border items-center justify-center" accessibilityRole="button">
+        <Pressable
+          onPress={() => router.back()}
+          className="mr-3 h-10 w-10 rounded-full bg-surface items-center justify-center"
+          accessibilityRole="button">
           <ArrowLeft size={20} color="#111827" />
         </Pressable>
         <Text className="text-title text-foreground font-bold">Help & FAQ</Text>
       </View>
 
-      {/* Search */}
-      <View className="px-5 mb-3">
-        <View className="flex-row items-center bg-surface border border-border rounded-xl px-3">
+      <View className="px-5 mb-2">
+        <View className="flex-row items-center bg-surface rounded-xl px-3">
           <Search size={18} color="#9CA3AF" />
           <TextInput
             value={query}
@@ -50,15 +67,21 @@ export const HelpFAQScreen = () => {
         </View>
       </View>
 
-      {/* Category Pills */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-5 mb-3" contentContainerClassName="gap-2">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="px-5 mb-2"
+        contentContainerClassName="gap-2">
         {CATEGORIES.map((c) => (
           <Pressable
             key={c}
             onPress={() => setCategory(c)}
-            className={`rounded-full px-3.5 py-1.5 border ${category === c ? 'bg-primary border-primary' : 'bg-surface border-border'}`}
+            className={`rounded-full px-3.5 py-1.5 ${category === c ? 'bg-primary' : 'bg-surface'}`}
             accessibilityRole="button">
-            <Text className={`text-[12px] font-semibold ${category === c ? 'text-white' : 'text-foreground-secondary'}`}>{c}</Text>
+            <Text
+              className={`text-[12px] font-semibold ${category === c ? 'text-white' : 'text-foreground-secondary'}`}>
+              {c}
+            </Text>
           </Pressable>
         ))}
       </ScrollView>
@@ -78,20 +101,20 @@ export const HelpFAQScreen = () => {
               <Pressable
                 key={faq.id}
                 onPress={() => setExpandedId(isExpanded ? null : faq.id)}
-                className="bg-surface rounded-xl p-4 mb-2 border border-border/60"
+                className="bg-surface rounded-xl px-4 py-3 mb-2"
                 accessibilityRole="button">
-                <View className="flex-row items-start">
+                <View className="flex-row items-center">
                   <View className="flex-1 pr-2">
                     <Text className="text-[14px] font-semibold text-foreground">{faq.question}</Text>
-                    <Text className="text-[10px] text-primary font-medium mt-1">{faq.category}</Text>
+                    <Text className="text-[10px] text-primary font-medium mt-0.5">{faq.category}</Text>
                   </View>
                   {isExpanded ? <ChevronUp size={18} color="#9CA3AF" /> : <ChevronDown size={18} color="#9CA3AF" />}
                 </View>
-                {isExpanded && (
-                  <View className="mt-3 pt-3 border-t border-border/60">
+                {isExpanded ? (
+                  <View className="mt-2 pt-2 border-t border-border/40">
                     <Text className="text-[13px] text-foreground-secondary leading-5">{faq.answer}</Text>
                   </View>
-                )}
+                ) : null}
               </Pressable>
             );
           })

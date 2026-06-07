@@ -11,6 +11,7 @@ export type TemplateCategory =
   | 'minimal';
 
 export type TemplateCategoryFilter =
+  | 'all'
   | 'birthday'
   | 'anniversary'
   | 'love'
@@ -156,6 +157,7 @@ export type EditorPanel =
   | 'media';
 
 export const TEMPLATE_CATEGORIES: { id: TemplateCategoryFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
   { id: 'birthday', label: 'Birthday' },
   { id: 'anniversary', label: 'Anniversary' },
   { id: 'love', label: 'Love' },

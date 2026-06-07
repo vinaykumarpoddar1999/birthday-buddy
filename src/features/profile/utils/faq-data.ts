@@ -3,100 +3,121 @@ import type { FAQItem } from '../types';
 export const FAQ_DATA: FAQItem[] = [
   {
     id: 'faq-1',
-    question: 'How do I add a new birthday?',
+    question: 'How do I add a birthday?',
     answer:
-      'Tap the "+" button on the bottom navigation bar or go to People > Add Person. Fill in their details including name, birthday, and relationship.',
+      'Tap the + button on the bottom bar or open People and choose Add Person. Enter their name, birthday, and relationship.',
     category: 'Getting Started',
   },
   {
     id: 'faq-2',
     question: 'Can I import contacts from my phone?',
     answer:
-      'Yes! Tap "Import Contacts" from the home screen or people tab. Pick someone from your phone and complete their birthday details.',
-    category: 'Getting Started',
+      'Yes. Use Import Contacts from the home screen or People tab. Pick a contact, then confirm or add their birthday.',
+    category: 'Contacts',
   },
   {
     id: 'faq-3',
     question: 'How do birthday reminders work?',
     answer:
-      'BirthdayBuddy sends push notifications before each birthday. Go to Settings > Reminder Settings to add multiple schedules with different days-before and times.',
-    category: 'Reminders',
+      'Birthday Buddy sends notifications before each birthday based on your reminder schedule. Open Settings, then Reminder Settings to customize timing.',
+    category: 'Notifications',
   },
   {
     id: 'faq-4',
-    question: 'Can I set multiple reminders?',
+    question: 'Can I set multiple reminders for one birthday?',
     answer:
-      'Yes! In Reminder Settings you can add, edit, and remove reminder entries. Each entry combines timing (same day, 3/7/10/15 days before, or custom) with a specific notification time.',
-    category: 'Reminders',
+      'Yes. In Reminder Settings you can add several reminders with different days-before values and times for the same person.',
+    category: 'Notifications',
+  },
+  {
+    id: 'faq-5',
+    question: 'How do I turn notifications on or off?',
+    answer:
+      'Go to Settings, tap Notifications, and use the toggle. You can also adjust your reminder schedule from the same screen.',
+    category: 'Notifications',
   },
   {
     id: 'faq-6',
-    question: 'How does the AI Wish Generator work?',
+    question: 'How does the Wish Generator work?',
     answer:
-      "Our AI creates personalized birthday wishes based on the person's details, your relationship, and selected tone. Choose from heartfelt, funny, romantic, or motivational styles.",
-    category: 'AI Features',
+      'Choose a person, pick a tone and length, then tap Generate. Birthday Buddy creates a personalized message you can copy or share.',
+    category: 'Wishes',
   },
   {
     id: 'faq-7',
-    question: 'Are AI-generated wishes unique?',
+    question: 'Are generated wishes unique?',
     answer:
-      "Each wish is generated uniquely based on the person's profile and your customization choices. No two wishes are the same!",
-    category: 'AI Features',
+      'Each wish is tailored using the person’s details, your relationship, and the style you choose, so messages feel fresh and personal.',
+    category: 'Wishes',
   },
   {
     id: 'faq-8',
     question: 'How do I create a birthday card?',
     answer:
-      'Go to Card Studio from the Home screen or a person\'s profile. Choose a template, customize it with text and decorations, then share or download.',
+      'Open Card Studio from the home screen or a person’s profile. Pick a template, customize the message and design, then download your card.',
     category: 'Cards',
   },
   {
     id: 'faq-9',
     question: 'Can I use my own photos in cards?',
     answer:
-      'Absolutely! In the Card Studio editor, you can upload photos from your gallery or take a new photo to add to any card template.',
+      'Yes. In the card editor, open the media panel to add photos from your gallery or take a new picture.',
     category: 'Cards',
   },
   {
     id: 'faq-10',
-    question: 'How do I share a birthday card?',
+    question: 'How do I download a card?',
     answer:
-      'After creating a card, tap Share. You can share via WhatsApp, Instagram, email, or save it to your gallery.',
+      'After previewing your card, go to the Download step and tap Save to Gallery. Your card is saved in full resolution.',
     category: 'Cards',
   },
   {
-    id: 'faq-13',
-    question: 'How do I backup my data?',
+    id: 'faq-11',
+    question: 'What does Birthdays Wished mean on the home screen?',
     answer:
-      'Go to Settings > Backup & Restore and tap "Backup Now" to save a JSON backup to your device. Use "Restore Backup" to replace data from a previous backup.',
+      'It shows how many birthdays you have celebrated by sharing wishes through the app. Share a wish to increase your count.',
+    category: 'Birthdays',
+  },
+  {
+    id: 'faq-12',
+    question: 'How does the calendar view work?',
+    answer:
+      'The Calendar tab shows birthdays by month. Tap a date to see who is celebrating and jump to their profile.',
+    category: 'Calendar',
+  },
+  {
+    id: 'faq-13',
+    question: 'How do I back up my data?',
+    answer:
+      'Open Settings, then Backup & Restore. Tap Backup Now to save a file on your device. Use Restore Backup to load it later.',
     category: 'Data',
   },
   {
     id: 'faq-14',
-    question: 'How do I import data with preview?',
+    question: 'Is my data stored securely?',
     answer:
-      'Go to Settings > Backup & Restore > Import Data with Preview. You can review what will be imported before confirming.',
-    category: 'Data',
-  },
-  {
-    id: 'faq-18',
-    question: 'Is my data secure?',
-    answer:
-      'Yes! BirthdayBuddy stores your data locally on your device. Your information never leaves your phone unless you choose to export a backup.',
+      'Your birthdays and profile data stay on your device. Nothing is uploaded unless you choose to export a backup file.',
     category: 'Privacy',
   },
   {
-    id: 'faq-19',
-    question: 'What is the Birthday Streak?',
-    answer:
-      "Your streak counts consecutive days you've used BirthdayBuddy. It resets if you miss a day. Keep it going for achievements!",
-    category: 'Features',
-  },
-  {
-    id: 'faq-22',
+    id: 'faq-15',
     question: 'How do I change my profile photo?',
     answer:
-      'Go to your Profile > Edit Profile and tap on the profile photo. You can take a new photo or choose from your gallery.',
+      'Open Profile, tap Edit Profile, then tap your photo to choose from the gallery or take a new one.',
     category: 'Account',
+  },
+  {
+    id: 'faq-16',
+    question: 'Can I edit someone’s birthday later?',
+    answer:
+      'Yes. Open their profile from People or the calendar, tap Edit, and update their details anytime.',
+    category: 'Birthdays',
+  },
+  {
+    id: 'faq-17',
+    question: 'What if I miss a notification?',
+    answer:
+      'Open the app to see upcoming birthdays on the home screen and calendar. Check that notifications are enabled in Settings.',
+    category: 'Support',
   },
 ];

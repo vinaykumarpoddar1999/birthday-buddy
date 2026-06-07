@@ -46,12 +46,12 @@ export function StatsSection({ remindersToday, streakDays, upcomingThisWeek }: S
             <View style={styles.iconBg}>
               <Flame size={scale(18)} color="#FFFFFF" strokeWidth={2.2} />
             </View>
-            <Text style={styles.cardLabel}>Your Streak</Text>
+            <Text style={styles.cardLabel}>Birthdays Wished</Text>
           </View>
           <View style={styles.streakRow}>
-            <Text style={styles.cardValue}>{streakDays} Days</Text>
+            <Text style={styles.cardValue}>{streakDays}</Text>
           </View>
-          <Text style={styles.cardSubtext}>Keep making birthdays memorable</Text>
+          <Text style={styles.cardSubtext}>Total birthdays you have celebrated so far</Text>
           {/* Decoration */}
           <View style={styles.decorationRight}>
             <TrendingUp size={scale(40)} color="rgba(255,255,255,0.15)" />

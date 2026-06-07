@@ -1,4 +1,5 @@
 import { dailyBirthdayCheckService } from '@/services/notifications/daily-birthday-check.service';
+import { scheduleEngagementReminder } from '@/services/notifications/engagement-reminder.service';
 import { reminderService } from '@/services/reminder/reminder.service';
 import {
   ensureNotificationHandler,
@@ -23,5 +24,10 @@ export async function initializeNotificationSystem(): Promise<void> {
     await dailyBirthdayCheckService.run();
   } catch {
     // Ignore non-critical notification feed errors during boot.
+  }
+  try {
+    await scheduleEngagementReminder();
+  } catch {
+    // Engagement reminders are best-effort.
   }
 }

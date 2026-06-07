@@ -4,6 +4,6 @@ export const ROUTES = {
   homeIndex: '/(tabs)/index',
   onboarding: '/(auth)/onboarding',
   profileSetup: '/(auth)/profile-setup',
-  permissions: '/(auth)/permissions',
+  notificationSettings: '/notification-settings',
   reminderSettings: '/reminder-settings',
 } as const;

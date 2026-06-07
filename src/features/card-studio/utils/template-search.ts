@@ -16,6 +16,7 @@ const OTHER_CATEGORIES: TemplateCategory[] = [
 ];
 
 function matchesCategoryFilter(template: CardTemplate, filter: TemplateCategoryFilter): boolean {
+  if (filter === 'all') return true;
   if (filter === 'love') {
     return template.category === 'romantic' || template.tags.includes('romantic') || template.tags.includes('love');
   }

@@ -1,7 +1,15 @@
 import { router, type Href } from 'expo-router';
-import { Bell, Calendar, Heart, Sparkles, Wand2 } from 'lucide-react-native';
+import { Bell, Calendar, Gift, Sparkles } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Dimensions, FlatList, Pressable, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import {
+  Dimensions,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
@@ -27,36 +35,21 @@ const SLIDES = [
     gradient: ['#7C3AED', '#A855F7'] as [string, string],
     title: 'Never Miss a Birthday',
     description:
-      'Keep every celebration organized in one beautiful place — friends, family, and everyone who matters.',
-    accent: '#EDE9FE',
-    step: '01',
+      'Keep every celebration in one place. Track birthdays for friends, family, and everyone who matters to you.',
   },
   {
     icon: Bell,
     gradient: ['#3B82F6', '#6366F1'] as [string, string],
     title: 'Smart Reminders',
     description:
-      'Get perfectly timed alerts — days ahead or on the morning of — so you are always prepared.',
-    accent: '#DBEAFE',
-    step: '02',
+      'Get friendly alerts days ahead or on the morning of the big day, so you are always ready to celebrate.',
   },
   {
-    icon: Wand2,
+    icon: Gift,
     gradient: ['#EC4899', '#F472B6'] as [string, string],
     title: 'Wishes & Cards',
     description:
-      'Create heartfelt AI wishes and stunning greeting cards that feel personal and unforgettable.',
-    accent: '#FCE7F3',
-    step: '03',
-  },
-  {
-    icon: Heart,
-    gradient: ['#F59E0B', '#FB923C'] as [string, string],
-    title: 'Celebrate Together',
-    description:
-      'Make every birthday feel special with thoughtful messages and moments worth remembering.',
-    accent: '#FEF3C7',
-    step: '04',
+      'Create heartfelt wishes and beautiful greeting cards that feel personal and make every birthday memorable.',
   },
 ];
 
@@ -111,7 +104,18 @@ export function OnboardingScreen() {
 
       <SafeAreaView className="flex-1">
         <Animated.View style={headerStyle} className="flex-row justify-end items-center px-6 pt-4">
-          <Pressable onPress={handleSkip} accessibilityRole="button" className="px-4 py-2 rounded-full bg-surface/80 border border-border/50">
+          <Pressable
+            onPress={handleSkip}
+            accessibilityRole="button"
+            accessibilityLabel="Skip onboarding"
+            className="px-4 py-2 rounded-full bg-surface/90"
+            style={{
+              shadowColor: '#7C3AED',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              elevation: 2,
+            }}>
             <Text className="text-sm text-foreground-secondary font-semibold">Skip</Text>
           </Pressable>
         </Animated.View>
@@ -128,42 +132,38 @@ export function OnboardingScreen() {
             const Icon = item.icon;
             return (
               <View style={{ width }} className="flex-1 items-center justify-center px-8">
-                <Text className="text-[13px] font-bold text-primary/60 tracking-[3px] mb-6">
-                  STEP {item.step}
-                </Text>
-
                 <Animated.View style={floatStyle}>
-                  <LinearGradient
-                    colors={item.gradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    className="h-36 w-36 rounded-[44px] items-center justify-center mb-10"
+                  <View
+                    className="rounded-[44px] mb-10"
                     style={{
                       shadowColor: item.gradient[0],
-                      shadowOffset: { width: 0, height: 14 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 24,
-                      elevation: 12,
+                      shadowOffset: { width: 0, height: 16 },
+                      shadowOpacity: 0.28,
+                      shadowRadius: 28,
+                      elevation: 14,
                     }}>
-                    <Icon size={64} color="#FFFFFF" strokeWidth={1.75} />
-                  </LinearGradient>
+                    <LinearGradient
+                      colors={item.gradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={{
+                        height: 144,
+                        width: 144,
+                        borderRadius: 44,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                      <Icon size={64} color="#FFFFFF" strokeWidth={1.75} />
+                    </LinearGradient>
+                  </View>
                 </Animated.View>
 
                 <Text className="text-[30px] text-foreground font-bold text-center tracking-tight leading-9">
                   {item.title}
                 </Text>
-                <Text className="text-base text-foreground-secondary text-center mt-4 leading-7 px-1">
+                <Text className="text-base text-foreground-secondary text-center mt-4 leading-7 px-2">
                   {item.description}
                 </Text>
-
-                <View className="mt-7 rounded-full px-4 py-2.5" style={{ backgroundColor: item.accent }}>
-                  <View className="flex-row items-center gap-1.5">
-                    <Sparkles size={14} color={item.gradient[0]} />
-                    <Text className="text-[13px] font-bold" style={{ color: item.gradient[0] }}>
-                      Premium celebration experience
-                    </Text>
-                  </View>
-                </View>
               </View>
             );
           }}
@@ -173,7 +173,7 @@ export function OnboardingScreen() {
           {SLIDES.map((_, i) => (
             <View
               key={i}
-              className={`h-2 rounded-full transition-all ${i === index ? 'w-10 bg-primary' : 'w-2 bg-primary/20'}`}
+              className={`h-2 rounded-full ${i === index ? 'w-10 bg-primary' : 'w-2 bg-primary/20'}`}
             />
           ))}
         </View>

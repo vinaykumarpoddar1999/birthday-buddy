@@ -15,9 +15,9 @@ import '../templates';
 
 const TITLES: Record<number, string> = {
   1: 'Choose Template',
-  2: 'Personalize & Design',
+  2: 'Edit',
   3: 'Preview',
-  4: 'Download & Share',
+  4: 'Download',
 };
 
 export function CardStudioScreen() {
@@ -92,6 +92,7 @@ export function CardStudioScreen() {
       <CardStudioHeader
         onBack={handleBack}
         title={TITLES[step]}
+        hideTitleIcon={step === 2}
         showUndoRedo={step === 2}
         onUndo={undo}
         onRedo={redo}

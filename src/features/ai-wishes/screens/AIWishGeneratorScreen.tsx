@@ -13,7 +13,7 @@ import { wishService } from '@/services/wish/wish.service';
 import { useAIWishesStore } from '../store/ai-wishes.store';
 import { registerWishData } from '../engine/wish-generator';
 import { WishHeader } from '../components/WishHeader';
-import { PersonProfileCard } from '../components/PersonProfileCard';
+import { PersonSelectorDropdown } from '../components/PersonSelectorDropdown';
 import { ToneSelector } from '../components/ToneSelector';
 import { LengthSelector } from '../components/LengthSelector';
 import { GenerateButton } from '../components/GenerateButton';
@@ -155,7 +155,11 @@ export function AIWishGeneratorScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-8"
         keyboardShouldPersistTaps="handled">
-        <PersonProfileCard person={person} />
+        <PersonSelectorDropdown
+          people={people}
+          selectedPersonId={resolvedPersonId ?? null}
+          onSelect={setSelectedPersonId}
+        />
 
         <Animated.View entering={FadeInDown.delay(80).duration(400)} className="px-5 mb-1">
           <View className="flex-row items-center gap-2 mb-1">

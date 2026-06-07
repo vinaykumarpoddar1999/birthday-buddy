@@ -1,3 +1,5 @@
+import { peopleService } from '@/services/people/people.service';
+import { wishRepository } from '@/repositories/wish.repository';
 import {
   getBirthdayStats,
   getDaysUntilBirthday,
@@ -9,10 +11,8 @@ import {
   type BirthdayStats,
   type HomeUpcomingCardData,
 } from '@features/people/utils/birthday-utils';
-import { peopleService } from '@/services/people/people.service';
 import type { Person } from '@/types/entities';
 import type { BirthdayEvent, Contact } from '@features/people/types';
-import { activityLogRepository } from '@/repositories/activity-log.repository';
 
 export type HomeInsights = {
   remindersToday: number;
@@ -20,33 +20,9 @@ export type HomeInsights = {
   upcomingThisWeek: number;
 };
 
-function toLocalDayKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function computeUsageStreak(logDates: string[]): number {
-  if (logDates.length === 0) return 0;
-
-  const activeDaySet = new Set(
-    logDates
-      .map((value) => new Date(value))
-      .filter((date) => !Number.isNaN(date.getTime()))
-      .map((date) => toLocalDayKey(date)),
-  );
-
-  let streak = 0;
-  const cursor = new Date();
-  cursor.setHours(0, 0, 0, 0);
-
-  while (activeDaySet.has(toLocalDayKey(cursor))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
-  return streak;
+async function computeBirthdaysWished(): Promise<number> {
+  const history = await wishRepository.findHistory(undefined, 5000);
+  return history.filter((entry) => entry.action === 'shared').length;
 }
 
 export class BirthdayService {
@@ -70,9 +46,9 @@ export class BirthdayService {
   }
 
   async getHomeInsights(): Promise<HomeInsights> {
-    const [people, logs] = await Promise.all([
+    const [people, birthdaysWished] = await Promise.all([
       this.getAllPeople(),
-      activityLogRepository.findRecent(365),
+      computeBirthdaysWished(),
     ]);
 
     const remindersToday = people.filter((person) => {
@@ -84,7 +60,7 @@ export class BirthdayService {
 
     return {
       remindersToday,
-      streakDays: computeUsageStreak(logs.map((log) => log.createdAt)),
+      streakDays: birthdaysWished,
       upcomingThisWeek,
     };
   }

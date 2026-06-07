@@ -337,7 +337,15 @@ export async function scheduleBirthdayReminders(
     time: input.notifyTime ?? reminderSettings.defaultTime,
   }));
 
-  const schedulePairs = [...globalPairs, ...personPairs, { daysBefore: 0, time: reminderSettings.defaultTime }];
+  const schedulePairs: SchedulePair[] = [...globalPairs, ...personPairs];
+
+  const hasSameDayReminder = schedulePairs.some((pair) => pair.daysBefore === 0);
+  if (!hasSameDayReminder) {
+    schedulePairs.push({
+      daysBefore: 0,
+      time: input.notifyTime ?? reminderSettings.defaultTime,
+    });
+  }
 
   try {
     for (const pair of schedulePairs) {

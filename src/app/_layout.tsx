@@ -38,6 +38,7 @@ export default function RootLayout() {
         <Stack.Screen name="reminder-settings" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="reminder-time" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="notification-settings" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="notification-detail" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="search" options={{ animation: 'fade' }} />
         <Stack.Screen name="help-faq" options={{ animation: 'slide_from_right' }} />

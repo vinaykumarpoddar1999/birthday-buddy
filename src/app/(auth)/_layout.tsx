@@ -5,7 +5,6 @@ export default function AuthLayout() {
     <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="profile-setup" />
-      <Stack.Screen name="permissions" />
     </Stack>
   );
 }

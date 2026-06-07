@@ -71,10 +71,9 @@ export function HomeInsightsSection({
           gradient={['#F59E0B', '#F97316', '#EA580C']}
         />
         <InsightCard
-          title="Your Streak"
+          title="Birthdays Wished"
           value={streakDays}
-          valueSuffix=" Days"
-          subtitle="Keep making birthdays memorable"
+          subtitle="Total birthdays you have celebrated so far"
           Icon={Flame}
           gradient={['#A855F7', '#7C3AED', '#6D28D9']}
         />

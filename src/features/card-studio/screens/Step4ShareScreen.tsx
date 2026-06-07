@@ -1,6 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -10,19 +9,11 @@ import {
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { feedback } from '@/shared/feedback';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Check,
-  ClipboardCopy,
-  Download,
-  Plus,
-  Share2,
-} from 'lucide-react-native';
-import * as Sharing from 'expo-sharing';
+import { Check, Download } from 'lucide-react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { cardService } from '@/services/card/card.service';
 
 import { CardStudioPrimaryButton } from '../components/common/CardStudioPrimaryButton';
-import { CardStudioSecondaryButton } from '../components/common/CardStudioSecondaryButton';
 import { CardExportHost } from '../components/preview/CardExportHost';
 import { studioTokens } from '../constants/studio-tokens';
 import { useCardStudioStore } from '../store/card-studio.store';
@@ -43,13 +34,11 @@ export function Step4ShareScreen() {
   const customBackground = useCardStudioStore((s) => s.customBackground);
   const canvasFormat = useCardStudioStore((s) => s.canvasFormat);
   const preFilledPersonId = useCardStudioStore((s) => s.preFilledPersonId);
-  const reset = useCardStudioStore((s) => s.reset);
 
   const exportRef = useRef<ViewShotCaptureHandle>(null);
   const fallbackRef = useRef<View>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [sharing, setSharing] = useState(false);
 
   const capture = useCallback(async () => {
     if (!isCardExportAvailable()) {
@@ -111,55 +100,6 @@ export function Step4ShareScreen() {
     setSaving(false);
   }, [capture, persistCard]);
 
-  const handleShare = useCallback(async () => {
-    setSharing(true);
-    try {
-      const ok = await Sharing.isAvailableAsync();
-      if (!ok) {
-        feedback.error('Not available', 'Sharing is not supported on this device.');
-        setSharing(false);
-        return;
-      }
-      const uri = await capture();
-      if (uri) {
-        const cardUuid = await persistCard(uri);
-        await Sharing.shareAsync(uri, {
-          mimeType: 'image/png',
-          dialogTitle: `Birthday card for ${personalization.recipientName}`,
-        });
-        if (cardUuid) {
-          await cardService.logShared(cardUuid, 'share_sheet');
-        }
-      }
-    } catch (error) {
-      if (__DEV__) console.warn('[Step4Share] share failed:', error);
-      feedback.error('Error', 'Failed to share. Please try again.');
-    }
-    setSharing(false);
-  }, [capture, personalization.recipientName, persistCard]);
-
-  const handleShareMessage = useCallback(async () => {
-    const eventLabel =
-      personalization.eventType === 'anniversary' ? 'Happy Anniversary' : 'Happy Birthday';
-    const msg = [
-      `${eventLabel}, ${personalization.recipientName}!`,
-      personalization.message ? `\n${personalization.message}` : '',
-      personalization.senderName ? `\n\n— ${personalization.senderName}` : '',
-    ].join('');
-
-    try {
-      if (Platform.OS === 'web') {
-        await navigator.clipboard?.writeText(msg);
-        feedback.success('Copied!', 'Message copied to clipboard.');
-      } else {
-        const { Share } = await import('react-native');
-        await Share.share({ message: msg });
-      }
-    } catch {
-      feedback.error('Error', 'Could not share message.');
-    }
-  }, [personalization]);
-
   if (!template) return null;
 
   const { w: cardW, h: cardH } = getCanvasDimensions(canvasFormat);
@@ -192,7 +132,7 @@ export function Step4ShareScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}>
         <Animated.View entering={FadeInDown.duration(400)} className="mx-5 mt-3 mb-3">
-          <View className="rounded-2xl overflow-hidden border border-primary/15">
+          <View className="rounded-2xl overflow-hidden">
             <LinearGradient
               colors={['#EDE9FE', '#FDF2F8', '#EDE9FE']}
               start={{ x: 0, y: 0 }}
@@ -206,7 +146,7 @@ export function Step4ShareScreen() {
                 <View className="flex-1">
                   <Text className="text-[17px] font-bold text-foreground">Your card is ready</Text>
                   <Text className="text-[12px] text-foreground-muted mt-0.5">
-                    Save in HD or share with {personalization.recipientName || 'someone special'}
+                    Save a high-quality copy to your gallery
                   </Text>
                 </View>
               </View>
@@ -255,7 +195,7 @@ export function Step4ShareScreen() {
           </Text>
         </View>
 
-        <View className="px-5 mt-4 gap-3">
+        <View className="px-5 mt-4">
           <CardStudioPrimaryButton
             label={saving ? 'Saving…' : saved ? 'Saved to Gallery' : 'Save to Gallery (HD)'}
             onPress={handleDownload}
@@ -269,39 +209,6 @@ export function Step4ShareScreen() {
               )
             }
           />
-
-          <View className="flex-row gap-3">
-            <CardStudioSecondaryButton
-              label={sharing ? 'Sharing…' : 'Share Image'}
-              onPress={handleShare}
-              disabled={sharing}
-              loading={sharing}
-              className="flex-1"
-              icon={<Share2 size={16} color="#374151" />}
-            />
-            <CardStudioSecondaryButton
-              label="Copy Message"
-              onPress={handleShareMessage}
-              className="flex-1"
-              icon={<ClipboardCopy size={16} color="#374151" />}
-              accessibilityLabel="Share birthday message"
-            />
-          </View>
-
-          <Pressable
-            onPress={() => reset()}
-            className="flex-row items-center justify-center rounded-2xl gap-2 bg-primary/10 border border-primary/20"
-            style={({ pressed }) => ({
-              minHeight: studioTokens.touchMin,
-              paddingVertical: 12,
-              transform: [{ scale: pressed ? 0.97 : 1 }],
-            })}
-            accessibilityRole="button"
-            accessibilityLabel="Create new card">
-            <Plus size={15} color={studioTokens.colors.primary} />
-            <Text className="text-[13px] font-semibold text-primary">Create New Card</Text>
-          </Pressable>
-
         </View>
       </ScrollView>
     </View>
