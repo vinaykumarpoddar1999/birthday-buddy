@@ -45,6 +45,7 @@ export const loveTemplate = buildTemplate({
   id: 'tpl-love',
   name: 'Romantic Rose',
   category: 'romantic',
+  layoutPreset: 'centered',
   tags: ['love', 'romantic', 'valentine', 'rose'],
   background: {
     type: 'gradient',
@@ -83,6 +84,7 @@ export const congratsTemplate = buildTemplate({
   id: 'tpl-congrats',
   name: 'Congratulations',
   category: 'professional',
+  layoutPreset: 'ribbon',
   tags: ['congrats', 'achievement', 'success', 'trophy'],
   background: {
     type: 'gradient',
@@ -218,6 +220,7 @@ export const neonPartyTemplate = buildTemplate({
   id: 'tpl-neon-party',
   name: 'Neon Party',
   category: 'birthday',
+  layoutPreset: 'festive',
   tags: ['birthday', 'neon', 'party', 'vibrant'],
   background: {
     type: 'gradient',

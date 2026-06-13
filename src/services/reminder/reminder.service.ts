@@ -57,8 +57,12 @@ export class ReminderService {
 
     const people = await peopleRepository.findAll(500, 0);
     for (const person of people) {
-      await this.cancelForPersonUuid(person.id);
-      await this.scheduleForPerson(person);
+      try {
+        await this.cancelForPersonUuid(person.id);
+        await this.scheduleForPerson(person);
+      } catch {
+        // Continue scheduling remaining people if one fails.
+      }
     }
 
     await scheduleEngagementReminder();

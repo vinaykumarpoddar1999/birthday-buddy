@@ -1,6 +1,14 @@
 import type { LucideIcon } from 'lucide-react-native';
 
-export type RelationshipType = 'friend' | 'family' | 'colleague' | 'partner' | 'relative';
+export type RelationshipType =
+  | 'friend'
+  | 'family'
+  | 'colleague'
+  | 'partner'
+  | 'relative'
+  | 'girlfriend'
+  | 'boyfriend'
+  | 'other';
 
 export type ContactAction = 'call' | 'message' | 'gift' | 'wish' | 'more';
 

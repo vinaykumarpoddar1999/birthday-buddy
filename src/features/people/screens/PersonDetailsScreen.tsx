@@ -209,28 +209,6 @@ export function PersonDetailsScreen() {
           </View>
         )}
 
-        {(person.favoriteColor || person.favoriteCake || (person.hobbies?.length ?? 0) > 0) && (
-          <View className="bg-surface rounded-2xl border border-border/60 p-4 mb-4">
-            <Text className="text-[13px] font-bold text-foreground mb-2">Preferences</Text>
-            <DetailRow icon={MapPin} label="Favorite Color" value={person.favoriteColor ?? ''} />
-            <DetailRow icon={Cake} label="Favorite Cake" value={person.favoriteCake ?? ''} />
-            {person.hobbies && person.hobbies.length > 0 && (
-              <View className="pt-2">
-                <Text className="text-[11px] text-foreground-secondary font-semibold uppercase tracking-wide mb-2">
-                  Hobbies
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {person.hobbies.map((hobby) => (
-                    <View key={hobby} className="bg-primary/10 rounded-full px-3 py-1">
-                      <Text className="text-[12px] font-semibold text-primary">{hobby}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-        )}
-
         {person.notes ? (
           <View className="bg-surface rounded-2xl border border-border/60 p-4">
             <Text className="text-[13px] font-bold text-foreground mb-2">Notes</Text>

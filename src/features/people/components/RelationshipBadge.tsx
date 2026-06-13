@@ -8,6 +8,9 @@ const theme: Record<RelationshipType, { bg: string; text: string; label: string 
   colleague: { bg: 'bg-violet-50', text: 'text-violet-600', label: 'Colleague' },
   partner: { bg: 'bg-rose-50', text: 'text-rose-600', label: 'Partner' },
   relative: { bg: 'bg-amber-50', text: 'text-amber-600', label: 'Relative' },
+  girlfriend: { bg: 'bg-rose-50', text: 'text-rose-600', label: 'Girlfriend' },
+  boyfriend: { bg: 'bg-blue-50', text: 'text-blue-600', label: 'Boyfriend' },
+  other: { bg: 'bg-gray-50', text: 'text-gray-600', label: 'Other' },
 };
 
 export function RelationshipBadge({ relationship }: { relationship: RelationshipType }) {

@@ -13,10 +13,7 @@ npm install
 npm start
 ```
 
-No Supabase environment variables are required for v1. Optional analytics keys:
-
-- `EXPO_PUBLIC_POSTHOG_API_KEY`
-- `EXPO_PUBLIC_POSTHOG_HOST`
+No external environment variables are required. The app runs fully offline with on-device SQLite storage.
 
 ## Architecture
 
@@ -30,7 +27,6 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md).
 |---------|---------|
 | `npm start` | Start Expo dev server |
 | `npm run typecheck` | TypeScript check |
-| `npm test` | Jest unit tests |
 | `npm run lint` | ESLint |
 
 ## Future cloud sync

@@ -53,6 +53,9 @@ const APP_RELATIONSHIP_POOLS: Record<string, BirthdayWishCategory[]> = {
   partner: ['Wife', 'Husband', 'Girlfriend', 'Boyfriend'],
   colleague: ['Colleague', 'Boss'],
   relative: ['Brother', 'Sister', 'Mother', 'Father', 'Friend'],
+  girlfriend: ['Girlfriend'],
+  boyfriend: ['Boyfriend'],
+  other: ['Friend', 'Best Friend'],
 };
 
 function pickRandom<T>(items: T[]): T {

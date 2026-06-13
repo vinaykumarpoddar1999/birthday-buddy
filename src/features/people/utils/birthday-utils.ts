@@ -155,6 +155,9 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
   colleague: 'Colleague',
   partner: 'Partner',
   relative: 'Relative',
+  girlfriend: 'Girlfriend',
+  boyfriend: 'Boyfriend',
+  other: 'Other',
 };
 
 export function formatRelationship(relationship: string): string {

@@ -4,11 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { scheduleEngagementReminder } from '@/services/notifications/engagement-reminder.service';
 import { registerForNotifications } from '@/services/notifications/notification-init.utils';
 import { getNotificationsModule, isExpoGoNotifications } from '@/services/notifications/notifications-api';
 import { isNotificationPermissionGranted } from '@/services/notifications/permission-utils';
 import { reminderService } from '@/services/reminder/reminder.service';
-import { scheduleEngagementReminder } from '@/services/notifications/engagement-reminder.service';
 
 import { useProfileStore } from '../store/profile.store';
 
@@ -173,16 +173,6 @@ export const NotificationSettingsScreen = () => {
           </Pressable>
         ) : null}
 
-        <Pressable
-          onPress={() => router.push('/reminder-settings')}
-          className="mt-4 bg-surface rounded-2xl px-4 py-4"
-          accessibilityRole="button"
-          accessibilityLabel="Open reminder settings">
-          <Text className="text-[15px] font-medium text-foreground">Reminder schedule</Text>
-          <Text className="text-[12px] text-foreground-secondary mt-1">
-            Choose when and how often you receive birthday reminders.
-          </Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

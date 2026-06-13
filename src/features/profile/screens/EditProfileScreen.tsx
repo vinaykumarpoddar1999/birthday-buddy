@@ -22,7 +22,6 @@ const GENDERS = ['male', 'female', 'other'] as const;
 export const EditProfileScreen = () => {
   const profile = useProfileStore((s) => s.profile);
   const updateProfile = useProfileStore((s) => s.updateProfile);
-  const profileCompletion = useProfileStore((s) => s.profileCompletion);
   const { toast, showError } = useFeedback();
 
   const [name, setName] = useState(profile.fullName);
@@ -86,12 +85,6 @@ export const EditProfileScreen = () => {
               </View>
             </View>
           </Pressable>
-          <View className="flex-row items-center mt-3 gap-2">
-            <View className="h-1.5 w-20 bg-border/40 rounded-full overflow-hidden">
-              <View className="h-full bg-primary rounded-full" style={{ width: `${profileCompletion}%` }} />
-            </View>
-            <Text className="text-[11px] font-bold text-primary">{profileCompletion}% complete</Text>
-          </View>
         </View>
 
         {profile.isPremium && (

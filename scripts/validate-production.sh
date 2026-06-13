@@ -65,19 +65,8 @@ check_json_field "eas.json" '"production-apk"'
 check_json_field "eas.json" '"autoIncrement"'
 echo ""
 
-echo "5. Checking environment configuration..."
-if [ -f ".env.example" ]; then
-  echo -e "${GREEN}${PASS}${NC} Environment example exists"
-else
-  echo -e "${RED}${FAIL}${NC} .env.example missing"
-  ISSUES=$((ISSUES+1))
-fi
-
-if [ -f ".env.production" ]; then
-  echo -e "${GREEN}${PASS}${NC} .env.production exists"
-else
-  echo -e "${YELLOW}⚠${NC}  .env.production not found (will use app defaults)"
-fi
+echo "5. Checking offline configuration..."
+echo -e "${GREEN}${PASS}${NC} No external environment files required for offline build"
 echo ""
 
 echo "6. Checking Node/Expo installation..."

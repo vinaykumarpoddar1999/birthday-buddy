@@ -106,7 +106,8 @@
           "android": {
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,
-            "enableProguardInReleaseBuilds": true
+            "enableProguardInReleaseBuilds": true,
+            "extraProguardRules": "-keep class expo.modules.notifications.** { *; }\n-keep class com.google.android.gms.common.** { *; }\n-dontwarn expo.modules.notifications.**"
           }
         }
       ]

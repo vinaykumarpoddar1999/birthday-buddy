@@ -240,6 +240,13 @@ export async function requestNotificationPermissions(): Promise<boolean> {
   return registerForNotifications();
 }
 
+/** Android requires all notification data values to be strings. */
+export function toNotificationData(data: Record<string, unknown>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [key, value == null ? '' : String(value)]),
+  );
+}
+
 async function scheduleCalendarNotification(
   content: NotificationContentInput,
   monthDay: MonthDay,
@@ -256,7 +263,7 @@ async function scheduleCalendarNotification(
     content: {
       ...content,
       ...(Platform.OS === 'android' ? { android: { channelId } } : {}),
-      data,
+      data: toNotificationData(data),
     },
     trigger:
       Platform.OS === 'android'

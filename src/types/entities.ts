@@ -12,6 +12,9 @@ export const relationshipSchema = z.enum([
   'colleague',
   'partner',
   'relative',
+  'girlfriend',
+  'boyfriend',
+  'other',
 ]);
 export type RelationshipType = z.infer<typeof relationshipSchema>;
 

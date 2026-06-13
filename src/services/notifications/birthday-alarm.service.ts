@@ -6,7 +6,7 @@ import {
   stopBirthdayAlarmAudio,
 } from './birthday-alarm-audio.service';
 import { getNotificationsModule } from './notifications-api';
-import { BIRTHDAY_ALARM_CATEGORY } from './local-notifications.service';
+import { BIRTHDAY_ALARM_CATEGORY, toNotificationData } from './local-notifications.service';
 
 const SNOOZE_ACTION_ID = 'snooze-1h';
 const ALARM_VIBRATION_PATTERN = [0, 800, 400, 800, 400, 800, 400, 1200];
@@ -70,7 +70,7 @@ export async function snoozeBirthdayAlarm(contactId: string, contactName: string
       body: 'Snoozed reminder — time to celebrate!',
       sound: 'default',
       categoryIdentifier: BIRTHDAY_ALARM_CATEGORY,
-      data: { contactId, contactName, type: 'alarm', alarm: true },
+      data: toNotificationData({ contactId, contactName, type: 'alarm', alarm: true }),
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -83,8 +83,8 @@ export function parseAlarmPayload(
   data: Record<string, unknown> | undefined,
 ): ActiveAlarm | null {
   if (!data) return null;
-  const isAlarm =
-    data.type === 'alarm' || (data.type === 'day_of' && data.alarm === true);
+  const alarmFlag = data.alarm === true || data.alarm === 'true';
+  const isAlarm = data.type === 'alarm' || (data.type === 'day_of' && alarmFlag);
   if (!isAlarm) return null;
   const contactId = typeof data.contactId === 'string' ? data.contactId : '';
   const contactName = typeof data.contactName === 'string' ? data.contactName : 'Someone special';

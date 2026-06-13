@@ -91,8 +91,6 @@ export class BackupService {
     const json = await FileSystem.readAsStringAsync(uri);
     await importJsonSnapshot(json);
     await hydrateAppStores();
-    const { reminderService } = await import('@/services/reminder/reminder.service');
-    await reminderService.rescheduleAll();
     await queryClient.invalidateQueries({ queryKey: peopleQueryKeys.all });
     await queryClient.invalidateQueries({ queryKey: ['calendar'] });
     await queryClient.invalidateQueries({ queryKey: ['wish-history'] });
@@ -137,8 +135,6 @@ export class BackupService {
     const json = await FileSystem.readAsStringAsync(uri);
     await importJsonSnapshot(json);
     await hydrateAppStores();
-    const { reminderService } = await import('@/services/reminder/reminder.service');
-    await reminderService.rescheduleAll();
     await queryClient.invalidateQueries({ queryKey: peopleQueryKeys.all });
     await queryClient.invalidateQueries({ queryKey: ['calendar'] });
     await queryClient.invalidateQueries({ queryKey: ['wish-history'] });

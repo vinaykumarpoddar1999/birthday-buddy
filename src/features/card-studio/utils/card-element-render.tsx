@@ -124,7 +124,7 @@ export function CardIconContent({
 function computeNumberOfLines(content: string, boxHeight: number, lineHeight: number, padding: number): number {
   const explicitLines = Math.max(1, content.split('\n').length);
   const maxLinesFromHeight = Math.max(1, Math.floor((boxHeight - padding * 2) / lineHeight));
-  return Math.min(explicitLines, maxLinesFromHeight);
+  return Math.max(explicitLines, maxLinesFromHeight);
 }
 
 export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: number }) {
@@ -138,9 +138,11 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
   const strokeWidth = toFiniteNumber(el.strokeWidth, 1, 0);
   const boxHeight = toFiniteNumber(el.height, 24, 1) * scale;
   const boxWidth = toFiniteNumber(el.width, 24, 1) * scale;
-  const padding = Math.max(4, fontSize * 0.08);
+  const padding = Math.max(6, fontSize * 0.1);
   const numberOfLines = computeNumberOfLines(content, boxHeight, lineHeight, padding);
   const textWidth = Math.max(1, boxWidth - padding * 2);
+  const isPlaceholder = Boolean(el.isPlaceholder);
+  const isFixedSizeText = el.textPreset === 'headline' || el.textPreset === 'subheading';
 
   if (shouldRenderContentAsIcon(content)) {
     return (
@@ -179,9 +181,9 @@ export function CardTextElement({ el, scale = 1 }: { el: CardElement; scale?: nu
   };
 
   const textProps = {
-    adjustsFontSizeToFit: true as const,
-    minimumFontScale: 0.4,
-    numberOfLines,
+    adjustsFontSizeToFit: !isFixedSizeText,
+    minimumFontScale: isPlaceholder ? 0.35 : isFixedSizeText ? 1 : 0.45,
+    numberOfLines: isFixedSizeText ? Math.max(1, content.split('\n').length) : numberOfLines,
     ellipsizeMode: 'tail' as const,
     allowFontScaling: false,
   };

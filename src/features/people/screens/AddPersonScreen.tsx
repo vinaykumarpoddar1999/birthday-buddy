@@ -19,9 +19,11 @@ import {
   X,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import type { FieldErrors } from 'react-hook-form';
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -29,7 +31,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { ProfileAvatar } from '@shared/ui/ProfileAvatar';
@@ -47,7 +49,16 @@ const schema = z.object({
   nickname: z.string().optional(),
   gender: z.enum(['male', 'female']),
   birthDate: z.string().min(1, 'Date of birth is required'),
-  relationship: z.enum(['friend', 'family', 'colleague', 'partner', 'relative']),
+  relationship: z.enum([
+    'friend',
+    'family',
+    'colleague',
+    'partner',
+    'relative',
+    'girlfriend',
+    'boyfriend',
+    'other',
+  ]),
   phone: z.string().optional(),
   email: z.string().optional(),
 });
@@ -93,11 +104,14 @@ function personToFormValues(person: Person): FormValues {
 }
 
 const RELATIONSHIPS: { value: RelationshipType; label: string }[] = [
-  { value: 'friend', label: 'Best Friend' },
+  { value: 'friend', label: 'Friend' },
+  { value: 'girlfriend', label: 'Girlfriend' },
+  { value: 'boyfriend', label: 'Boyfriend' },
   { value: 'family', label: 'Family' },
   { value: 'colleague', label: 'Colleague' },
   { value: 'partner', label: 'Partner' },
   { value: 'relative', label: 'Relative' },
+  { value: 'other', label: 'Other' },
 ];
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -224,37 +238,59 @@ function OptionPickerModal({
   visible: boolean; title: string; options: string[];
   selected: string; onSelect: (v: string) => void; onClose: () => void;
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-3xl p-5 max-h-[60%]">
-          <View className="flex-row items-center justify-between mb-4">
+      <Pressable className="flex-1 bg-black/50 justify-end" onPress={onClose}>
+        <Pressable
+          onPress={(event) => event.stopPropagation()}
+          className="bg-white rounded-t-3xl"
+          style={{ maxHeight: '75%', paddingBottom: Math.max(insets.bottom, 16) }}>
+          <View className="items-center pt-3 pb-2">
+            <View className="h-1 w-10 rounded-full bg-gray-200" />
+          </View>
+          <View className="flex-row items-center justify-between px-5 pb-3">
             <Text className="text-title font-bold text-foreground">{title}</Text>
-            <Pressable onPress={onClose} className="h-8 w-8 rounded-full bg-gray-100 items-center justify-center">
+            <Pressable
+              onPress={onClose}
+              className="h-8 w-8 rounded-full bg-gray-100 items-center justify-center"
+              accessibilityRole="button"
+              accessibilityLabel="Close picker">
               <X size={18} color="#6B7280" />
             </Pressable>
           </View>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {options.map((opt) => (
-              <Pressable
-                key={opt}
-                onPress={() => { onSelect(opt); onClose(); }}
-                className={`flex-row items-center justify-between py-3.5 px-4 rounded-xl mb-1.5 ${
-                  selected === opt ? 'bg-primary/10' : ''
-                }`}>
-                <Text className={`text-[15px] ${selected === opt ? 'text-primary font-semibold' : 'text-foreground'}`}>
-                  {opt}
-                </Text>
-                {selected === opt && (
-                  <View className="h-5 w-5 rounded-full bg-primary items-center justify-center">
-                    <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                  </View>
-                )}
-              </Pressable>
-            ))}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8 }}>
+            {options.map((opt) => {
+              const isSelected = selected === opt;
+              return (
+                <Pressable
+                  key={opt}
+                  onPress={() => { onSelect(opt); onClose(); }}
+                  className={`flex-row items-center justify-between py-4 px-4 rounded-2xl mb-2 border ${
+                    isSelected ? 'bg-primary/10 border-primary/30' : 'bg-gray-50 border-gray-100'
+                  }`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}>
+                  <Text className={`text-[16px] ${isSelected ? 'text-primary font-bold' : 'text-foreground font-medium'}`}>
+                    {opt}
+                  </Text>
+                  {isSelected ? (
+                    <View className="h-6 w-6 rounded-full bg-primary items-center justify-center">
+                      <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                    </View>
+                  ) : (
+                    <View className="h-6 w-6 rounded-full border border-gray-200" />
+                  )}
+                </Pressable>
+              );
+            })}
           </ScrollView>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -295,6 +331,8 @@ export function AddPersonScreen() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRelationshipPicker, setShowRelationshipPicker] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const {
     control, handleSubmit, watch, setValue, getValues, reset,
@@ -365,6 +403,13 @@ export function AddPersonScreen() {
     if (!result.canceled && result.assets[0]) setProfileImage(result.assets[0].uri);
   }, []);
 
+  const onInvalid = useCallback((formErrors: FieldErrors<FormValues>) => {
+    const firstError = Object.values(formErrors).find((e) => e?.message);
+    const message = firstError?.message ?? 'Please complete all required fields.';
+    feedback.error('Missing information', String(message));
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
+
   const onSubmit = useCallback(
     async (data: FormValues) => {
       if (eventType === 'custom' && !customEventName.trim()) {
@@ -372,58 +417,66 @@ export function AddPersonScreen() {
         return;
       }
 
-      const defaultReminderDay = reminderSettings.reminderDaysBefore[0] ?? 3;
-      const defaultReminderTime = reminderSettings.defaultTime;
+      setSaving(true);
+      try {
+        const defaultReminderDay = reminderSettings.reminderDaysBefore[0] ?? 3;
+        const defaultReminderTime = reminderSettings.defaultTime;
 
-      const payload = {
-        fullName: data.fullName,
-        nickname: data.nickname,
-        gender: data.gender as Gender,
-        birthDate: data.birthDate,
-        relationship: data.relationship as RelationshipType,
-        phone: data.phone,
-        email: data.email,
-        avatarUri: profileImage ?? undefined,
-        favoriteColor: '',
-        favoriteCake: '',
-        hobbies: [] as string[],
-        notes: '',
-        reminderDaysBefore: defaultReminderDay,
-        reminderTime: defaultReminderTime,
-        repeatYearly: true,
-        eventType: mapEventType(eventType),
-        customEventName: eventType === 'custom' ? customEventName.trim() : undefined,
-      };
+        const payload = {
+          fullName: data.fullName.trim(),
+          nickname: data.nickname?.trim(),
+          gender: data.gender as Gender,
+          birthDate: data.birthDate,
+          relationship: data.relationship as RelationshipType,
+          phone: data.phone?.trim(),
+          email: data.email?.trim(),
+          avatarUri: profileImage ?? undefined,
+          favoriteColor: '',
+          favoriteCake: '',
+          hobbies: [] as string[],
+          notes: '',
+          reminderDaysBefore: defaultReminderDay,
+          reminderTime: defaultReminderTime,
+          repeatYearly: true,
+          eventType: mapEventType(eventType),
+          customEventName: eventType === 'custom' ? customEventName.trim() : undefined,
+        };
 
-      if (isEditing && personId) {
-        await updatePerson({ id: personId, ...payload });
-        feedback.success('Person Updated', `${data.fullName} has been saved.`);
+        if (isEditing && personId) {
+          await updatePerson({ id: personId, ...payload });
+          feedback.success('Person Updated', `${data.fullName} has been saved.`);
 
-        const nextIndex = queueIndex + 1;
-        if (isQueueFlow && nextIndex < queueIdList.length) {
-          router.replace({
-            pathname: '/add-person',
-            params: {
-              personId: queueIdList[nextIndex],
-              queueIds,
-              queueIndex: String(nextIndex),
-            },
-          });
+          const nextIndex = queueIndex + 1;
+          if (isQueueFlow && nextIndex < queueIdList.length) {
+            router.replace({
+              pathname: '/add-person',
+              params: {
+                personId: queueIdList[nextIndex],
+                queueIds,
+                queueIndex: String(nextIndex),
+              },
+            });
+            return;
+          }
+
+          if (isQueueFlow) {
+            router.replace('/(tabs)/contacts');
+            return;
+          }
+
+          router.back();
           return;
         }
 
-        if (isQueueFlow) {
-          router.replace('/(tabs)/contacts');
-          return;
-        }
-
+        await addPerson(payload);
+        feedback.success('Person Added', `${data.fullName} has been added.`);
         router.back();
-        return;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+        feedback.error('Could not save', message);
+      } finally {
+        setSaving(false);
       }
-
-      await addPerson(payload);
-      feedback.success('Person Added', `${data.fullName} has been added.`);
-      router.back();
     },
     [
       addPerson,
@@ -473,6 +526,7 @@ export function AddPersonScreen() {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         className="flex-1"
         contentContainerClassName="pb-10"
         showsVerticalScrollIndicator={false}
@@ -632,7 +686,7 @@ export function AddPersonScreen() {
                 render={({ field: { onChange, value, onBlur } }) => (
                   <TextInput
                     value={value} onChangeText={onChange} onBlur={onBlur}
-                    placeholder="+91 98765 43210"
+                    placeholder=""
                     placeholderTextColor="#C4B5FD"
                     keyboardType="phone-pad"
                     className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-foreground"
@@ -709,18 +763,26 @@ export function AddPersonScreen() {
               <Text className="text-[15px] font-bold text-foreground">Cancel</Text>
             </Pressable>
             <Pressable
-              onPress={handleSubmit(onSubmit)}
-              className="flex-[2] rounded-2xl py-4 items-center overflow-hidden"
-              accessibilityRole="button">
+              onPress={handleSubmit(onSubmit, onInvalid)}
+              disabled={saving}
+              className={`flex-[2] rounded-2xl overflow-hidden ${saving ? 'opacity-70' : ''}`}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: saving }}>
               <LinearGradient
                 colors={['#8B5CF6', '#7C3AED']}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-              />
-              <View className="flex-row items-center gap-2">
-                <Check size={16} color="#FFFFFF" strokeWidth={2.5} />
-                <Text className="text-[15px] font-bold text-white">Save Person</Text>
-              </View>
+                className="py-4 items-center justify-center">
+                <View className="flex-row items-center gap-2">
+                  {saving ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Check size={16} color="#FFFFFF" strokeWidth={2.5} />
+                  )}
+                  <Text className="text-[15px] font-bold text-white">
+                    {saving ? 'Saving...' : 'Save Person'}
+                  </Text>
+                </View>
+              </LinearGradient>
             </Pressable>
           </View>
         </View>
