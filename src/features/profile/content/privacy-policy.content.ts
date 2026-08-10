@@ -12,32 +12,32 @@ export const PRIVACY_POLICY_SECTIONS: LegalSection[] = [
   {
     title: 'Data We Collect',
     content:
-      'We collect information you provide directly, such as your name, email, profile photo, birthday entries, reminder preferences, and feedback you submit. We may also collect device identifiers, app version, and usage analytics to improve reliability and features. Contact and calendar data is only accessed when you explicitly grant permission.',
+      'We collect information you provide directly, such as your name, email (optional), profile photo, birthday entries, reminder preferences, cards, wishes, and feedback you submit. The app stores a device identifier locally to support backups and database integrity. Contact data is only accessed when you explicitly grant permission to import birthdays. We do not collect usage analytics or advertising identifiers in the current offline release.',
   },
   {
     title: 'How We Use Your Data',
     content:
-      'Your data is used to deliver core features: storing birthdays, scheduling reminders, generating AI wishes and cards, syncing optional calendar events, and personalizing your experience. We do not sell your personal information. Aggregated, anonymized data may be used to understand app performance and usage trends.',
+      'Your data is used to deliver core features: storing birthdays, scheduling reminders, generating wishes and cards, and personalizing your experience on your device. We do not sell your personal information. Data stays on your device unless you choose to export or share it.',
   },
   {
     title: 'Data Storage & Security',
     content:
-      'Account credentials and sensitive tokens are stored using secure on-device storage (Expo Secure Store). Birthday and profile data may be stored locally and, when you sign in, synced with our backend. We apply industry-standard safeguards including encryption in transit (HTTPS) and access controls on our servers.',
+      'BirthdayBuddy is offline-first. Profile and birthday data are stored locally in an on-device SQLite database. Sensitive credentials and encryption keys use Expo Secure Store. Backups you create are saved to a file you control. When you open external links (privacy policy, terms, support), those requests use HTTPS.',
   },
   {
     title: 'Permissions',
     content:
-      'The app may request notifications (birthday reminders), contacts (import birthdays), calendar (sync events), camera and photo library (profile and card images), and biometric authentication (optional unlock). You can revoke permissions anytime in your device settings; some features may be limited without them.',
+      'The app may request notifications (birthday reminders and alarms), contacts (import birthdays), camera and photo library (profile and card images). Calendar sync settings are stored locally; native calendar access is only used when you enable sync in a future update. You can revoke permissions anytime in device settings; some features may be limited without them.',
   },
   {
     title: 'Third-Party Services',
     content:
-      'We use trusted providers for authentication, cloud storage, analytics, and AI generation. These partners process data only as needed to provide their service and are bound by contractual privacy obligations. Links to external sites are not covered by this policy.',
+      'The offline release does not send your birthday data to third-party servers. Optional links open our website for legal documents and support email. If we add cloud sync or AI features in a future update, we will update this policy and the Play Store Data Safety section before enabling them.',
   },
   {
     title: 'Your Rights',
     content:
-      'You may access, update, or delete your profile data from within the app. You can export your data, disable notifications, sign out, or permanently delete your account from Privacy & Security settings. Depending on your region, you may have additional rights to request access, correction, or deletion by contacting support@birthdaybuddy.app.',
+      'You may access, update, or delete your profile data from within the app. You can export your data, disable notifications, or wipe all local data from Backup & Restore or Privacy & Security settings. For questions or deletion requests, contact support@birthdaybuddy.app.',
   },
   {
     title: 'Children\'s Privacy',

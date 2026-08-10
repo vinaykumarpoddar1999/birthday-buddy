@@ -394,11 +394,11 @@ export function AddPersonScreen() {
     if (source === 'camera') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') { feedback.error('Permission needed', 'Camera access is required.'); return; }
-      result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+      result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8, mediaTypes: ['images'] });
     } else {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') { feedback.error('Permission needed', 'Photo library access is required.'); return; }
-      result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+      result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8, mediaTypes: ['images'] });
     }
     if (!result.canceled && result.assets[0]) setProfileImage(result.assets[0].uri);
   }, []);

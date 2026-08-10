@@ -1,5 +1,5 @@
 #!/bin/bash
-# Production Build Validation Checklist
+# Production Build Validation Checklist (Expo managed workflow)
 # Run this before every production build
 
 echo "==============================================="
@@ -11,11 +11,10 @@ PASS="✓"
 FAIL="✗"
 ISSUES=0
 
-# Color codes
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 check_file() {
   if [ -f "$1" ]; then
@@ -46,22 +45,21 @@ check_file "babel.config.js"
 check_file "tsconfig.json"
 echo ""
 
-echo "2. Checking Android configuration..."
-check_file "android/gradle.properties"
-check_file "android/app/build.gradle"
-check_file "android/app/src/main/AndroidManifest.xml"
+echo "2. Checking Expo managed Android settings..."
+check_json_field "app.json" '"package"'
+check_json_field "app.json" "enableMinifyInReleaseBuilds"
+check_json_field "app.json" "targetSdkVersion"
+check_json_field "app.json" "expo-secure-store"
 echo ""
 
 echo "3. Checking app.json production settings..."
 check_json_field "app.json" "runtimeVersion"
 check_json_field "app.json" '"updates"'
-check_json_field "app.json" '"versionCode"'
-check_json_field "app.json" '"package"'
 echo ""
 
 echo "4. Checking eas.json profiles..."
 check_json_field "eas.json" '"production"'
-check_json_field "eas.json" '"production-apk"'
+check_json_field "eas.json" '"preview"'
 check_json_field "eas.json" '"autoIncrement"'
 echo ""
 
@@ -104,16 +102,7 @@ else
 fi
 echo ""
 
-echo "8. Checking Android keystore..."
-if [ -f "android/app/birthday-buddy-release.keystore" ]; then
-  echo -e "${GREEN}${PASS}${NC} Production keystore found"
-else
-  echo -e "${YELLOW}⚠${NC}  Production keystore not found (required for builds)"
-  echo "     Run: keytool -genkeypair -v -storetype PKCS12 -keystore android/app/birthday-buddy-release.keystore..."
-fi
-echo ""
-
-echo "9. TypeScript check..."
+echo "8. TypeScript check..."
 if npm run typecheck 2>/dev/null; then
   echo -e "${GREEN}${PASS}${NC} TypeScript compilation successful"
 else
@@ -127,8 +116,8 @@ if [ $ISSUES -eq 0 ]; then
   echo -e "${GREEN}All checks passed! Ready for production build.${NC}"
   echo ""
   echo "Next steps:"
-  echo "1. Run: eas build --platform android --profile production"
-  echo "2. Or run: eas build --platform android --profile production-apk"
+  echo "1. Preview APK: eas build --platform android --profile preview"
+  echo "2. Play Store AAB: eas build --platform android --profile production"
   exit 0
 else
   echo -e "${RED}$ISSUES issue(s) found. Please fix before proceeding.${NC}"

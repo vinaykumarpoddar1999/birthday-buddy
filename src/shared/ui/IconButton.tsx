@@ -8,8 +8,8 @@ export type IconButtonProps = PressableProps & {
   badge?: number;
 };
 
-const BTN_PX: Record<'sm' | 'md', number> = { sm: 36, md: 44 };
-const ICON_PX: Record<'sm' | 'md', number> = { sm: 18, md: 20 };
+const BTN_PX: Record<'sm' | 'md', number> = { sm: 48, md: 48 };
+const ICON_PX: Record<'sm' | 'md', number> = { sm: 20, md: 22 };
 
 export function IconButton({
   icon: Icon,

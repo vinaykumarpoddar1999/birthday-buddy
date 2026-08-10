@@ -23,6 +23,7 @@ export function useProfileImagePicker(onImageSelected: (uri: string | null) => v
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.85,
+          mediaTypes: ['images'],
         });
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -34,6 +35,7 @@ export function useProfileImagePicker(onImageSelected: (uri: string | null) => v
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.85,
+          mediaTypes: ['images'],
         });
       }
 

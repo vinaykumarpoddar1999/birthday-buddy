@@ -1,18 +1,15 @@
 import { router } from 'expo-router';
-import { ArrowLeft, FileText, Shield } from 'lucide-react-native';
+import { FileText, Shield } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { ScreenBackButton } from '@/shared/ui/ScreenBackButton';
 
 export const PrivacySecurityScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="flex-row items-center px-5 py-3">
-        <Pressable
-          onPress={() => router.back()}
-          className="mr-3 h-10 w-10 rounded-full bg-surface border border-border items-center justify-center"
-          accessibilityRole="button">
-          <ArrowLeft size={20} color="#111827" />
-        </Pressable>
+        <ScreenBackButton />
         <Text className="text-title text-foreground font-bold">Privacy & Security</Text>
       </View>
 

@@ -49,10 +49,10 @@ export class WishService {
     const text = generated.text?.trim()
       ? generated.text
       : formatGeneratedWishText(catalogFallback, {
-          personName,
-          personalContext: params.personalContext,
-          language: params.language ?? 'english',
-        });
+        personName,
+        personalContext: params.personalContext,
+        language: params.language ?? 'english',
+      });
     return { ...generated, text, originalText: text };
   }
 

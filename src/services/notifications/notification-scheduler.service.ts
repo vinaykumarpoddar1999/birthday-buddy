@@ -1,3 +1,4 @@
+import { registerNotifeeAlarmListeners } from '@/services/notifications/notifee-alarm.service';
 import { dailyBirthdayCheckService } from '@/services/notifications/daily-birthday-check.service';
 import { scheduleEngagementReminder } from '@/services/notifications/engagement-reminder.service';
 import { reminderService } from '@/services/reminder/reminder.service';
@@ -9,6 +10,7 @@ import {
 export const BACKGROUND_BIRTHDAY_TASK = 'background-birthday-check';
 
 export async function initializeNotificationSystem(): Promise<void> {
+  registerNotifeeAlarmListeners();
   ensureNotificationHandler();
   try {
     await registerForNotifications();

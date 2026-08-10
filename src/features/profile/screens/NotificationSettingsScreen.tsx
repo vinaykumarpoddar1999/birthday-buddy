@@ -1,5 +1,4 @@
-import { router } from 'expo-router';
-import { ArrowLeft, Bell } from 'lucide-react-native';
+import { Bell } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +8,7 @@ import { registerForNotifications } from '@/services/notifications/notification-
 import { getNotificationsModule, isExpoGoNotifications } from '@/services/notifications/notifications-api';
 import { isNotificationPermissionGranted } from '@/services/notifications/permission-utils';
 import { reminderService } from '@/services/reminder/reminder.service';
+import { ScreenBackButton } from '@/shared/ui/ScreenBackButton';
 
 import { useProfileStore } from '../store/profile.store';
 
@@ -96,13 +96,7 @@ export const NotificationSettingsScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="flex-row items-center px-5 py-3">
-        <Pressable
-          onPress={() => router.back()}
-          className="mr-3 h-10 w-10 rounded-full bg-surface items-center justify-center"
-          accessibilityRole="button"
-          accessibilityLabel="Go back">
-          <ArrowLeft size={20} color="#111827" />
-        </Pressable>
+        <ScreenBackButton className="border-0 bg-transparent" />
         <Text className="text-title text-foreground font-bold">Notification Settings</Text>
       </View>
 

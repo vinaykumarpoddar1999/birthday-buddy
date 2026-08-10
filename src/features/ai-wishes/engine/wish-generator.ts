@@ -194,7 +194,7 @@ export function generateWish(params: GenerateWishParams): GeneratedWish {
   if (pool.length === 0) {
     pool = [
       {
-        id: 'fallback-1', text: `Happy Birthday, {{name}}! Wishing you a day filled with love, laughter, and all the happiness in the world. May this year bring you closer to all your dreams!`, relationship:'general',
+        id: 'fallback-1', text: `Happy Birthday, {{name}}! Wishing you a day filled with love, laughter, and all the happiness in the world. May this year bring you closer to all your dreams!`, relationship: 'general',
         lengthCategory: 'medium',
       },
     ];
